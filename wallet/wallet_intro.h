@@ -34,7 +34,7 @@ private:
 	void setupControls();
 
 	const std::unique_ptr<Ui::RpWidget> _widget;
-	const Mode _mode = Mode::Standalone;
+	//const Mode _mode = Mode::Standalone;
 
 	rpl::event_stream<Action> _actionRequests;
 

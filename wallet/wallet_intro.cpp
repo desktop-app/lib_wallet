@@ -13,11 +13,16 @@
 #include "ui/widgets/buttons.h"
 #include "styles/style_wallet.h"
 
+void wallet_InitResources() {
+	Q_INIT_RESOURCE(wallet);
+}
+
 namespace Wallet {
 
 Intro::Intro(not_null<QWidget*> parent, Mode mode)
-: _widget(std::make_unique<Ui::RpWidget>(parent))
-, _mode(mode) {
+: _widget(std::make_unique<Ui::RpWidget>(parent)) {
+//, _mode(mode) {
+	wallet_InitResources();
 	setupControls();
 	_widget->show();
 }
