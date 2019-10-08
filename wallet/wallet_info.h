@@ -12,14 +12,16 @@ class RpWidget;
 
 namespace Wallet {
 
-class Intro final {
+class Info final {
 public:
-	enum class Action {
-		ShowTerms,
-		ImportWords,
-		CreateWallet,
+	struct Data {
+		QString address;
+		rpl::producer<int64> balance;
 	};
-	explicit Intro(not_null<QWidget*> parent);
+	enum class Action {
+		Refresh,
+	};
+	Info(not_null<QWidget*> parent, Data data);
 
 	void setGeometry(QRect geometry);
 
@@ -28,7 +30,7 @@ public:
 	[[nodiscard]] rpl::lifetime &lifetime();
 
 private:
-	void setupControls();
+	void setupControls(Data &&data);
 
 	const std::unique_ptr<Ui::RpWidget> _widget;
 
