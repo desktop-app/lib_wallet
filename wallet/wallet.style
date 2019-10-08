@@ -14,9 +14,12 @@ walletScrollArea: ScrollArea(defaultScrollArea) {
 	bottomsh: 0px;
 }
 walletNextButton: RoundButton(defaultActiveButton) {
-	width: 184px;
+	width: 224px;
 	height: 56px;
 
 	textTop: 17px;
 	font: font(17px semibold);
+}
+walletActionButton: RoundButton(walletNextButton) {
+	width: 184px;
 }

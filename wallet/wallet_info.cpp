@@ -119,11 +119,17 @@ void Info::setupControls(Data &&data) {
 	const auto refresh = Ui::CreateChild<Ui::RoundButton>(
 		_inner.get(),
 		rpl::single(QString("Refresh")),
-		st::walletNextButton);
+		st::walletActionButton);
 	const auto send = Ui::CreateChild<Ui::RoundButton>(
 		_inner.get(),
 		rpl::single(QString("Send")),
-		st::walletNextButton);
+		st::walletActionButton);
+	const auto change = Ui::CreateChild<Ui::LinkButton>(
+		_inner.get(),
+		"Change password");
+	const auto logout = Ui::CreateChild<Ui::LinkButton>(
+		_inner.get(),
+		"Logout");
 
 	rpl::combine(
 		_inner->widthValue(),
@@ -137,6 +143,8 @@ void Info::setupControls(Data &&data) {
 		send->move(
 			(width - buttons) / 2 + refresh->width() + width / 10,
 			bottom + width / 10);
+		change->move((width - change->width()) / 2, send->y() + send->height() + width / 50);
+		logout->move((width - logout->width()) / 2, change->y() + change->height() + width / 50);
 		_inner->resize(width, refresh->y() + refresh->height() + width / 10);
 	}, _inner->lifetime());
 
@@ -145,6 +153,12 @@ void Info::setupControls(Data &&data) {
 	});
 	send->setClickedCallback([=] {
 		_actionRequests.fire(Action::Send);
+	});
+	change->setClickedCallback([=] {
+		_actionRequests.fire(Action::ChangePassword);
+	});
+	logout->setClickedCallback([=] {
+		_actionRequests.fire(Action::LogOut);
 	});
 }
 

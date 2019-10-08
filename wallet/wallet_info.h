@@ -25,6 +25,8 @@ public:
 	enum class Action {
 		Refresh,
 		Send,
+		ChangePassword,
+		LogOut,
 	};
 	Info(not_null<QWidget*> parent, Data data);
 
