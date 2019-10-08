@@ -23,6 +23,7 @@ constexpr auto kOneGram = 1'000'000'000;
 constexpr auto kNanoDigits = 9;
 
 QString AmountToString(int64 amount) {
+	amount = std::abs(amount);
 	const auto grams = amount / kOneGram;
 	auto nanos = amount % kOneGram;
 	auto zeros = 0;
@@ -55,7 +56,11 @@ QString ConcatenateData(int64 amount, Ton::TransactionsSlice slice) {
 				int64(0),
 				ranges::plus(),
 				&Ton::Message::value);
-		result += (value > 0 ? '+' : '-') + AmountToString(value);
+		if (value) {
+			result += (value > 0 ? '+' : '-') + AmountToString(value);
+		} else {
+			result += AmountToString(0);
+		}
 		if (value > 0 && !transaction.incoming.source.isEmpty()) {
 			result += " from " + transaction.incoming.source;
 		} else if (value < 0
@@ -109,24 +114,37 @@ void Info::setupControls(Data &&data) {
 			std::move(data.balance),
 			std::move(data.lastTransactions)
 		) | rpl::map(ConcatenateData));
-	const auto next = Ui::CreateChild<Ui::RoundButton>(
+	description->setSelectable(true);
+
+	const auto refresh = Ui::CreateChild<Ui::RoundButton>(
 		_inner.get(),
 		rpl::single(QString("Refresh")),
+		st::walletNextButton);
+	const auto send = Ui::CreateChild<Ui::RoundButton>(
+		_inner.get(),
+		rpl::single(QString("Send")),
 		st::walletNextButton);
 
 	rpl::combine(
 		_inner->widthValue(),
-		description->widthValue()
-	) | rpl::start_with_next([=](int width, int descriptionWidth) {
+		description->sizeValue()
+	) | rpl::start_with_next([=](int width, QSize descriptionSize) {
 		title->move((width - title->width()) / 2, width / 10);
-		description->move((width - descriptionWidth) / 2, width / 5);
-		const auto bottom = description->y() + description->height();
-		next->move((width - next->width()) / 2, bottom + width / 10);
-		_inner->resize(width, next->y() + next->height() + width / 10);
+		description->move((width - descriptionSize.width()) / 2, width / 5);
+		const auto bottom = description->y() + descriptionSize.height();
+		const auto buttons = refresh->width() + send->width() + (width / 10);
+		refresh->move((width - buttons) / 2, bottom + width / 10);
+		send->move(
+			(width - buttons) / 2 + refresh->width() + width / 10,
+			bottom + width / 10);
+		_inner->resize(width, refresh->y() + refresh->height() + width / 10);
 	}, _inner->lifetime());
 
-	next->setClickedCallback([=] {
+	refresh->setClickedCallback([=] {
 		_actionRequests.fire(Action::Refresh);
+	});
+	send->setClickedCallback([=] {
+		_actionRequests.fire(Action::Send);
 	});
 }
 

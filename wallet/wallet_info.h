@@ -24,6 +24,7 @@ public:
 	};
 	enum class Action {
 		Refresh,
+		Send,
 	};
 	Info(not_null<QWidget*> parent, Data data);
 
