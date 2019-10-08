@@ -6,8 +6,11 @@
 //
 #pragma once
 
+#include "ton/ton_state.h"
+
 namespace Ui {
 class RpWidget;
+class ScrollArea;
 } // namespace Ui
 
 namespace Wallet {
@@ -17,6 +20,7 @@ public:
 	struct Data {
 		QString address;
 		rpl::producer<int64> balance;
+		rpl::producer<Ton::TransactionsSlice> lastTransactions;
 	};
 	enum class Action {
 		Refresh,
@@ -33,6 +37,8 @@ private:
 	void setupControls(Data &&data);
 
 	const std::unique_ptr<Ui::RpWidget> _widget;
+	const not_null<Ui::ScrollArea*> _scroll;
+	const not_null<Ui::RpWidget*> _inner;
 
 	rpl::event_stream<Action> _actionRequests;
 
