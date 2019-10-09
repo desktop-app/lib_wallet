@@ -46,9 +46,14 @@ QString DateToString(const QDateTime &timestamp) {
 	).arg(timestamp.time().second(), 2, 10, QChar('0'));
 }
 
-QString ConcatenateData(int64 amount, Ton::TransactionsSlice slice) {
-	auto result = "Balance: " + AmountToString(amount);
-	for (const auto &transaction : slice.list) {
+QString PrintAddress(const Ton::WalletState &state) {
+	return state.address;
+}
+
+QString PrintData(const Ton::WalletState &state) {
+	auto result = "Balance: " + AmountToString(
+		std::max(state.account.balance, 0LL));
+	for (const auto &transaction : state.lastTransactions.list) {
 		result += "\n\n";
 		const auto value = transaction.incoming.value
 			- ranges::accumulate(
@@ -106,14 +111,11 @@ rpl::producer<Info::Action> Info::actionRequests() const {
 void Info::setupControls(Data &&data) {
 	const auto title = Ui::CreateChild<Ui::FlatLabel>(
 		_inner.get(),
-		rpl::single(data.address));
+		rpl::duplicate(data.state) | rpl::map(PrintAddress));
 	title->setSelectable(true);
 	const auto description = Ui::CreateChild<Ui::FlatLabel>(
 		_inner.get(),
-		rpl::combine(
-			std::move(data.balance),
-			std::move(data.lastTransactions)
-		) | rpl::map(ConcatenateData));
+		std::move(data.state) | rpl::map(PrintData));
 	description->setSelectable(true);
 
 	const auto refresh = Ui::CreateChild<Ui::RoundButton>(

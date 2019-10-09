@@ -18,9 +18,7 @@ namespace Wallet {
 class Info final {
 public:
 	struct Data {
-		QString address;
-		rpl::producer<int64> balance;
-		rpl::producer<Ton::TransactionsSlice> lastTransactions;
+		rpl::producer<Ton::WalletState> state;
 	};
 	enum class Action {
 		Refresh,
