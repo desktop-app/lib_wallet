@@ -56,6 +56,8 @@
       '<(src_loc)/wallet/wallet_intro.cpp',
       '<(src_loc)/wallet/wallet_phrases.h',
       '<(src_loc)/wallet/wallet_phrases.cpp',
+      '<(src_loc)/wallet/wallet_window.cpp',
+      '<(src_loc)/wallet/wallet_window.h',
     ],
     'include_dirs': [
       '<(src_loc)',

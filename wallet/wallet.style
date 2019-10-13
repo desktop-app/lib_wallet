@@ -23,3 +23,6 @@ walletNextButton: RoundButton(defaultActiveButton) {
 walletActionButton: RoundButton(walletNextButton) {
 	width: 184px;
 }
+
+walletWindowSize: size(665px, 488px);
+walletWindowSizeMin: size(480px, 480px);

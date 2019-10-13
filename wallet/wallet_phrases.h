@@ -10,6 +10,8 @@
 
 namespace ph {
 
+extern phrase lng_wallet_window_title;
+
 extern phrase lng_wallet_intro_title;
 extern phrase lng_wallet_intro_description;
 extern phrase lng_wallet_intro_create;
@@ -18,7 +20,7 @@ extern phrase lng_wallet_intro_create;
 
 namespace Wallet {
 
-inline constexpr auto kPhrasesCount = 3;
+inline constexpr auto kPhrasesCount = 4;
 
 inline void SetPhrases(ph::details::phrase_value_array<kPhrasesCount> data) {
 	ph::details::set_values(std::move(data));
