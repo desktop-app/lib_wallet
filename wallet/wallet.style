@@ -50,8 +50,26 @@ walletTopLabel: FlatLabel(defaultFlatLabel) {
 	textFg: walletTopLabelFg;
 }
 
-walletWindowSize: size(392px, 600px);
-walletWindowSizeMin: size(392px, 600px);
+walletCoverHeight: 100px;
+walletCoverBalanceTop: 12px;
+walletCoverBalance: FlatLabel(defaultFlatLabel) {
+	textFg: walletBalanceFg;
+	style: TextStyle(defaultTextStyle) {
+		font: font(26px semibold);
+	}
+}
+walletCoverLabelTop: 56px;
+walletCoverLabel: FlatLabel(defaultFlatLabel) {
+	textFg: walletSubBalanceFg;
+}
+walletCoverButtonWidthFull: 300px;
+walletCoverButtonWidth: 140px;
+walletCoverButtonBottom: 26px;
+walletCoverButton: RoundButton(defaultActiveButton) {
+}
+
+walletWindowSize: size(392px, 520px);
+walletWindowSizeMin: size(392px, 520px);
 walletWindowTitle: WindowTitle(defaultWindowTitle) {
 	bg: walletTitleBg;
 	bgActive: walletTitleBgActive;

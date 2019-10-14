@@ -50,6 +50,10 @@
     'sources': [
       '<@(qrc_files)',
       '<@(style_files)',
+      '<(src_loc)/wallet/wallet_common.cpp',
+      '<(src_loc)/wallet/wallet_common.h',
+      '<(src_loc)/wallet/wallet_cover.cpp',
+      '<(src_loc)/wallet/wallet_cover.h',
       '<(src_loc)/wallet/wallet_info.cpp',
       '<(src_loc)/wallet/wallet_info.h',
       '<(src_loc)/wallet/wallet_intro.cpp',

@@ -19,6 +19,11 @@ phrase lng_wallet_intro_create = "Create my wallet";
 phrase lng_wallet_refreshing = "updating...";
 phrase lng_wallet_refreshed_just_now = "updated just now";
 
+phrase lng_wallet_cover_balance = "Your balance";
+phrase lng_wallet_cover_receive_full = "Receive Grams";
+phrase lng_wallet_cover_receive = "Receive";
+phrase lng_wallet_cover_send = "Send";
+
 const auto walletCountValidate = check_phrase_count(Wallet::kPhrasesCount);
 
 Fn<phrase(int)> lng_wallet_refreshed_minutes_ago = [](int minutes) {
