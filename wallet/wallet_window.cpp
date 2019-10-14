@@ -50,10 +50,11 @@ Window::~Window() = default;
 
 void Window::init() {
 	_window->setTitle(ph::lng_wallet_window_title(ph::now));
-	_window->setSizeMin(st::walletWindowSizeMin);
 	_window->setGeometry(style::centerrect(
 		QApplication::desktop()->geometry(),
 		QRect(QPoint(), st::walletWindowSize)));
+	_window->setTitleStyle(st::walletWindowTitle);
+	_window->setFixedSize(st::walletWindowSize);
 
 	updatePalette();
 	style::PaletteChanged(
@@ -118,7 +119,7 @@ void Window::showAccount(const QByteArray &publicKey) {
 	_info->actionRequests(
 	) | rpl::start_with_next([=](Info::Action action) {
 		switch (action) {
-		case Info::Action::Refresh: _viewer->refreshNow(); break;
+		case Info::Action::Refresh: _viewer->refreshNow(nullptr); break;
 		case Info::Action::Send: sendGrams(); break;
 		case Info::Action::ChangePassword: changePassword(); break;
 		case Info::Action::LogOut: logout(); break;

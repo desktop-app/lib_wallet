@@ -16,6 +16,28 @@ phrase lng_wallet_intro_title = "Gram Wallet";
 phrase lng_wallet_intro_description = "The gram wallet allows you to make fast and secure blockchain-based payments without intermediaries";
 phrase lng_wallet_intro_create = "Create my wallet";
 
+phrase lng_wallet_refreshing = "updating...";
+phrase lng_wallet_refreshed_just_now = "updated just now";
+
 const auto walletCountValidate = check_phrase_count(Wallet::kPhrasesCount);
 
+Fn<phrase(int)> lng_wallet_refreshed_minutes_ago = [](int minutes) {
+	return (minutes == 1)
+		? "updated one minute ago"
+		: "updated " + QString::number(minutes) + " minutes ago";
+};
+
 } // namespace ph
+
+namespace Wallet {
+
+void SetPhrases(
+		ph::details::phrase_value_array<kPhrasesCount> data,
+		Fn<rpl::producer<QString>(int)> wallet_refreshed_minutes_ago) {
+	ph::details::set_values(std::move(data));
+	ph::lng_wallet_refreshed_minutes_ago = [=](int minutes) {
+		return ph::phrase{ wallet_refreshed_minutes_ago(minutes) };
+	};
+}
+
+} // namespace Wallet

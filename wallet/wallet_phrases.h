@@ -16,14 +16,19 @@ extern phrase lng_wallet_intro_title;
 extern phrase lng_wallet_intro_description;
 extern phrase lng_wallet_intro_create;
 
+extern phrase lng_wallet_refreshing;
+extern phrase lng_wallet_refreshed_just_now;
+
+extern Fn<phrase(int)> lng_wallet_refreshed_minutes_ago;
+
 } // namespace ph
 
 namespace Wallet {
 
-inline constexpr auto kPhrasesCount = 4;
+inline constexpr auto kPhrasesCount = 6;
 
-inline void SetPhrases(ph::details::phrase_value_array<kPhrasesCount> data) {
-	ph::details::set_values(std::move(data));
-}
+void SetPhrases(
+	ph::details::phrase_value_array<kPhrasesCount> data,
+	Fn<rpl::producer<QString>(int)> wallet_refreshed_minutes_ago);
 
 } // namespace Wallet

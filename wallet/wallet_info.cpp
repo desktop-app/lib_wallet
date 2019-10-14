@@ -6,7 +6,7 @@
 //
 #include "wallet/wallet_info.h"
 
-#include "wallet/wallet_phrases.h"
+#include "wallet/wallet_top_bar.h"
 #include "ui/rp_widget.h"
 #include "ui/widgets/labels.h"
 #include "ui/widgets/scroll_area.h"
@@ -46,11 +46,12 @@ QString DateToString(const QDateTime &timestamp) {
 	).arg(timestamp.time().second(), 2, 10, QChar('0'));
 }
 
-QString PrintAddress(const Ton::WalletState &state) {
-	return state.address;
+QString PrintAddress(const Ton::WalletViewerState &state) {
+	return state.wallet.address;
 }
 
-QString PrintData(const Ton::WalletState &state) {
+QString PrintData(const Ton::WalletViewerState &full) {
+	const auto &state = full.wallet;
 	auto result = "Balance: " + AmountToString(
 		std::max(state.account.balance, 0LL));
 	for (const auto &transaction : state.lastTransactions.list) {
@@ -92,30 +93,48 @@ QString PrintData(const Ton::WalletState &state) {
 
 Info::Info(not_null<QWidget*> parent, Data data)
 : _widget(std::make_unique<Ui::RpWidget>(parent))
+, _state(std::move(data.state))
 , _scroll(Ui::CreateChild<Ui::ScrollArea>(_widget.get()))
 , _inner(_scroll->setOwnedWidget(object_ptr<Ui::RpWidget>(_scroll.get()))) {
-	setupControls(std::move(data));
+	setupControls();
 	_widget->show();
 }
 
+Info::~Info() = default;
+
 void Info::setGeometry(QRect geometry) {
 	_widget->setGeometry(geometry);
-	_scroll->setGeometry({ QPoint(), geometry.size() });
-	_inner->resizeToWidth(geometry.width());
 }
 
 rpl::producer<Info::Action> Info::actionRequests() const {
 	return _actionRequests.events();
 }
 
-void Info::setupControls(Data &&data) {
+void Info::setupControls() {
+	const auto topBar = _widget->lifetime().make_state<TopBar>(
+		_widget.get(),
+		MakeTopBarState(rpl::duplicate(_state), _widget->lifetime()));
+	topBar->refreshRequests(
+	) | rpl::map([] {
+		return Action::Refresh;
+	}) | rpl::start_to_stream(_actionRequests, topBar->lifetime());
+
+	_widget->sizeValue(
+	) | rpl::start_with_next([=](QSize size) {
+		_scroll->setGeometry(QRect(
+			QPoint(),
+			size
+		).marginsRemoved({0, st::walletTopBarHeight, 0, 0}));
+		_inner->resizeToWidth(size.width());
+	}, _scroll->lifetime());
+
 	const auto title = Ui::CreateChild<Ui::FlatLabel>(
 		_inner.get(),
-		rpl::duplicate(data.state) | rpl::map(PrintAddress));
+		rpl::duplicate(_state) | rpl::map(PrintAddress));
 	title->setSelectable(true);
 	const auto description = Ui::CreateChild<Ui::FlatLabel>(
 		_inner.get(),
-		std::move(data.state) | rpl::map(PrintData));
+		rpl::duplicate(_state) | rpl::map(PrintData));
 	description->setSelectable(true);
 
 	const auto refresh = Ui::CreateChild<Ui::RoundButton>(

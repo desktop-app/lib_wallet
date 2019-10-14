@@ -24,5 +24,105 @@ walletActionButton: RoundButton(walletNextButton) {
 	width: 184px;
 }
 
-walletWindowSize: size(665px, 488px);
-walletWindowSizeMin: size(480px, 480px);
+walletTopBarHeight: 62px;
+walletTopMenuIcon: icon {{ "title_menu_dots", walletTopIconFg }};
+walletTopRefreshIcon: icon {{ "wallet_refresh", walletTopIconFg }};
+walletTopMenuButton: IconButton(menuToggle) {
+	width: 60px;
+	height: 60px;
+
+	icon: walletTopMenuIcon;
+	iconOver: walletTopMenuIcon;
+	iconPosition: point(26px, 20px);
+
+	rippleAreaPosition: point(10px, 10px);
+	rippleAreaSize: 40px;
+	ripple: RippleAnimation(defaultRippleAnimation) {
+		color: walletTopIconRipple;
+	}
+}
+walletTopRefreshButton: IconButton(walletTopMenuButton) {
+	icon: walletTopRefreshIcon;
+	iconOver: walletTopRefreshIcon;
+	iconPosition: point(18px, 18px);
+}
+walletTopLabel: FlatLabel(defaultFlatLabel) {
+	textFg: walletTopLabelFg;
+}
+
+walletWindowSize: size(392px, 600px);
+walletWindowSizeMin: size(392px, 600px);
+walletWindowTitle: WindowTitle(defaultWindowTitle) {
+	bg: walletTitleBg;
+	bgActive: walletTitleBgActive;
+	minimize: IconButton(windowTitleButton) {
+		icon: icon {
+			{ size(24px, 21px), walletTitleButtonBg },
+			{ "title_button_minimize", walletTitleButtonFg, point(4px, 4px) },
+		};
+		iconOver: icon {
+			{ size(24px, 21px), walletTitleButtonBgOver },
+			{ "title_button_minimize", walletTitleButtonFgOver, point(4px, 4px) },
+		};
+	}
+	minimizeIconActive: icon {
+		{ size(24px, 21px), walletTitleButtonBgActive },
+		{ "title_button_minimize", walletTitleButtonFgActive, point(4px, 4px) },
+	};
+	minimizeIconActiveOver: icon {
+		{ size(24px, 21px), walletTitleButtonBgActiveOver },
+		{ "title_button_minimize", walletTitleButtonFgActiveOver, point(4px, 4px) },
+	};
+	maximize: IconButton(windowTitleButton) {
+		icon: icon {
+			{ size(24px, 21px), walletTitleButtonBg },
+			{ "title_button_maximize", walletTitleButtonFg, point(4px, 4px) },
+		};
+		iconOver: icon {
+			{ size(24px, 21px), walletTitleButtonBgOver },
+			{ "title_button_maximize", walletTitleButtonFgOver, point(4px, 4px) },
+		};
+	}
+	maximizeIconActive: icon {
+		{ size(24px, 21px), walletTitleButtonBgActive },
+		{ "title_button_maximize", walletTitleButtonFgActive, point(4px, 4px) },
+	};
+	maximizeIconActiveOver: icon {
+		{ size(24px, 21px), walletTitleButtonBgActiveOver },
+		{ "title_button_maximize", walletTitleButtonFgActiveOver, point(4px, 4px) },
+	};
+	restoreIcon: icon {
+		{ size(24px, 21px), walletTitleButtonBg },
+		{ "title_button_restore", walletTitleButtonFg, point(4px, 4px) },
+	};
+	restoreIconOver: icon {
+		{ size(24px, 21px), walletTitleButtonBgOver },
+		{ "title_button_restore", walletTitleButtonFgOver, point(4px, 4px) },
+	};
+	restoreIconActive: icon {
+		{ size(24px, 21px), walletTitleButtonBgActive },
+		{ "title_button_restore", walletTitleButtonFgActive, point(4px, 4px) },
+	};
+	restoreIconActiveOver: icon {
+		{ size(24px, 21px), walletTitleButtonBgActiveOver },
+		{ "title_button_restore", walletTitleButtonFgActiveOver, point(4px, 4px) },
+	};
+	close: IconButton(windowTitleButtonClose) {
+		icon: icon {
+			{ size(25px, 21px), walletTitleButtonCloseBg },
+			{ "title_button_close", walletTitleButtonCloseFg, point(5px, 4px) },
+		};
+		iconOver: icon {
+			{ size(25px, 21px), walletTitleButtonCloseBgOver },
+			{ "title_button_close", walletTitleButtonCloseFgOver, point(5px, 4px) },
+		};
+	}
+	closeIconActive: icon {
+		{ size(25px, 21px), walletTitleButtonCloseBgActive },
+		{ "title_button_close", walletTitleButtonCloseFgActive, point(5px, 4px) },
+	};
+	closeIconActiveOver: icon {
+		{ size(25px, 21px), walletTitleButtonCloseBgActiveOver },
+		{ "title_button_close", walletTitleButtonCloseFgActiveOver, point(5px, 4px) },
+	};
+}

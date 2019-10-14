@@ -18,7 +18,7 @@ namespace Wallet {
 class Info final {
 public:
 	struct Data {
-		rpl::producer<Ton::WalletState> state;
+		rpl::producer<Ton::WalletViewerState> state;
 	};
 	enum class Action {
 		Refresh,
@@ -27,6 +27,7 @@ public:
 		LogOut,
 	};
 	Info(not_null<QWidget*> parent, Data data);
+	~Info();
 
 	void setGeometry(QRect geometry);
 
@@ -35,9 +36,10 @@ public:
 	[[nodiscard]] rpl::lifetime &lifetime();
 
 private:
-	void setupControls(Data &&data);
+	void setupControls();
 
 	const std::unique_ptr<Ui::RpWidget> _widget;
+	const rpl::producer<Ton::WalletViewerState> _state;
 	const not_null<Ui::ScrollArea*> _scroll;
 	const not_null<Ui::RpWidget*> _inner;
 

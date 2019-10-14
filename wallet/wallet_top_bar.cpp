@@ -1,0 +1,145 @@
+// This file is part of Desktop App Toolkit,
+// a set of libraries for developing nice desktop applications.
+//
+// For license and copyright information please follow this link:
+// https://github.com/desktop-app/legal/blob/master/LEGAL
+//
+#include "wallet/wallet_top_bar.h"
+
+#include "wallet/wallet_phrases.h"
+#include "ui/widgets/buttons.h"
+#include "ui/widgets/labels.h"
+#include "base/timer.h"
+#include "ton/ton_state.h"
+#include "styles/style_widgets.h"
+#include "styles/style_wallet.h"
+#include "styles/palette.h"
+
+namespace Wallet {
+namespace {
+
+constexpr auto kMsInMinute = 60 * crl::time(1000);
+
+[[nodiscard]] rpl::producer<TopBarState> MakeTopBarStateRefreshing() {
+	return ph::lng_wallet_refreshing(
+	) | rpl::map([](QString &&text) {
+		return TopBarState{ std::move(text), true };
+	});
+}
+
+[[nodiscard]] rpl::producer<int> MakeRefreshedMinutesAgo(crl::time when) {
+	return rpl::make_producer<int>([=](const auto &consumer) {
+		auto result = rpl::lifetime();
+		const auto timer = result.make_state<base::Timer>();
+		const auto putNext = [=] {
+			const auto elapsed = crl::now() - when;
+			const auto minutes = int(elapsed / kMsInMinute);
+			const auto next = kMsInMinute * (minutes + 1) - elapsed;
+			if (consumer.put_next_copy(minutes)) {
+				timer->callOnce(next);
+			}
+		};
+		timer->setCallback(putNext);
+		putNext();
+		return result;
+	});
+}
+
+[[nodiscard]] rpl::producer<TopBarState> MakeTopBarStateRefreshed(
+		crl::time when) {
+	return MakeRefreshedMinutesAgo(
+		when
+	) | rpl::map([](int minutes) {
+		return minutes
+			? ph::lng_wallet_refreshed_minutes_ago(minutes)()
+			: ph::lng_wallet_refreshed_just_now();
+	}) | rpl::flatten_latest(
+	) | rpl::map([](QString &&text) {
+		return TopBarState{ std::move(text), false };
+	});
+}
+
+} // namespace
+
+TopBar::TopBar(
+	not_null<Ui::RpWidget*> parent,
+	rpl::producer<TopBarState> state)
+: _widget(parent) {
+	parent->widthValue(
+	) | rpl::start_with_next([=](int width) {
+		_widget.setGeometry(0, 0, width, st::walletTopBarHeight);
+	}, lifetime());
+
+	setupControls(std::move(state));
+}
+
+rpl::producer<> TopBar::refreshRequests() const {
+	return _refreshRequests.events();
+}
+
+rpl::lifetime &TopBar::lifetime() {
+	return _widget.lifetime();
+}
+
+void TopBar::setupControls(rpl::producer<TopBarState> &&state) {
+	auto text = rpl::duplicate(
+		state
+	) | rpl::map([](const TopBarState &state) {
+		return state.text;
+	});
+	const auto refresh = Ui::CreateChild<Ui::IconButton>(
+		&_widget,
+		st::walletTopRefreshButton);
+	refresh->clicks(
+	) | rpl::map([] {
+		return rpl::empty_value();
+	}) | rpl::start_to_stream(_refreshRequests, refresh->lifetime());
+
+	const auto label = Ui::CreateChild<Ui::FlatLabel>(
+		&_widget,
+		std::move(text),
+		st::walletTopLabel);
+
+	const auto menu = Ui::CreateChild<Ui::IconButton>(
+		&_widget,
+		st::walletTopMenuButton);
+
+	_widget.setAttribute(Qt::WA_OpaquePaintEvent);
+	_widget.paintRequest(
+	) | rpl::start_with_next([=](QRect clip) {
+		QPainter(&_widget).fillRect(clip, st::walletTopBg);
+	}, lifetime());
+
+	label->show();
+	menu->show();
+
+	rpl::combine(
+		_widget.widthValue(),
+		std::move(state)
+	) | rpl::start_with_next([=](int width, const TopBarState&) {
+		const auto height = _widget.height();
+		refresh->moveToLeft(0, (height - refresh->height()) / 2, width);
+		menu->moveToRight(0, (height - menu->height()) / 2, width);
+		label->moveToLeft(
+			(width - label->width()) / 2,
+			(height - label->height()) / 2,
+			width);
+	}, lifetime());
+}
+
+rpl::producer<TopBarState> MakeTopBarState(
+		rpl::producer<Ton::WalletViewerState> &&state,
+		rpl::lifetime &alive) {
+	return std::move(
+		state
+	) | rpl::map([](const Ton::WalletViewerState &data)
+		-> rpl::producer<TopBarState> {
+		if (data.refreshing || !data.lastRefresh) {
+			return MakeTopBarStateRefreshing();
+		}
+		return MakeTopBarStateRefreshed(data.lastRefresh);
+	}) | rpl::flatten_latest(
+	) | rpl::start_spawning(alive);
+}
+
+} // namespace Wallet
