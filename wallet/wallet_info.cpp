@@ -8,6 +8,7 @@
 
 #include "wallet/wallet_top_bar.h"
 #include "wallet/wallet_cover.h"
+#include "wallet/wallet_empty_history.h"
 #include "wallet/wallet_common.h"
 #include "ui/rp_widget.h"
 #include "ui/widgets/labels.h"
@@ -118,13 +119,16 @@ void Info::setupControls() {
 	}) | rpl::start_to_stream(_actionRequests, cover->lifetime());
 
 	const auto history = Ui::CreateChild<Ui::RpWidget>(_inner.get());
+	const auto emptyHistory = _widget->lifetime().make_state<EmptyHistory>(
+		_inner.get(),
+		MakeEmptyHistoryState(rpl::duplicate(_state)));
 
 	_widget->sizeValue(
 	) | rpl::start_with_next([=](QSize size) {
 		_scroll->setGeometry(QRect(
 			QPoint(),
 			size
-		).marginsRemoved({0, st::walletTopBarHeight, 0, 0}));
+		).marginsRemoved({ 0, st::walletTopBarHeight, 0, 0 }));
 	}, _scroll->lifetime());
 
 	_scroll->sizeValue(
@@ -132,12 +136,23 @@ void Info::setupControls() {
 		const auto coverHeight = (size.height() + st::walletTopBarHeight) / 2
 			- st::walletTopBarHeight;
 		cover->setGeometry(QRect(0, 0, size.width(), coverHeight));
+		const auto contentGeometry = QRect(
+			0,
+			coverHeight,
+			size.width(),
+			size.height() - coverHeight);
 		history->resizeToWidth(size.width());
 		history->moveToLeft(0, coverHeight);
+		emptyHistory->setGeometry(contentGeometry);
+	}, cover->lifetime());
 
+	rpl::combine(
+		_scroll->sizeValue(),
+		history->heightValue()
+	) | rpl::start_with_next([=](QSize size, int height) {
 		const auto innerHeight = std::max(
-			_scroll->height(),
-			coverHeight + history->height());
+			size.height(),
+			cover->height() + height);
 		_inner->setGeometry({ 0, 0, size.width(), innerHeight });
 	}, _inner->lifetime());
 

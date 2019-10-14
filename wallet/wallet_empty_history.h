@@ -14,33 +14,28 @@ struct WalletViewerState;
 
 namespace Wallet {
 
-struct CoverState {
-	int64 balance = 0;
+struct EmptyHistoryState {
+	QString address;
 };
 
-class Cover final {
+class EmptyHistory final {
 public:
-	Cover(not_null<Ui::RpWidget*> parent, rpl::producer<CoverState> state);
+	EmptyHistory(
+		not_null<Ui::RpWidget*> parent,
+		rpl::producer<EmptyHistoryState> state);
 
 	void setGeometry(QRect geometry);
-	[[nodiscard]] int height() const;
-
-	[[nodiscard]] rpl::producer<> sendRequests() const;
-	[[nodiscard]] rpl::producer<> receiveRequests() const;
 
 	[[nodiscard]] rpl::lifetime &lifetime();
 
 private:
-	void setupControls(rpl::producer<CoverState> &&state);
+	void setupControls(rpl::producer<EmptyHistoryState> &&state);
 
 	Ui::RpWidget _widget;
 
-	rpl::event_stream<> _sendRequests;
-	rpl::event_stream<> _receiveRequests;
-
 };
 
-[[nodiscard]] rpl::producer<CoverState> MakeCoverState(
+[[nodiscard]] rpl::producer<EmptyHistoryState> MakeEmptyHistoryState(
 	rpl::producer<Ton::WalletViewerState> state);
 
 } // namespace Wallet

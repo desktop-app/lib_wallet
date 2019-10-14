@@ -24,6 +24,9 @@ phrase lng_wallet_cover_receive_full = "Receive Grams";
 phrase lng_wallet_cover_receive = "Receive";
 phrase lng_wallet_cover_send = "Send";
 
+phrase lng_wallet_empty_history_title = "Wallet Created";
+phrase lng_wallet_empty_history_address = "Your wallet address";
+
 const auto walletCountValidate = check_phrase_count(Wallet::kPhrasesCount);
 
 Fn<phrase(int)> lng_wallet_refreshed_minutes_ago = [](int minutes) {

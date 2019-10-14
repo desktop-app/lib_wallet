@@ -25,6 +25,10 @@ void Cover::setGeometry(QRect geometry) {
 	_widget.setGeometry(geometry);
 }
 
+int Cover::height() const {
+	return _widget.height();
+}
+
 rpl::producer<> Cover::sendRequests() const {
 	return _sendRequests.events();
 }

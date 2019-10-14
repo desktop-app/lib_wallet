@@ -24,6 +24,11 @@ walletActionButton: RoundButton(walletNextButton) {
 	width: 184px;
 }
 
+walletAddressLabel: FlatLabel(defaultFlatLabel) {
+	minWidth: 50px;
+	margin: margins(8px, 4px, 8px, 4px);
+}
+
 walletTopBarHeight: 62px;
 walletTopMenuIcon: icon {{ "title_menu_dots", walletTopIconFg }};
 walletTopRefreshIcon: icon {{ "wallet_refresh", walletTopIconFg }};
@@ -66,6 +71,26 @@ walletCoverButtonWidthFull: 300px;
 walletCoverButtonWidth: 140px;
 walletCoverButtonBottom: 26px;
 walletCoverButton: RoundButton(defaultActiveButton) {
+}
+
+walletEmptyHistoryHeight: 212px;
+walletEmptyHistoryTitleTop: 108px;
+walletEmptyHistoryTitle: FlatLabel(defaultFlatLabel) {
+	textFg: windowBoldFg;
+	style: TextStyle(defaultTextStyle) {
+		font: font(16px semibold);
+	}
+}
+walletEmptyHistoryLabelTop: 146px;
+walletEmptyHistoryLabel: FlatLabel(defaultFlatLabel) {
+	textFg: windowSubTextFg;
+}
+walletEmptyHistoryAddressTop: 168px;
+walletEmptyHistoryAddress: FlatLabel(walletAddressLabel) {
+	style: TextStyle(defaultTextStyle) {
+		lineHeight: 18px;
+	}
+	align: align(center);
 }
 
 walletWindowSize: size(392px, 520px);
