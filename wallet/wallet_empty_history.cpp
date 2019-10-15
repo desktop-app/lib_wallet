@@ -25,6 +25,10 @@ void EmptyHistory::setGeometry(QRect geometry) {
 	_widget.setGeometry(geometry);
 }
 
+void EmptyHistory::setVisible(bool visible) {
+	_widget.setVisible(visible);
+}
+
 rpl::lifetime &EmptyHistory::lifetime() {
 	return _widget.lifetime();
 }

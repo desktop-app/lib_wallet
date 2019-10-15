@@ -6,6 +6,9 @@
 //
 #include "wallet/wallet_phrases.h"
 
+#include <QtCore/QDate>
+#include <QtCore/QTime>
+
 namespace ph {
 
 const auto walletCountStart = start_phrase_count();
@@ -27,6 +30,10 @@ phrase lng_wallet_cover_send = "Send";
 phrase lng_wallet_empty_history_title = "Wallet Created";
 phrase lng_wallet_empty_history_address = "Your wallet address";
 
+phrase lng_wallet_row_from = "from:";
+phrase lng_wallet_row_to = "to:";
+phrase lng_wallet_row_fees = "blockchain fees: <0>";
+
 const auto walletCountValidate = check_phrase_count(Wallet::kPhrasesCount);
 
 Fn<phrase(int)> lng_wallet_refreshed_minutes_ago = [](int minutes) {
@@ -35,16 +42,32 @@ Fn<phrase(int)> lng_wallet_refreshed_minutes_ago = [](int minutes) {
 		: "updated " + QString::number(minutes) + " minutes ago";
 };
 
+Fn<phrase(QDate)> lng_wallet_short_date = [](QDate date) {
+	return date.toString(Qt::SystemLocaleShortDate);
+};
+
+Fn<phrase(QTime)> lng_wallet_short_time = [](QTime time) {
+	return time.toString(Qt::SystemLocaleShortDate);
+};
+
 } // namespace ph
 
 namespace Wallet {
 
 void SetPhrases(
 		ph::details::phrase_value_array<kPhrasesCount> data,
-		Fn<rpl::producer<QString>(int)> wallet_refreshed_minutes_ago) {
+		Fn<rpl::producer<QString>(int)> wallet_refreshed_minutes_ago,
+		Fn<rpl::producer<QString>(QDate)> wallet_short_date,
+		Fn<rpl::producer<QString>(QTime)> wallet_short_time) {
 	ph::details::set_values(std::move(data));
 	ph::lng_wallet_refreshed_minutes_ago = [=](int minutes) {
 		return ph::phrase{ wallet_refreshed_minutes_ago(minutes) };
+	};
+	ph::lng_wallet_short_date = [=](QDate date) {
+		return ph::phrase{ wallet_short_date(date) };
+	};
+	ph::lng_wallet_short_time = [=](QTime date) {
+		return ph::phrase{ wallet_short_time(date) };
 	};
 }
 

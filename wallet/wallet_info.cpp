@@ -9,6 +9,7 @@
 #include "wallet/wallet_top_bar.h"
 #include "wallet/wallet_cover.h"
 #include "wallet/wallet_empty_history.h"
+#include "wallet/wallet_history.h"
 #include "wallet/wallet_common.h"
 #include "ui/rp_widget.h"
 #include "ui/widgets/labels.h"
@@ -84,8 +85,9 @@ QString PrintData(const Ton::WalletViewerState &full) {
 
 Info::Info(not_null<QWidget*> parent, Data data)
 : _widget(std::make_unique<Ui::RpWidget>(parent))
-, _state(std::move(data.state))
-, _scroll(Ui::CreateChild<Ui::ScrollArea>(_widget.get()))
+, _data(std::move(data))
+, _scroll(
+	Ui::CreateChild<Ui::ScrollArea>(_widget.get(), st::walletScrollArea))
 , _inner(_scroll->setOwnedWidget(object_ptr<Ui::RpWidget>(_scroll.get()))) {
 	setupControls();
 	_widget->show();
@@ -102,9 +104,10 @@ rpl::producer<Info::Action> Info::actionRequests() const {
 }
 
 void Info::setupControls() {
+	const auto &state = _data.state;
 	const auto topBar = _widget->lifetime().make_state<TopBar>(
 		_widget.get(),
-		MakeTopBarState(rpl::duplicate(_state), _widget->lifetime()));
+		MakeTopBarState(rpl::duplicate(state), _widget->lifetime()));
 	topBar->refreshRequests(
 	) | rpl::map([] {
 		return Action::Refresh;
@@ -112,16 +115,19 @@ void Info::setupControls() {
 
 	const auto cover = _widget->lifetime().make_state<Cover>(
 		_inner.get(),
-		MakeCoverState(rpl::duplicate(_state)));
+		MakeCoverState(rpl::duplicate(state)));
 	cover->sendRequests(
 	) | rpl::map([] {
 		return Action::Send;
 	}) | rpl::start_to_stream(_actionRequests, cover->lifetime());
 
-	const auto history = Ui::CreateChild<Ui::RpWidget>(_inner.get());
+	const auto history = _widget->lifetime().make_state<History>(
+		_inner.get(),
+		MakeHistoryState(rpl::duplicate(state)),
+		rpl::duplicate(_data.loaded));
 	const auto emptyHistory = _widget->lifetime().make_state<EmptyHistory>(
 		_inner.get(),
-		MakeEmptyHistoryState(rpl::duplicate(_state)));
+		MakeEmptyHistoryState(rpl::duplicate(state)));
 
 	_widget->sizeValue(
 	) | rpl::start_with_next([=](QSize size) {
@@ -141,8 +147,7 @@ void Info::setupControls() {
 			coverHeight,
 			size.width(),
 			size.height() - coverHeight);
-		history->resizeToWidth(size.width());
-		history->moveToLeft(0, coverHeight);
+		history->updateGeometry({ 0, coverHeight }, size.width());
 		emptyHistory->setGeometry(contentGeometry);
 	}, cover->lifetime());
 
@@ -154,61 +159,8 @@ void Info::setupControls() {
 			size.height(),
 			cover->height() + height);
 		_inner->setGeometry({ 0, 0, size.width(), innerHeight });
+		emptyHistory->setVisible(height == 0);
 	}, _inner->lifetime());
-
-	//const auto title = Ui::CreateChild<Ui::FlatLabel>(
-	//	_inner.get(),
-	//	rpl::duplicate(_state) | rpl::map(PrintAddress));
-	//title->setSelectable(true);
-	//const auto description = Ui::CreateChild<Ui::FlatLabel>(
-	//	_inner.get(),
-	//	rpl::duplicate(_state) | rpl::map(PrintData));
-	//description->setSelectable(true);
-
-	//const auto refresh = Ui::CreateChild<Ui::RoundButton>(
-	//	_inner.get(),
-	//	rpl::single(QString("Refresh")),
-	//	st::walletActionButton);
-	//const auto send = Ui::CreateChild<Ui::RoundButton>(
-	//	_inner.get(),
-	//	rpl::single(QString("Send")),
-	//	st::walletActionButton);
-	//const auto change = Ui::CreateChild<Ui::LinkButton>(
-	//	_inner.get(),
-	//	"Change password");
-	//const auto logout = Ui::CreateChild<Ui::LinkButton>(
-	//	_inner.get(),
-	//	"Logout");
-
-	//rpl::combine(
-	//	_inner->widthValue(),
-	//	description->sizeValue()
-	//) | rpl::start_with_next([=](int width, QSize descriptionSize) {
-	//	title->move((width - title->width()) / 2, width / 10);
-	//	description->move((width - descriptionSize.width()) / 2, width / 5);
-	//	const auto bottom = description->y() + descriptionSize.height();
-	//	const auto buttons = refresh->width() + send->width() + (width / 10);
-	//	refresh->move((width - buttons) / 2, bottom + width / 10);
-	//	send->move(
-	//		(width - buttons) / 2 + refresh->width() + width / 10,
-	//		bottom + width / 10);
-	//	change->move((width - change->width()) / 2, send->y() + send->height() + width / 50);
-	//	logout->move((width - logout->width()) / 2, change->y() + change->height() + width / 50);
-	//	_inner->resize(width, refresh->y() + refresh->height() + width / 10);
-	//}, _inner->lifetime());
-
-	//refresh->setClickedCallback([=] {
-	//	_actionRequests.fire(Action::Refresh);
-	//});
-	//send->setClickedCallback([=] {
-	//	_actionRequests.fire(Action::Send);
-	//});
-	//change->setClickedCallback([=] {
-	//	_actionRequests.fire(Action::ChangePassword);
-	//});
-	//logout->setClickedCallback([=] {
-	//	_actionRequests.fire(Action::LogOut);
-	//});
 }
 
 rpl::lifetime &Info::lifetime() {

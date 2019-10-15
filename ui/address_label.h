@@ -11,12 +11,16 @@ class QString;
 
 namespace style {
 struct FlatLabel;
+struct TextStyle;
 } // namespace style
 
 namespace Ui {
 
 class RpWidget;
 class FlatLabel;
+
+[[nodiscard]] style::TextStyle ComputeAddressStyle(
+	const style::TextStyle &parent);
 
 [[nodiscard]] not_null<FlatLabel*> CreateAddressLabel(
 	not_null<RpWidget*> parent,

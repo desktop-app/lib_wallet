@@ -96,10 +96,12 @@ void Cover::setupControls(rpl::producer<CoverState> &&state) {
 			ph::lng_wallet_cover_receive(),
 			ph::lng_wallet_cover_receive_full()),
 		st::walletCoverButton);
+	receive->setTextTransform(Ui::RoundButton::TextTransform::NoTransform);
 	const auto send = Ui::CreateChild<Ui::RoundButton>(
 		&_widget,
 		ph::lng_wallet_cover_send(),
 		st::walletCoverButton);
+	send->setTextTransform(Ui::RoundButton::TextTransform::NoTransform);
 
 	rpl::combine(
 		_widget.sizeValue(),

@@ -8,6 +8,9 @@
 
 #include "ui/ph.h"
 
+class QDate;
+class QTime;
+
 namespace ph {
 
 extern phrase lng_wallet_window_title;
@@ -27,16 +30,24 @@ extern phrase lng_wallet_cover_send;
 extern phrase lng_wallet_empty_history_title;
 extern phrase lng_wallet_empty_history_address;
 
+extern phrase lng_wallet_row_from;
+extern phrase lng_wallet_row_to;
+extern phrase lng_wallet_row_fees;
+
 extern Fn<phrase(int)> lng_wallet_refreshed_minutes_ago;
+extern Fn<phrase(QDate)> lng_wallet_short_date;
+extern Fn<phrase(QTime)> lng_wallet_short_time;
 
 } // namespace ph
 
 namespace Wallet {
 
-inline constexpr auto kPhrasesCount = 12;
+inline constexpr auto kPhrasesCount = 15;
 
 void SetPhrases(
 	ph::details::phrase_value_array<kPhrasesCount> data,
-	Fn<rpl::producer<QString>(int)> wallet_refreshed_minutes_ago);
+	Fn<rpl::producer<QString>(int)> wallet_refreshed_minutes_ago,
+	Fn<rpl::producer<QString>(QDate)> wallet_short_date,
+	Fn<rpl::producer<QString>(QTime)> wallet_short_time);
 
 } // namespace Wallet

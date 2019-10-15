@@ -106,6 +106,7 @@ void Window::showAccount(const QByteArray &publicKey) {
 
 	auto data = Info::Data();
 	data.state = _viewer->state();
+	data.loaded = _viewer->loaded();
 	_info = std::make_unique<Info>(_window->body(), data);
 
 	_layers->raise();

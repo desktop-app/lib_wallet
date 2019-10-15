@@ -20,12 +20,10 @@ walletNextButton: RoundButton(defaultActiveButton) {
 	textTop: 17px;
 	font: font(17px semibold);
 }
-walletActionButton: RoundButton(walletNextButton) {
-	width: 184px;
-}
 
+walletAddressWidthMin: 50px;
 walletAddressLabel: FlatLabel(defaultFlatLabel) {
-	minWidth: 50px;
+	minWidth: walletAddressWidthMin;
 	margin: margins(8px, 4px, 8px, 4px);
 }
 
@@ -92,6 +90,14 @@ walletEmptyHistoryAddress: FlatLabel(walletAddressLabel) {
 	}
 	align: align(center);
 }
+
+walletRowsSkip: 8px;
+walletRowDateHeight: 32px;
+walletRowDateTop: 14px;
+walletRowPadding: margins(20px, 12px, 20px, 12px);
+walletRowAddressTop: 2px;
+walletRowCommentTop: 4px;
+walletRowFeesTop: 4px;
 
 walletWindowSize: size(392px, 520px);
 walletWindowSizeMin: size(392px, 520px);

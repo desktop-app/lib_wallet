@@ -21,6 +21,8 @@ style::font MonospaceFont(const style::font &parent) {
 	return style::font(parent->size(), parent->flags(), family);
 }
 
+} // namespace
+
 style::TextStyle ComputeAddressStyle(const style::TextStyle &parent) {
 	auto result = parent;
 	result.font = MonospaceFont(result.font);
@@ -28,8 +30,6 @@ style::TextStyle ComputeAddressStyle(const style::TextStyle &parent) {
 	result.linkFontOver = MonospaceFont(result.linkFontOver);
 	return result;
 }
-
-} // namespace
 
 not_null<FlatLabel*> CreateAddressLabel(
 		not_null<RpWidget*> parent,

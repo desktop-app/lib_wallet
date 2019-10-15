@@ -25,6 +25,7 @@ public:
 		rpl::producer<EmptyHistoryState> state);
 
 	void setGeometry(QRect geometry);
+	void setVisible(bool visible);
 
 	[[nodiscard]] rpl::lifetime &lifetime();
 

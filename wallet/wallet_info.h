@@ -19,6 +19,7 @@ class Info final {
 public:
 	struct Data {
 		rpl::producer<Ton::WalletViewerState> state;
+		rpl::producer<Ton::LoadedSlice> loaded;
 	};
 	enum class Action {
 		Refresh,
@@ -39,7 +40,7 @@ private:
 	void setupControls();
 
 	const std::unique_ptr<Ui::RpWidget> _widget;
-	const rpl::producer<Ton::WalletViewerState> _state;
+	const Data _data;
 	const not_null<Ui::ScrollArea*> _scroll;
 	const not_null<Ui::RpWidget*> _inner;
 
