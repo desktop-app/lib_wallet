@@ -103,6 +103,14 @@ rpl::producer<Info::Action> Info::actionRequests() const {
 	return _actionRequests.events();
 }
 
+rpl::producer<Ton::TransactionId> Info::preloadRequests() const {
+	return _preloadRequests.events();
+}
+
+rpl::producer<Ton::Transaction> Info::viewRequests() const {
+	return _viewRequests.events();
+}
+
 void Info::setupControls() {
 	const auto &state = _data.state;
 	const auto topBar = _widget->lifetime().make_state<TopBar>(
@@ -116,10 +124,10 @@ void Info::setupControls() {
 	const auto cover = _widget->lifetime().make_state<Cover>(
 		_inner.get(),
 		MakeCoverState(rpl::duplicate(state)));
-	cover->sendRequests(
-	) | rpl::map([] {
-		return Action::Send;
-	}) | rpl::start_to_stream(_actionRequests, cover->lifetime());
+	rpl::merge(
+		cover->sendRequests() | rpl::map([] { return Action::Send; }),
+		cover->receiveRequests() | rpl::map([] { return Action::Receive; })
+	) | rpl::start_to_stream(_actionRequests, cover->lifetime());
 
 	const auto history = _widget->lifetime().make_state<History>(
 		_inner.get(),
@@ -161,6 +169,19 @@ void Info::setupControls() {
 		_inner->setGeometry({ 0, 0, size.width(), innerHeight });
 		emptyHistory->setVisible(height == 0);
 	}, _inner->lifetime());
+
+	rpl::combine(
+		_scroll->scrollTopValue(),
+		_scroll->heightValue()
+	) | rpl::start_with_next([=](int scrollTop, int scrollHeight) {
+		history->setVisibleTopBottom(scrollTop, scrollTop + scrollHeight);
+	}, history->lifetime());
+
+	history->preloadRequests(
+	) | rpl::start_to_stream(_preloadRequests, history->lifetime());
+
+	history->viewRequests(
+	) | rpl::start_to_stream(_viewRequests, history->lifetime());
 }
 
 rpl::lifetime &Info::lifetime() {

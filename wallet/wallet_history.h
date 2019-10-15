@@ -30,13 +30,19 @@ public:
 
 	void updateGeometry(QPoint position, int width);
 	[[nodiscard]] rpl::producer<int> heightValue() const;
+	void setVisibleTopBottom(int top, int bottom);
 
 	[[nodiscard]] rpl::producer<Ton::TransactionId> preloadRequests() const;
-	[[nodiscard]] rpl::producer<Ton::TransactionId> viewRequests() const;
+	[[nodiscard]] rpl::producer<Ton::Transaction> viewRequests() const;
 
 	[[nodiscard]] rpl::lifetime &lifetime();
 
 private:
+	struct ScrollState {
+		Ton::TransactionId top;
+		int offset = 0;
+	};
+
 	void setupContent(
 		rpl::producer<HistoryState> &&state,
 		rpl::producer<Ton::LoadedSlice> &&loaded);
@@ -46,6 +52,7 @@ private:
 	bool mergeListChanged(Ton::TransactionsSlice &&data);
 	void refresh();
 	void paint(Painter &p, QRect clip);
+	[[nodiscard]] ScrollState computeScrollState() const;
 
 	Ui::RpWidget _widget;
 
@@ -54,9 +61,11 @@ private:
 	Ton::TransactionId _previousId;
 
 	std::vector<std::unique_ptr<HistoryRow>> _rows;
+	int _visibleTop = 0;
+	int _visibleBottom = 0;
 
 	rpl::event_stream<Ton::TransactionId> _preloadRequests;
-	rpl::event_stream<Ton::TransactionId> _viewRequests;
+	rpl::event_stream<Ton::Transaction> _viewRequests;
 	bool _fullLoaded = false;
 
 };

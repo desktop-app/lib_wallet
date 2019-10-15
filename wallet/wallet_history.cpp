@@ -20,6 +20,8 @@
 namespace Wallet {
 namespace {
 
+constexpr auto kPreloadScreens = 3;
+
 struct TransactionLayout {
 	QDateTime dateTime;
 	Ui::Text::String date;
@@ -104,6 +106,8 @@ class HistoryRow final {
 public:
 	explicit HistoryRow(const Ton::Transaction &transaction);
 
+	[[nodiscard]] Ton::TransactionId id() const;
+
 	[[nodiscard]] QDateTime date() const;
 	void setShowDate(bool show);
 
@@ -115,6 +119,7 @@ public:
 	void paint(Painter &p, int x, int y);
 
 private:
+	Ton::TransactionId _id;
 	TransactionLayout _layout;
 	int _top = 0;
 	int _width = 0;
@@ -123,7 +128,12 @@ private:
 };
 
 HistoryRow::HistoryRow(const Ton::Transaction &transaction)
-: _layout(PrepareLayout(transaction)) {
+: _id(transaction.id)
+, _layout(PrepareLayout(transaction)) {
+}
+
+Ton::TransactionId HistoryRow::id() const {
+	return _id;
 }
 
 QDateTime HistoryRow::date() const {
@@ -271,11 +281,24 @@ rpl::producer<int> History::heightValue() const {
 	return _widget.heightValue();
 }
 
+void History::setVisibleTopBottom(int top, int bottom) {
+	_visibleTop = top - _widget.y();
+	_visibleBottom = bottom - _widget.y();
+	if (_visibleBottom <= _visibleTop || !_previousId.id || _rows.empty()) {
+		return;
+	}
+	const auto visibleHeight = (_visibleBottom - _visibleTop);
+	const auto preloadHeight = kPreloadScreens * visibleHeight;
+	if (_visibleBottom + preloadHeight >= _widget.height()) {
+		_preloadRequests.fire_copy(_previousId);
+	}
+}
+
 rpl::producer<Ton::TransactionId> History::preloadRequests() const {
 	return _preloadRequests.events();
 }
 
-rpl::producer<Ton::TransactionId> History::viewRequests() const {
+rpl::producer<Ton::Transaction> History::viewRequests() const {
 	return _viewRequests.events();
 }
 
@@ -290,6 +313,19 @@ void History::setupContent(
 		state
 	) | rpl::start_with_next([=](HistoryState &&state) {
 		mergeState(std::move(state));
+	}, lifetime());
+
+	std::move(
+		loaded
+	) | rpl::filter([=](const Ton::LoadedSlice &slice) {
+		return (slice.after == _previousId);
+	}) | rpl::start_with_next([=](Ton::LoadedSlice &&slice) {
+		_previousId = slice.data.previousId;
+		_listData.insert(
+			end(_listData),
+			slice.data.list.begin(),
+			slice.data.list.end());
+		refresh();
 	}, lifetime());
 
 	_widget.paintRequest(
@@ -319,6 +355,26 @@ void History::paint(Painter &p, QRect clip) {
 	for (auto i = from; i != till; ++i) {
 		(*i)->paint(p, 0, (*i)->top());
 	}
+}
+
+History::ScrollState History::computeScrollState() const {
+	const auto bottom = [](const std::unique_ptr<HistoryRow> &row) {
+		return row->top() + row->height();
+	};
+	const auto item = ranges::upper_bound(
+		_rows,
+		_visibleTop,
+		ranges::less(),
+		bottom);
+	if (item == _rows.end()
+		|| (item == _rows.begin()
+			&& _rows.front()->id() == _listData.front().id)) {
+		return ScrollState();
+	}
+	auto result = ScrollState();
+	result.top = (*item)->id();
+	result.offset = _visibleTop - (*item)->top();
+	return result;
 }
 
 void History::mergeState(HistoryState &&state) {
@@ -356,10 +412,43 @@ bool History::mergeListChanged(Ton::TransactionsSlice &&data) {
 }
 
 void History::refresh() {
-	_rows.clear();
+	auto addedFront = std::vector<std::unique_ptr<HistoryRow>>();
+	auto addedBack = std::vector<std::unique_ptr<HistoryRow>>();
 	for (const auto &element : _listData) {
-		_rows.push_back(std::make_unique<HistoryRow>(element));
+		if (!_rows.empty() && element.id == _rows.front()->id()) {
+			break;
+		}
+		addedFront.push_back(std::make_unique<HistoryRow>(element));
 	}
+	if (!_rows.empty()) {
+		const auto from = ranges::find(
+			_listData,
+			_rows.back()->id(),
+			&Ton::Transaction::id);
+		if (from != end(_listData)) {
+			addedBack = ranges::make_subrange(
+				from + 1,
+				end(_listData)
+			) | ranges::view::transform([](const Ton::Transaction &data) {
+				return std::make_unique<HistoryRow>(data);
+			}) | ranges::to_vector;
+		}
+	}
+	if (addedFront.empty() && addedBack.empty()) {
+		return;
+	} else if (!addedFront.empty()) {
+		if (addedFront.size() < _listData.size()) {
+			addedFront.insert(
+				end(addedFront),
+				std::make_move_iterator(begin(_rows)),
+				std::make_move_iterator(end(_rows)));
+		}
+		_rows = std::move(addedFront);
+	}
+	_rows.insert(
+		end(_rows),
+		std::make_move_iterator(begin(addedBack)),
+		std::make_move_iterator(end(addedBack)));
 
 	auto previous = QDate();
 	for (const auto &row : _rows) {

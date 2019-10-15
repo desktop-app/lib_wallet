@@ -39,6 +39,7 @@ private:
 
 	void saveKey(const std::vector<QString> &words);
 	void sendGrams();
+	void receiveGrams();
 	void changePassword();
 	void logout();
 

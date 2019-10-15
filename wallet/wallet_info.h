@@ -24,6 +24,7 @@ public:
 	enum class Action {
 		Refresh,
 		Send,
+		Receive,
 		ChangePassword,
 		LogOut,
 	};
@@ -33,6 +34,8 @@ public:
 	void setGeometry(QRect geometry);
 
 	[[nodiscard]] rpl::producer<Action> actionRequests() const;
+	[[nodiscard]] rpl::producer<Ton::TransactionId> preloadRequests() const;
+	[[nodiscard]] rpl::producer<Ton::Transaction> viewRequests() const;
 
 	[[nodiscard]] rpl::lifetime &lifetime();
 
@@ -45,6 +48,8 @@ private:
 	const not_null<Ui::RpWidget*> _inner;
 
 	rpl::event_stream<Action> _actionRequests;
+	rpl::event_stream<Ton::TransactionId> _preloadRequests;
+	rpl::event_stream<Ton::Transaction> _viewRequests;
 
 };
 

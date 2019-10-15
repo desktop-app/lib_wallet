@@ -11,6 +11,7 @@
 #include "wallet/wallet_info.h"
 #include "ton/ton_wallet.h"
 #include "ton/ton_account_viewer.h"
+#include "ui/address_label.h"
 #include "ui/widgets/window.h"
 #include "ui/widgets/labels.h"
 #include "ui/widgets/input_fields.h"
@@ -122,9 +123,15 @@ void Window::showAccount(const QByteArray &publicKey) {
 		switch (action) {
 		case Info::Action::Refresh: _viewer->refreshNow(nullptr); break;
 		case Info::Action::Send: sendGrams(); break;
+		case Info::Action::Receive: receiveGrams(); break;
 		case Info::Action::ChangePassword: changePassword(); break;
 		case Info::Action::LogOut: logout(); break;
 		}
+	}, _info->lifetime());
+
+	_info->preloadRequests(
+	) | rpl::start_with_next([=](const Ton::TransactionId &id) {
+		_viewer->preloadSlice(id);
 	}, _info->lifetime());
 }
 
@@ -256,6 +263,20 @@ void Window::sendGrams() {
 				done);
 		});
 		box->addButton(rpl::single(QString("Cancel")), [=] {
+			box->closeBox();
+		});
+	}));
+}
+
+void Window::receiveGrams() {
+	_layers->showBox(Box([=](not_null<Ui::GenericBox*> box) {
+		box->setTitle(rpl::single(QString("Receive grams")));
+		box->addRow(object_ptr<Ui::FlatLabel>::fromRaw(
+			Ui::CreateAddressLabel(
+				box,
+				Ton::Wallet::GetAddress(_wallet->publicKeys().front()),
+				st::walletAddressLabel)));
+		box->addButton(rpl::single(QString("Done")), [=] {
 			box->closeBox();
 		});
 	}));
