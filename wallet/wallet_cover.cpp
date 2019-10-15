@@ -45,8 +45,7 @@ void Cover::setupControls(rpl::producer<CoverState> &&state) {
 	auto amount = rpl::duplicate(
 		state
 	) | rpl::map([](const CoverState &state) {
-		const auto parsed = ParseAmount(state.balance);
-		return parsed.gramsString + parsed.separator + parsed.nanoString;
+		return ParseAmount(state.balance).full;
 	});
 
 	const auto balance = Ui::CreateChild<Ui::FlatLabel>(

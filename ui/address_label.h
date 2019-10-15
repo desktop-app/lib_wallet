@@ -22,7 +22,7 @@ class FlatLabel;
 [[nodiscard]] style::TextStyle ComputeAddressStyle(
 	const style::TextStyle &parent);
 
-[[nodiscard]] not_null<FlatLabel*> CreateAddressLabel(
+[[nodiscard]] not_null<RpWidget*> CreateAddressLabel(
 	not_null<RpWidget*> parent,
 	const QString &text,
 	const style::FlatLabel &st);

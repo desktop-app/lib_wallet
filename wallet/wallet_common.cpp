@@ -6,6 +6,10 @@
 //
 #include "wallet/wallet_common.h"
 
+#include "ton/ton_state.h"
+#include "ui/layers/generic_box.h"
+#include "styles/style_wallet.h"
+
 #include <QtCore/QLocale>
 
 namespace Wallet {
@@ -48,7 +52,7 @@ std::optional<int64> ParseAmountNano(QString trimmed) {
 
 } // namespace
 
-ParsedAmount ParseAmount(int64 amount) {
+ParsedAmount ParseAmount(int64 amount, bool isSigned) {
 	auto result = ParsedAmount();
 	result.grams = amount / kOneGram;
 	auto nanos = result.nano = std::abs(amount) % kOneGram;
@@ -61,11 +65,17 @@ ParsedAmount ParseAmount(int64 amount) {
 	const auto separator = locale.toString(0.1f
 	).replace('0', QString()
 	).replace('1', QString());
-	result.gramsString = QString::number(result.grams);
+	result.full = result.gramsString = QString::number(result.grams);
+	if (isSigned && amount > 0) {
+		result.full = result.gramsString = '+' + result.gramsString;
+	} else if (amount < 0 && result.grams == 0) {
+		result.full = result.gramsString = '-' + result.gramsString;
+	}
 	if (zeros < kNanoDigits) {
 		result.separator = separator;
 		result.nanoString = QString("%1"
 		).arg(nanos, kNanoDigits - zeros, 10, QChar('0'));
+		result.full += separator + result.nanoString;
 	}
 	return result;
 }
@@ -107,6 +117,38 @@ std::optional<int64> ParseAmountString(const QString &amount) {
 		return std::nullopt;
 	}
 	return *grams + (*grams < 0 ? (-*nano) : (*nano));
+}
+
+int64 CalculateValue(const Ton::Transaction &data) {
+	const auto outgoing = ranges::accumulate(
+		data.outgoing,
+		int64(0),
+		ranges::plus(),
+		&Ton::Message::value);
+	return data.incoming.value - outgoing;
+}
+
+QString ExtractAddress(const Ton::Transaction &data) {
+	return data.outgoing.empty()
+		? data.incoming.source
+		: data.outgoing.front().destination;
+}
+
+QString ExtractMessage(const Ton::Transaction &data) {
+	return data.outgoing.empty()
+		? data.incoming.message
+		: data.outgoing.front().message;
+}
+
+void AddBoxSubtitle(
+		not_null<Ui::GenericBox*> box,
+		rpl::producer<QString> text) {
+	box->addRow(
+		object_ptr<Ui::FlatLabel>(
+			box,
+			std::move(text),
+			st::subsectionTitle),
+		st::subsectionTitlePadding);
 }
 
 } // namespace Wallet

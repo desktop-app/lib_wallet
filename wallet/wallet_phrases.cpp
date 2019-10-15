@@ -34,6 +34,16 @@ phrase lng_wallet_row_from = "from:";
 phrase lng_wallet_row_to = "to:";
 phrase lng_wallet_row_fees = "blockchain fees: <0>";
 
+phrase lng_wallet_view_title = "Transaction";
+phrase lng_wallet_view_transaction_fee = "<0> transaction fee";
+phrase lng_wallet_view_storage_fee = "<0> storage fee";
+phrase lng_wallet_view_sender = "Sender";
+phrase lng_wallet_view_recipient = "Recipient";
+phrase lng_wallet_view_date = "Date";
+phrase lng_wallet_view_comment = "Comment";
+phrase lng_wallet_view_send_to_address = "Send Grams to this address";
+phrase lng_wallet_view_send_to_recipient = "Send Grams to this Recipient";
+
 const auto walletCountValidate = check_phrase_count(Wallet::kPhrasesCount);
 
 Fn<phrase(int)> lng_wallet_refreshed_minutes_ago = [](int minutes) {

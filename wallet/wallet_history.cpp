@@ -9,9 +9,9 @@
 #include "wallet/wallet_common.h"
 #include "wallet/wallet_phrases.h"
 #include "base/unixtime.h"
-#include "ui/text/text.h"
 #include "ui/address_label.h"
 #include "ui/painter.h"
+#include "ui/text/text.h"
 #include "styles/style_wallet.h"
 #include "styles/palette.h"
 
@@ -40,37 +40,15 @@ struct TransactionLayout {
 	return result;
 }
 
-[[nodiscard]] int64 CalculateValue(const Ton::Transaction &data) {
-	const auto outgoing = ranges::accumulate(
-		data.outgoing,
-		int64(0),
-		ranges::plus(),
-		&Ton::Message::value);
-	return data.incoming.value - outgoing;
-}
-
-[[nodiscard]] QString ExtractAddress(const Ton::Transaction &data) {
-	return data.outgoing.empty()
-		? data.incoming.source
-		: data.outgoing.front().destination;
-}
-
-[[nodiscard]] QString ExtractMessage(const Ton::Transaction &data) {
-	return data.outgoing.empty()
-		? data.incoming.message
-		: data.outgoing.front().message;
-}
-
 [[nodiscard]] TransactionLayout PrepareLayout(const Ton::Transaction &data) {
 	auto result = TransactionLayout();
 	result.dateTime = base::unixtime::parse(data.time);
 	result.time.setText(
 		st::defaultTextStyle,
 		ph::lng_wallet_short_time(result.dateTime.time())(ph::now));
-	const auto value = ParseAmount(CalculateValue(data));
 	result.amount.setText(
 		st::semiboldTextStyle,
-		value.gramsString + value.separator + value.nanoString);
+		ParseAmount(CalculateValue(data), true).full);
 	const auto address = ExtractAddress(data);
 	const auto addressPartWidth = [&](int from, int length = -1) {
 		return AddressStyle().font->width(address.mid(from, length));
@@ -90,8 +68,7 @@ struct TransactionLayout {
 		_textPlainOptions,
 		st::walletAddressWidthMin);
 	if (data.fee) {
-		const auto fees = ParseAmount(data.fee);
-		const auto fee = fees.gramsString + fees.separator + fees.nanoString;
+		const auto fee = ParseAmount(data.fee).full;
 		result.fees.setText(
 			st::defaultTextStyle,
 			ph::lng_wallet_row_fees(ph::now).replace("<0>", fee));
@@ -116,7 +93,10 @@ public:
 
 	void resizeToWidth(int width);
 	[[nodiscard]] int height() const;
+	[[nodiscard]] int bottom() const;
+
 	void paint(Painter &p, int x, int y);
+	[[nodiscard]] bool isUnderCursor(QPoint point) const;
 
 private:
 	Ton::TransactionId _id;
@@ -185,6 +165,10 @@ int HistoryRow::height() const {
 	return _height;
 }
 
+int HistoryRow::bottom() const {
+	return _top + _height;
+}
+
 void HistoryRow::paint(Painter &p, int x, int y) {
 	const auto padding = st::walletRowPadding;
 	const auto avail = _width - padding.left() - padding.right();
@@ -244,6 +228,14 @@ void HistoryRow::paint(Painter &p, int x, int y) {
 		y += st::walletRowFeesTop;
 		_layout.fees.draw(p, x, y, avail);
 	}
+}
+
+bool HistoryRow::isUnderCursor(QPoint point) const {
+	auto y = top();
+	if (!_layout.date.isEmpty()) {
+		y += st::walletRowDateHeight;
+	}
+	return (point.y() >= y) && (point.y() < bottom());
 }
 
 History::History(
@@ -333,20 +325,76 @@ void History::setupContent(
 		auto p = Painter(&_widget);
 		paint(p, clip);
 	}, lifetime());
+
+	_widget.setAttribute(Qt::WA_MouseTracking);
+	_widget.events(
+	) | rpl::start_with_next([=](not_null<QEvent*> e) {
+		switch (e->type()) {
+		case QEvent::Leave: selectRow(-1); return;
+		case QEvent::Enter:
+		case QEvent::MouseMove: selectRowByMouse(); return;
+		case QEvent::MouseButtonPress: pressRow(); return;
+		case QEvent::MouseButtonRelease: releaseRow(); return;
+		}
+	}, lifetime());
+}
+
+void History::selectRow(int selected) {
+	if (_selected == selected) {
+		return;
+	}
+	_selected = selected;
+	_widget.setCursor((_selected >= 0)
+		? style::cur_pointer
+		: style::cur_default);
+}
+
+void History::selectRowByMouse() {
+	const auto point = _widget.mapFromGlobal(QCursor::pos());
+	const auto from = ranges::upper_bound(
+		_rows,
+		point.y(),
+		ranges::less(),
+		&HistoryRow::bottom);
+	const auto till = ranges::lower_bound(
+		_rows,
+		point.y(),
+		ranges::less(),
+		&HistoryRow::top);
+	if (from != till && (*from)->isUnderCursor(point)) {
+		selectRow(from - begin(_rows));
+	} else {
+		selectRow(-1);
+	}
+}
+
+void History::pressRow() {
+	_pressed = _selected;
+}
+
+void History::releaseRow() {
+	Expects(_selected < int(_rows.size()));
+
+	if (std::exchange(_pressed, -1) != _selected || _selected < 0) {
+		return;
+	}
+	const auto i = ranges::find(
+		_listData,
+		_rows[_selected]->id(),
+		&Ton::Transaction::id);
+	Assert(i != end(_listData));
+	_viewRequests.fire_copy(*i);
 }
 
 void History::paint(Painter &p, QRect clip) {
 	if (_rows.empty()) {
 		return;
 	}
-	const auto bottom = [](const std::unique_ptr<HistoryRow> &row) {
-		return row->top() + row->height();
-	};
 	const auto from = ranges::upper_bound(
 		_rows,
 		clip.top(),
 		ranges::less(),
-		bottom);
+		&HistoryRow::bottom);
 	const auto till = ranges::lower_bound(
 		_rows,
 		clip.top() + clip.height(),
@@ -358,14 +406,11 @@ void History::paint(Painter &p, QRect clip) {
 }
 
 History::ScrollState History::computeScrollState() const {
-	const auto bottom = [](const std::unique_ptr<HistoryRow> &row) {
-		return row->top() + row->height();
-	};
 	const auto item = ranges::upper_bound(
 		_rows,
 		_visibleTop,
 		ranges::less(),
-		bottom);
+		&HistoryRow::bottom);
 	if (item == _rows.end()
 		|| (item == _rows.begin()
 			&& _rows.front()->id() == _listData.front().id)) {

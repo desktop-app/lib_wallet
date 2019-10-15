@@ -6,6 +6,14 @@
 //
 #pragma once
 
+namespace Ton {
+struct Transaction;
+} // namespace Ton
+
+namespace Ui {
+class GenericBox;
+} // namespace Ui
+
 namespace Wallet {
 
 struct ParsedAmount {
@@ -14,9 +22,17 @@ struct ParsedAmount {
 	QString gramsString;
 	QString separator;
 	QString nanoString;
+	QString full;
 };
 
-[[nodiscard]] ParsedAmount ParseAmount(int64 amount);
-std::optional<int64> ParseAmountString(const QString &amount);
+[[nodiscard]] ParsedAmount ParseAmount(int64 amount, bool isSigned = false);
+[[nodiscard]] std::optional<int64> ParseAmountString(const QString &amount);
+[[nodiscard]] int64 CalculateValue(const Ton::Transaction &data);
+[[nodiscard]] QString ExtractAddress(const Ton::Transaction &data);
+[[nodiscard]] QString ExtractMessage(const Ton::Transaction &data);
+
+void AddBoxSubtitle(
+	not_null<Ui::GenericBox*> box,
+	rpl::producer<QString> text);
 
 } // namespace Wallet

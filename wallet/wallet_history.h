@@ -54,6 +54,11 @@ private:
 	void paint(Painter &p, QRect clip);
 	[[nodiscard]] ScrollState computeScrollState() const;
 
+	void selectRow(int selected);
+	void selectRowByMouse();
+	void pressRow();
+	void releaseRow();
+
 	Ui::RpWidget _widget;
 
 	std::vector<Ton::PendingTransaction> _pendingData;
@@ -63,10 +68,11 @@ private:
 	std::vector<std::unique_ptr<HistoryRow>> _rows;
 	int _visibleTop = 0;
 	int _visibleBottom = 0;
+	int _selected = -1;
+	int _pressed = -1;
 
 	rpl::event_stream<Ton::TransactionId> _preloadRequests;
 	rpl::event_stream<Ton::Transaction> _viewRequests;
-	bool _fullLoaded = false;
 
 };
 

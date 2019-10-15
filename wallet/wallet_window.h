@@ -38,7 +38,7 @@ private:
 	void showAccount(const QByteArray &publicKey);
 
 	void saveKey(const std::vector<QString> &words);
-	void sendGrams();
+	void sendGrams(const QString &address = QString());
 	void receiveGrams();
 	void changePassword();
 	void logout();

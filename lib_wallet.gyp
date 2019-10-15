@@ -68,6 +68,8 @@
       '<(src_loc)/wallet/wallet_phrases.h',
       '<(src_loc)/wallet/wallet_top_bar.cpp',
       '<(src_loc)/wallet/wallet_top_bar.h',
+      '<(src_loc)/wallet/wallet_view_transaction.cpp',
+      '<(src_loc)/wallet/wallet_view_transaction.h',
       '<(src_loc)/wallet/wallet_window.cpp',
       '<(src_loc)/wallet/wallet_window.h',
     ],

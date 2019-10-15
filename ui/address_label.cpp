@@ -31,19 +31,21 @@ style::TextStyle ComputeAddressStyle(const style::TextStyle &parent) {
 	return result;
 }
 
-not_null<FlatLabel*> CreateAddressLabel(
+not_null<RpWidget*> CreateAddressLabel(
 		not_null<RpWidget*> parent,
 		const QString &text,
 		const style::FlatLabel &st) {
 	const auto mono = parent->lifetime().make_state<style::FlatLabel>(st);
 	mono->style = ComputeAddressStyle(mono->style);
+	mono->minWidth = 50;
 
-	const auto result = CreateChild<Ui::FlatLabel>(
-		parent.get(),
+	const auto result = CreateChild<Ui::RpWidget>(parent.get());
+	const auto label = CreateChild<Ui::FlatLabel>(
+		result,
 		rpl::single(text),
 		*mono);
-	result->setBreakEverywhere(true);
-	result->setDoubleClickSelectsParagraph(true);
+	label->setBreakEverywhere(true);
+	label->setDoubleClickSelectsParagraph(true);
 
 	const auto half = text.size() / 2;
 	const auto first = text.mid(0, half);
@@ -52,8 +54,11 @@ not_null<FlatLabel*> CreateAddressLabel(
 		mono->style.font->width(first),
 		mono->style.font->width(second)
 	) + mono->style.font->spacew / 2;
-	result->resizeToWidth(width);
-	result->setSelectable(true);
+	label->resizeToWidth(width);
+	label->setSelectable(true);
+
+	result->resize(label->size());
+	label->moveToLeft(0, 0);
 
 	return result;
 }

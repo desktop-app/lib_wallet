@@ -99,6 +99,32 @@ walletRowAddressTop: 2px;
 walletRowCommentTop: 4px;
 walletRowFeesTop: 4px;
 
+subsectionTitle: FlatLabel(defaultFlatLabel) {
+	style: TextStyle(semiboldTextStyle) {
+		font: font(boxFontSize semibold);
+		linkFont: font(boxFontSize semibold);
+		linkFontOver: font(boxFontSize semibold underline);
+	}
+	textFg: windowActiveTextFg;
+	minWidth: 240px;
+}
+subsectionTitlePadding: margins(22px, 7px, 10px, 9px);
+
+walletBottomButton: RoundButton(defaultActiveButton) {
+	width: 304px;
+}
+
+transactionSummaryHeight: 60px;
+transactionValue: FlatLabel(walletCoverBalance) {
+	textFg: windowBoldFg;
+}
+transactionValueTop: 20px;
+transactionFee: FlatLabel(defaultFlatLabel) {
+	textFg: windowSubTextFg;
+}
+transactionFeeSkip: 4px;
+transactionSkip: 16px;
+
 walletWindowSize: size(392px, 520px);
 walletWindowSizeMin: size(392px, 520px);
 walletWindowTitle: WindowTitle(defaultWindowTitle) {
