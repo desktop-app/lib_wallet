@@ -49,6 +49,14 @@ phrase lng_wallet_receive_description = "Share this address with other Gram wall
 phrase lng_wallet_receive_share = "Share Wallet Address";
 phrase lng_wallet_receive_copied = "Transfer link copied to clipboard.";
 
+phrase lng_wallet_menu_export = "Export wallet";
+phrase lng_wallet_menu_delete = "Delete wallet";
+
+phrase lng_wallet_delete_title = "Delete Wallet";
+phrase lng_wallet_delete_about = QString::fromUtf8("This will disconnect the wallet from this app. You will be able to restore your wallet using **24 secret words** \xe2\x80\x93 or import another wallet.\n\nWallets are located in the decentralized TON Blockchain. If you want the wallet to be deleted simply transfer all the Grams from it and leave it empty.");
+phrase lng_wallet_delete_disconnect = "Disconnect";
+phrase lng_wallet_delete_cancel = "Cancel";
+
 const auto walletCountValidate = check_phrase_count(Wallet::kPhrasesCount);
 
 Fn<phrase(int)> lng_wallet_refreshed_minutes_ago = [](int minutes) {

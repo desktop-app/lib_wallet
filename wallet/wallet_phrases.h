@@ -49,6 +49,14 @@ extern phrase lng_wallet_receive_description;
 extern phrase lng_wallet_receive_share;
 extern phrase lng_wallet_receive_copied;
 
+extern phrase lng_wallet_menu_export;
+extern phrase lng_wallet_menu_delete;
+
+extern phrase lng_wallet_delete_title;
+extern phrase lng_wallet_delete_about;
+extern phrase lng_wallet_delete_disconnect;
+extern phrase lng_wallet_delete_cancel;
+
 extern Fn<phrase(int)> lng_wallet_refreshed_minutes_ago;
 extern Fn<phrase(QDate)> lng_wallet_short_date;
 extern Fn<phrase(QTime)> lng_wallet_short_time;
@@ -57,7 +65,7 @@ extern Fn<phrase(QTime)> lng_wallet_short_time;
 
 namespace Wallet {
 
-inline constexpr auto kPhrasesCount = 28;
+inline constexpr auto kPhrasesCount = 34;
 
 void SetPhrases(
 	ph::details::phrase_value_array<kPhrasesCount> data,

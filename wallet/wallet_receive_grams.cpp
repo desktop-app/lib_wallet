@@ -15,46 +15,38 @@
 
 namespace Wallet {
 
-ReceiveGramsBox ReceiveGrams(const QString &address) {
-	auto result = ReceiveGramsBox();
-	auto shareRequests = std::make_unique<rpl::event_stream<QString>>();
-	result.shareRequests = shareRequests->events();
-	result.box = Box([=, stream = std::move(shareRequests)](
-			not_null<Ui::GenericBox*> box) mutable {
-		const auto shareRequests = stream.get();
-		Ui::AttachAsChild(box, std::move(stream));
+void ReceiveGramsBox(
+		not_null<Ui::GenericBox*> box,
+		const QString &address,
+		Fn<void(QString)> share) {
+	box->setTitle(ph::lng_wallet_receive_title());
 
-		box->setTitle(ph::lng_wallet_receive_title());
+	box->addTopButton(st::boxTitleClose, [=] { box->closeBox(); });
 
-		box->addTopButton(st::boxTitleClose, [=] { box->closeBox(); });
+	box->addRow(object_ptr<Ui::FlatLabel>(
+		box,
+		ph::lng_wallet_receive_description(),
+		st::walletLabel));
 
-		box->addRow(object_ptr<Ui::FlatLabel>(
+	box->addRow(object_ptr<Ui::FixedHeightWidget>(
+		box,
+		st::transactionSkip));
+
+	box->addRow(
+		object_ptr<Ui::RpWidget>::fromRaw(Ui::CreateAddressLabel(
 			box,
-			ph::lng_wallet_receive_description(),
-			st::walletLabel));
+			address,
+			st::walletReceiveAddressLabel)));
 
-		box->addRow(object_ptr<Ui::FixedHeightWidget>(
-			box,
-			st::transactionSkip));
+	box->addRow(object_ptr<Ui::FixedHeightWidget>(
+		box,
+		st::transactionSkip));
 
-		box->addRow(
-			object_ptr<Ui::RpWidget>::fromRaw(Ui::CreateAddressLabel(
-				box,
-				address,
-				st::walletReceiveAddressLabel)));
-
-		box->addRow(object_ptr<Ui::FixedHeightWidget>(
-			box,
-			st::transactionSkip));
-
-		box->addButton(
-			ph::lng_wallet_receive_share(),
-			[=] { shareRequests->fire_copy(address); },
-			st::walletBottomButton
-		)->setTextTransform(Ui::RoundButton::TextTransform::NoTransform);
-	});
-	return result;
-
+	box->addButton(
+		ph::lng_wallet_receive_share(),
+		[=] { share(address); },
+		st::walletBottomButton
+	)->setTextTransform(Ui::RoundButton::TextTransform::NoTransform);
 }
 
 } // namespace Wallet

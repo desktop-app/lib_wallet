@@ -7,8 +7,10 @@
 #include "wallet/wallet_top_bar.h"
 
 #include "wallet/wallet_phrases.h"
+#include "wallet/wallet_common.h"
 #include "ui/widgets/buttons.h"
 #include "ui/widgets/labels.h"
+#include "ui/widgets/dropdown_menu.h"
 #include "base/timer.h"
 #include "ton/ton_state.h"
 #include "styles/style_widgets.h"
@@ -64,7 +66,8 @@ constexpr auto kMsInMinute = 60 * crl::time(1000);
 TopBar::TopBar(
 	not_null<Ui::RpWidget*> parent,
 	rpl::producer<TopBarState> state)
-: _widget(parent) {
+: _widgetParent(parent)
+, _widget(parent) {
 	parent->widthValue(
 	) | rpl::start_with_next([=](int width) {
 		_widget.setGeometry(0, 0, width, st::walletTopBarHeight);
@@ -73,8 +76,8 @@ TopBar::TopBar(
 	setupControls(std::move(state));
 }
 
-rpl::producer<> TopBar::refreshRequests() const {
-	return _refreshRequests.events();
+rpl::producer<Action> TopBar::actionRequests() const {
+	return _actionRequests.events();
 }
 
 rpl::lifetime &TopBar::lifetime() {
@@ -92,8 +95,8 @@ void TopBar::setupControls(rpl::producer<TopBarState> &&state) {
 		st::walletTopRefreshButton);
 	refresh->clicks(
 	) | rpl::map([] {
-		return rpl::empty_value();
-	}) | rpl::start_to_stream(_refreshRequests, refresh->lifetime());
+		return Action::Refresh;
+	}) | rpl::start_to_stream(_actionRequests, refresh->lifetime());
 
 	const auto label = Ui::CreateChild<Ui::FlatLabel>(
 		&_widget,
@@ -103,6 +106,7 @@ void TopBar::setupControls(rpl::producer<TopBarState> &&state) {
 	const auto menu = Ui::CreateChild<Ui::IconButton>(
 		&_widget,
 		st::walletTopMenuButton);
+	menu->setClickedCallback([=] { showMenu(menu); });
 
 	_widget.setAttribute(Qt::WA_OpaquePaintEvent);
 	_widget.paintRequest(
@@ -125,6 +129,52 @@ void TopBar::setupControls(rpl::producer<TopBarState> &&state) {
 			(height - label->height()) / 2,
 			width);
 	}, lifetime());
+}
+
+void TopBar::showMenu(not_null<Ui::IconButton*> toggle) {
+	if (_menu) {
+		return;
+	}
+	_menu.emplace(_widgetParent);
+
+	const auto menu = _menu.get();
+	toggle->installEventFilter(menu);
+
+	const auto weak = Ui::MakeWeak(toggle);
+	menu->setHiddenCallback([=] {
+		menu->deleteLater();
+		if (weak && _menu.get() == menu) {
+			_menu = nullptr;
+			toggle->setForceRippled(false);
+		}
+	});
+	menu->setShowStartCallback(crl::guard(weak, [=] {
+		if (_menu == menu) {
+			toggle->setForceRippled(true);
+		}
+	}));
+	menu->setHideStartCallback(crl::guard(weak, [=] {
+		if (_menu == menu) {
+			toggle->setForceRippled(false);
+		}
+	}));
+
+	menu->addAction(ph::lng_wallet_menu_export(ph::now), [=] {
+		_actionRequests.fire(Action::Export);
+	});
+	menu->addAction(ph::lng_wallet_menu_delete(ph::now), [=] {
+		_actionRequests.fire(Action::LogOut);
+	});
+
+	_widgetParent->widthValue(
+	) | rpl::start_with_next([=](int width) {
+		menu->moveToRight(
+			st::walletMenuPosition.x(),
+			st::walletMenuPosition.y(),
+			width);
+	}, menu->lifetime());
+
+	menu->showAnimated(Ui::PanelAnimation::Origin::TopRight);
 }
 
 rpl::producer<TopBarState> MakeTopBarState(

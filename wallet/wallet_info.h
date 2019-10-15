@@ -15,18 +15,13 @@ class ScrollArea;
 
 namespace Wallet {
 
+enum class Action;
+
 class Info final {
 public:
 	struct Data {
 		rpl::producer<Ton::WalletViewerState> state;
 		rpl::producer<Ton::LoadedSlice> loaded;
-	};
-	enum class Action {
-		Refresh,
-		Send,
-		Receive,
-		ChangePassword,
-		LogOut,
 	};
 	Info(not_null<QWidget*> parent, Data data);
 	~Info();

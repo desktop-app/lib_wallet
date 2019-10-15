@@ -21,6 +21,8 @@ walletNextButton: RoundButton(defaultActiveButton) {
 	font: font(17px semibold);
 }
 
+walletMenuPosition: point(2px, 40px);
+
 walletAddressWidthMin: 50px;
 walletAddressLabel: FlatLabel(defaultFlatLabel) {
 	minWidth: walletAddressWidthMin;

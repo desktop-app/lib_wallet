@@ -38,7 +38,7 @@ void Info::setGeometry(QRect geometry) {
 	_widget->setGeometry(geometry);
 }
 
-rpl::producer<Info::Action> Info::actionRequests() const {
+rpl::producer<Action> Info::actionRequests() const {
 	return _actionRequests.events();
 }
 
@@ -55,10 +55,8 @@ void Info::setupControls() {
 	const auto topBar = _widget->lifetime().make_state<TopBar>(
 		_widget.get(),
 		MakeTopBarState(rpl::duplicate(state), _widget->lifetime()));
-	topBar->refreshRequests(
-	) | rpl::map([] {
-		return Action::Refresh;
-	}) | rpl::start_to_stream(_actionRequests, topBar->lifetime());
+	topBar->actionRequests(
+	) | rpl::start_to_stream(_actionRequests, topBar->lifetime());
 
 	const auto cover = _widget->lifetime().make_state<Cover>(
 		_inner.get(),

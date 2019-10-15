@@ -10,9 +10,6 @@
 
 namespace Wallet {
 
-void ReceiveGramsBox(
-	not_null<Ui::GenericBox*> box,
-	const QString &address,
-	Fn<void(QString)> share);
+void DeleteWalletBox(not_null<Ui::GenericBox*> box, Fn<void()> logout);
 
 } // namespace Wallet

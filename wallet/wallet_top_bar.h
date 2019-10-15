@@ -8,11 +8,18 @@
 
 #include "ui/rp_widget.h"
 
+namespace Ui {
+class IconButton;
+class DropdownMenu;
+} // namespace Ui
+
 namespace Ton {
 struct WalletViewerState;
 } // namespace Ton
 
 namespace Wallet {
+
+enum class Action;
 
 struct TopBarState {
 	QString text;
@@ -23,15 +30,18 @@ class TopBar final {
 public:
 	TopBar(not_null<Ui::RpWidget*> parent, rpl::producer<TopBarState> state);
 
-	[[nodiscard]] rpl::producer<> refreshRequests() const;
+	[[nodiscard]] rpl::producer<Action> actionRequests() const;
 
 	[[nodiscard]] rpl::lifetime &lifetime();
 
 private:
 	void setupControls(rpl::producer<TopBarState> &&state);
+	void showMenu(not_null<Ui::IconButton*> toggle);
 
+	const not_null<Ui::RpWidget*> _widgetParent;
 	Ui::RpWidget _widget;
-	rpl::event_stream<> _refreshRequests;
+	rpl::event_stream<Action> _actionRequests;
+	base::unique_qptr<Ui::DropdownMenu> _menu;
 
 };
 

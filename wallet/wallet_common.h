@@ -25,6 +25,15 @@ struct ParsedAmount {
 	QString full;
 };
 
+enum class Action {
+	Refresh,
+	Export,
+	Send,
+	Receive,
+	ChangePassword,
+	LogOut,
+};
+
 [[nodiscard]] ParsedAmount ParseAmount(int64 amount, bool isSigned = false);
 [[nodiscard]] std::optional<int64> ParseAmountString(const QString &amount);
 [[nodiscard]] int64 CalculateValue(const Ton::Transaction &data);

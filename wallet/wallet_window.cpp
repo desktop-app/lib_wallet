@@ -12,6 +12,7 @@
 #include "wallet/wallet_info.h"
 #include "wallet/wallet_view_transaction.h"
 #include "wallet/wallet_receive_grams.h"
+#include "wallet/wallet_delete.h"
 #include "ton/ton_wallet.h"
 #include "ton/ton_account_viewer.h"
 #include "ui/address_label.h"
@@ -125,13 +126,14 @@ void Window::showAccount(const QByteArray &publicKey) {
 	}, _info->lifetime());
 
 	_info->actionRequests(
-	) | rpl::start_with_next([=](Info::Action action) {
+	) | rpl::start_with_next([=](Action action) {
 		switch (action) {
-		case Info::Action::Refresh: _viewer->refreshNow(nullptr); break;
-		case Info::Action::Send: sendGrams(); break;
-		case Info::Action::Receive: receiveGrams(); break;
-		case Info::Action::ChangePassword: changePassword(); break;
-		case Info::Action::LogOut: logout(); break;
+		case Action::Refresh: _viewer->refreshNow(nullptr); break;
+		case Action::Export: /*export();*/ break;
+		case Action::Send: sendGrams(); break;
+		case Action::Receive: receiveGrams(); break;
+		case Action::ChangePassword: changePassword(); break;
+		case Action::LogOut: logout(); break;
 		}
 	}, _info->lifetime());
 
@@ -142,13 +144,10 @@ void Window::showAccount(const QByteArray &publicKey) {
 
 	_info->viewRequests(
 	) | rpl::start_with_next([=](Ton::Transaction &&data) {
-		auto view = ViewTransaction(std::move(data));
-		std::move(
-			view.sendRequests
-		) | rpl::start_with_next([=](const QString &address) {
+		const auto send = [=](const QString &address) {
 			sendGrams(address);
-		}, view.box->lifetime());
-		_layers->showBox(std::move(view.box));
+		};
+		_layers->showBox(Box(ViewTransactionBox, std::move(data), send));
 	}, _info->lifetime());
 }
 
@@ -287,16 +286,13 @@ void Window::sendGrams(const QString &address) {
 }
 
 void Window::receiveGrams() {
-	auto view = ReceiveGrams(_address);
-	std::move(
-		view.shareRequests
-	) | rpl::start_with_next([=](const QString &address) {
+	const auto share = [=](const QString &address) {
 		QGuiApplication::clipboard()->setText(TransferLink(address));
 		auto toast = Ui::Toast::Config();
 		toast.text = ph::lng_wallet_receive_copied(ph::now);
 		Ui::Toast::Show(_window.get(), toast);
-	}, view.box->lifetime());
-	_layers->showBox(std::move(view.box));
+	};
+	_layers->showBox(Box(ReceiveGramsBox, _address, share));
 }
 
 void Window::changePassword() {
@@ -364,11 +360,13 @@ void Window::changePassword() {
 }
 
 void Window::logout() {
-	_wallet->deleteAllKeys([=](Ton::Result<> result) {
-		if (result) {
-			showIntro();
-		}
-	});
+	_layers->showBox(Box(DeleteWalletBox, [=] {
+		_wallet->deleteAllKeys([=](Ton::Result<> result) {
+			if (result) {
+				showIntro();
+			}
+		});
+	}));
 }
 
 } // namespace Wallet

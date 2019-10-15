@@ -56,6 +56,8 @@
       '<(src_loc)/wallet/wallet_common.h',
       '<(src_loc)/wallet/wallet_cover.cpp',
       '<(src_loc)/wallet/wallet_cover.h',
+      '<(src_loc)/wallet/wallet_delete.cpp',
+      '<(src_loc)/wallet/wallet_delete.h',
       '<(src_loc)/wallet/wallet_empty_history.cpp',
       '<(src_loc)/wallet/wallet_empty_history.h',
       '<(src_loc)/wallet/wallet_history.cpp',

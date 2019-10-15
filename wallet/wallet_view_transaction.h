@@ -14,11 +14,9 @@ struct Transaction;
 
 namespace Wallet {
 
-struct ViewTransactionBox {
-	object_ptr<Ui::GenericBox> box = { nullptr };
-	rpl::producer<QString> sendRequests;
-};
-
-[[nodiscard]] ViewTransactionBox ViewTransaction(Ton::Transaction &&data);
+void ViewTransactionBox(
+	not_null<Ui::GenericBox*> box,
+	Ton::Transaction &&data,
+	Fn<void(QString)> send);
 
 } // namespace Wallet

@@ -45,7 +45,7 @@ void Cover::setupControls(rpl::producer<CoverState> &&state) {
 	auto amount = rpl::duplicate(
 		state
 	) | rpl::map([](const CoverState &state) {
-		return ParseAmount(state.balance).full;
+		return ParseAmount(std::max(state.balance, 0LL)).full;
 	});
 
 	const auto balance = Ui::CreateChild<Ui::FlatLabel>(

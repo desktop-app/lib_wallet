@@ -74,68 +74,58 @@ object_ptr<Ui::RpWidget> CreateSummary(
 
 } // namespace
 
-[[nodiscard]] ViewTransactionBox ViewTransaction(
-		Ton::Transaction &&data) {
-	auto result = ViewTransactionBox();
-	auto sendRequests = std::make_unique<rpl::event_stream<QString>>();
-	result.sendRequests = sendRequests->events();
-	result.box = Box([
-		data = std::move(data),
-		stream = std::move(sendRequests)
-	](not_null<Ui::GenericBox*> box) mutable {
-		const auto sendRequests = stream.get();
-		Ui::AttachAsChild(box, std::move(stream));
+void ViewTransactionBox(
+		not_null<Ui::GenericBox*> box,
+		Ton::Transaction &&data,
+		Fn<void(QString)> send) {
+	box->setTitle(ph::lng_wallet_view_title());
 
-		box->setTitle(ph::lng_wallet_view_title());
+	const auto address = ExtractAddress(data);
+	const auto incoming = data.outgoing.empty();
+	const auto message = ExtractMessage(data);
 
-		const auto address = ExtractAddress(data);
-		const auto incoming = data.outgoing.empty();
-		const auto message = ExtractMessage(data);
+	box->addTopButton(st::boxTitleClose, [=] { box->closeBox(); });
 
-		box->addTopButton(st::boxTitleClose, [=] { box->closeBox(); });
+	box->addRow(CreateSummary(box, data));
 
-		box->addRow(CreateSummary(box, data));
+	AddBoxSubtitle(box, incoming
+		? ph::lng_wallet_view_sender()
+		: ph::lng_wallet_view_recipient());
+	box->addRow(
+		object_ptr<Ui::RpWidget>::fromRaw(Ui::CreateAddressLabel(
+			box,
+			address,
+			st::walletLabel)));
 
-		AddBoxSubtitle(box, incoming
-			? ph::lng_wallet_view_sender()
-			: ph::lng_wallet_view_recipient());
-		box->addRow(
-			object_ptr<Ui::RpWidget>::fromRaw(Ui::CreateAddressLabel(
-				box,
-				address,
-				st::walletLabel)));
+	AddBoxSubtitle(box, ph::lng_wallet_view_date());
+	box->addRow(object_ptr<Ui::FlatLabel>(
+		box,
+		base::unixtime::parse(
+			data.time
+		).toString(Qt::DefaultLocaleLongDate),
+		st::walletLabel));
 
-		AddBoxSubtitle(box, ph::lng_wallet_view_date());
+	if (!message.isEmpty()) {
+		AddBoxSubtitle(box, ph::lng_wallet_view_comment());
 		box->addRow(object_ptr<Ui::FlatLabel>(
 			box,
-			base::unixtime::parse(
-				data.time
-			).toString(Qt::DefaultLocaleLongDate),
-			st::walletLabel));
+			message,
+			st::walletLabel)
+		)->setSelectable(true);
+	}
 
-		if (!message.isEmpty()) {
-			AddBoxSubtitle(box, ph::lng_wallet_view_comment());
-			box->addRow(object_ptr<Ui::FlatLabel>(
-				box,
-				message,
-				st::walletLabel)
-			)->setSelectable(true);
-		}
+	box->addRow(object_ptr<Ui::FixedHeightWidget>(
+		box,
+		st::transactionSkip));
 
-		box->addRow(object_ptr<Ui::FixedHeightWidget>(
-			box,
-			st::transactionSkip));
-
-		auto text = incoming
-			? ph::lng_wallet_view_send_to_address()
-			: ph::lng_wallet_view_send_to_recipient();
-		box->addButton(
-			std::move(text),
-			[=] { sendRequests->fire_copy(address); },
-			st::walletBottomButton
-		)->setTextTransform(Ui::RoundButton::TextTransform::NoTransform);
-	});
-	return result;
+	auto text = incoming
+		? ph::lng_wallet_view_send_to_address()
+		: ph::lng_wallet_view_send_to_recipient();
+	box->addButton(
+		std::move(text),
+		[=] { send(address); },
+		st::walletBottomButton
+	)->setTextTransform(Ui::RoundButton::TextTransform::NoTransform);
 }
 
 } // namespace Wallet
