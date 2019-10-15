@@ -140,6 +140,10 @@ QString ExtractMessage(const Ton::Transaction &data) {
 		: data.outgoing.front().message;
 }
 
+QString TransferLink(const QString &address) {
+	return "ton://transfer/" + address;
+}
+
 void AddBoxSubtitle(
 		not_null<Ui::GenericBox*> box,
 		rpl::producer<QString> text) {

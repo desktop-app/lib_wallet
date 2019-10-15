@@ -10,6 +10,7 @@
 #include "wallet/wallet_phrases.h"
 #include "ui/address_label.h"
 #include "ui/wrap/padding_wrap.h"
+#include "ui/widgets/buttons.h"
 #include "ton/ton_state.h"
 #include "base/unixtime.h"
 #include "styles/style_layers.h"
@@ -102,7 +103,7 @@ object_ptr<Ui::RpWidget> CreateSummary(
 			object_ptr<Ui::RpWidget>::fromRaw(Ui::CreateAddressLabel(
 				box,
 				address,
-				st::boxLabel)));
+				st::walletLabel)));
 
 		AddBoxSubtitle(box, ph::lng_wallet_view_date());
 		box->addRow(object_ptr<Ui::FlatLabel>(
@@ -110,14 +111,14 @@ object_ptr<Ui::RpWidget> CreateSummary(
 			base::unixtime::parse(
 				data.time
 			).toString(Qt::DefaultLocaleLongDate),
-			st::boxLabel));
+			st::walletLabel));
 
 		if (!message.isEmpty()) {
 			AddBoxSubtitle(box, ph::lng_wallet_view_comment());
 			box->addRow(object_ptr<Ui::FlatLabel>(
 				box,
 				message,
-				st::boxLabel)
+				st::walletLabel)
 			)->setSelectable(true);
 		}
 
@@ -128,10 +129,11 @@ object_ptr<Ui::RpWidget> CreateSummary(
 		auto text = incoming
 			? ph::lng_wallet_view_send_to_address()
 			: ph::lng_wallet_view_send_to_recipient();
-		box->addButton(std::move(text), [=] {
-			sendRequests->fire_copy(address);
-			box->closeBox();
-		}, st::walletBottomButton);
+		box->addButton(
+			std::move(text),
+			[=] { sendRequests->fire_copy(address); },
+			st::walletBottomButton
+		)->setTextTransform(Ui::RoundButton::TextTransform::NoTransform);
 	});
 	return result;
 }

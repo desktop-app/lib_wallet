@@ -58,7 +58,17 @@ not_null<RpWidget*> CreateAddressLabel(
 	label->setSelectable(true);
 
 	result->resize(label->size());
-	label->moveToLeft(0, 0);
+	result->widthValue(
+	) | rpl::start_with_next([=](int width) {
+		if (st.align & Qt::AlignHCenter) {
+			label->moveToLeft(
+				(width - label->widthNoMargins()) / 2,
+				0,
+				width);
+		} else {
+			label->moveToLeft(0, 0, width);
+		}
+	}, result->lifetime());
 
 	return result;
 }

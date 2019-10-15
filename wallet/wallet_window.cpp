@@ -7,9 +7,11 @@
 #include "wallet/wallet_window.h"
 
 #include "wallet/wallet_phrases.h"
+#include "wallet/wallet_common.h"
 #include "wallet/wallet_intro.h"
 #include "wallet/wallet_info.h"
 #include "wallet/wallet_view_transaction.h"
+#include "wallet/wallet_receive_grams.h"
 #include "ton/ton_wallet.h"
 #include "ton/ton_account_viewer.h"
 #include "ui/address_label.h"
@@ -18,6 +20,7 @@
 #include "ui/widgets/input_fields.h"
 #include "ui/layers/layer_manager.h"
 #include "ui/layers/generic_box.h"
+#include "ui/toast/toast.h"
 #include "styles/style_layers.h"
 #include "styles/style_wallet.h"
 #include "styles/palette.h"
@@ -25,6 +28,7 @@
 #include <QtCore/QStandardPaths>
 #include <QtCore/QDir>
 #include <QtGui/QtEvents>
+#include <QtGui/QClipboard>
 #include <QtWidgets/QFileDialog>
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QDesktopWidget>
@@ -283,17 +287,16 @@ void Window::sendGrams(const QString &address) {
 }
 
 void Window::receiveGrams() {
-	_layers->showBox(Box([=](not_null<Ui::GenericBox*> box) {
-		box->setTitle(rpl::single(QString("Receive grams")));
-		box->addRow(object_ptr<Ui::RpWidget>::fromRaw(
-			Ui::CreateAddressLabel(
-				box,
-				Ton::Wallet::GetAddress(_wallet->publicKeys().front()),
-				st::walletAddressLabel)));
-		box->addButton(rpl::single(QString("Done")), [=] {
-			box->closeBox();
-		});
-	}));
+	auto view = ReceiveGrams(_address);
+	std::move(
+		view.shareRequests
+	) | rpl::start_with_next([=](const QString &address) {
+		QGuiApplication::clipboard()->setText(TransferLink(address));
+		auto toast = Ui::Toast::Config();
+		toast.text = ph::lng_wallet_receive_copied(ph::now);
+		Ui::Toast::Show(_window.get(), toast);
+	}, view.box->lifetime());
+	_layers->showBox(std::move(view.box));
 }
 
 void Window::changePassword() {

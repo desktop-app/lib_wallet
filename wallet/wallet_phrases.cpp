@@ -44,6 +44,11 @@ phrase lng_wallet_view_comment = "Comment";
 phrase lng_wallet_view_send_to_address = "Send Grams to this address";
 phrase lng_wallet_view_send_to_recipient = "Send Grams to this Recipient";
 
+phrase lng_wallet_receive_title = "Receive Grams";
+phrase lng_wallet_receive_description = "Share this address with other Gram wallet owners to receive Grams from them:";
+phrase lng_wallet_receive_share = "Share Wallet Address";
+phrase lng_wallet_receive_copied = "Transfer link copied to clipboard.";
+
 const auto walletCountValidate = check_phrase_count(Wallet::kPhrasesCount);
 
 Fn<phrase(int)> lng_wallet_refreshed_minutes_ago = [](int minutes) {

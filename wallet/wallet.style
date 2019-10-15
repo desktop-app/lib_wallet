@@ -114,6 +114,14 @@ walletBottomButton: RoundButton(defaultActiveButton) {
 	width: 304px;
 }
 
+walletLabel: FlatLabel(defaultFlatLabel) {
+	minWidth: 274px;
+	align: align(topleft);
+}
+walletReceiveAddressLabel: FlatLabel(defaultFlatLabel) {
+	align: align(top);
+}
+
 transactionSummaryHeight: 60px;
 transactionValue: FlatLabel(walletCoverBalance) {
 	textFg: windowBoldFg;

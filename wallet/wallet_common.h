@@ -31,6 +31,8 @@ struct ParsedAmount {
 [[nodiscard]] QString ExtractAddress(const Ton::Transaction &data);
 [[nodiscard]] QString ExtractMessage(const Ton::Transaction &data);
 
+[[nodiscard]] QString TransferLink(const QString &address);
+
 void AddBoxSubtitle(
 	not_null<Ui::GenericBox*> box,
 	rpl::producer<QString> text);

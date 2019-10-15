@@ -66,6 +66,8 @@
       '<(src_loc)/wallet/wallet_intro.h',
       '<(src_loc)/wallet/wallet_phrases.cpp',
       '<(src_loc)/wallet/wallet_phrases.h',
+      '<(src_loc)/wallet/wallet_receive_grams.cpp',
+      '<(src_loc)/wallet/wallet_receive_grams.h',
       '<(src_loc)/wallet/wallet_top_bar.cpp',
       '<(src_loc)/wallet/wallet_top_bar.h',
       '<(src_loc)/wallet/wallet_view_transaction.cpp',
