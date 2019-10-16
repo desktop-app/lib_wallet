@@ -6,20 +6,26 @@
 //
 #pragma once
 
+#include <QtCore/QPointer>
+
 namespace Ton {
 class Wallet;
 class AccountViewer;
+struct TransactionCheckResult;
 } // namespace Ton
 
 namespace Ui {
 class Window;
 class LayerManager;
+class GenericBox;
 } // namespace Ui
 
 namespace Wallet {
 
 class Intro;
 class Info;
+struct PreparedInvoice;
+enum class InvoiceField;
 
 class Window final {
 public:
@@ -38,7 +44,15 @@ private:
 	void showAccount(const QByteArray &publicKey);
 
 	void saveKey(const std::vector<QString> &words);
-	void sendGrams(const QString &address = QString());
+	void sendGrams(const QString &invoice = QString());
+	void askSendPassword(
+		const PreparedInvoice &invoice,
+		Fn<void(InvoiceField)> showInvoiceError);
+	void showSendConfirmation(
+		const PreparedInvoice &invoice,
+		const QByteArray &passcode,
+		const Ton::TransactionCheckResult &checkResult,
+		Fn<void(InvoiceField)> showInvoiceError);
 	void receiveGrams();
 	void changePassword();
 	void logout();
@@ -51,7 +65,10 @@ private:
 
 	QString _address;
 	std::unique_ptr<Ton::AccountViewer> _viewer;
+	rpl::variable<int64> _balance;
 	std::unique_ptr<Info> _info;
+	QPointer<Ui::GenericBox> _sendBox;
+	QPointer<Ui::GenericBox> _sendConfirmBox;
 
 };
 

@@ -7,14 +7,20 @@
 #pragma once
 
 namespace Ton {
+struct Error;
 struct Transaction;
+struct TransactionToSend;
 } // namespace Ton
 
 namespace Ui {
 class GenericBox;
+class FlatLabel;
 } // namespace Ui
 
 namespace Wallet {
+
+struct PreparedInvoice;
+enum class InvoiceField;
 
 struct ParsedAmount {
 	int64 grams = 0;
@@ -42,8 +48,14 @@ enum class Action {
 
 [[nodiscard]] QString TransferLink(const QString &address);
 
-void AddBoxSubtitle(
+not_null<Ui::FlatLabel*> AddBoxSubtitle(
 	not_null<Ui::GenericBox*> box,
 	rpl::producer<QString> text);
+
+[[nodiscard]] bool IsIncorrectPasswordError(const Ton::Error &error);
+[[nodiscard]] std::optional<InvoiceField> ErrorInvoiceField(
+	const Ton::Error &error);
+[[nodiscard]] Ton::TransactionToSend TransactionFromInvoice(
+	const PreparedInvoice &invoice);
 
 } // namespace Wallet

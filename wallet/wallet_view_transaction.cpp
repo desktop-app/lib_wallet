@@ -39,7 +39,7 @@ object_ptr<Ui::RpWidget> CreateSummary(
 		? Ui::CreateChild<Ui::FlatLabel>(
 			result.data(),
 			ph::lng_wallet_view_transaction_fee(ph::now).replace(
-				"<0>",
+				"{amount}",
 				ParseAmount(data.otherFee).full),
 			st::transactionFee)
 		: nullptr;
@@ -47,7 +47,7 @@ object_ptr<Ui::RpWidget> CreateSummary(
 		? Ui::CreateChild<Ui::FlatLabel>(
 			result.data(),
 			ph::lng_wallet_view_storage_fee(ph::now).replace(
-				"<0>",
+				"{amount}",
 				ParseAmount(data.storageFee).full),
 			st::transactionFee)
 		: nullptr;

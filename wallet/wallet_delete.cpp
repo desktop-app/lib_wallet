@@ -23,7 +23,7 @@ void DeleteWalletBox(not_null<Ui::GenericBox*> box, Fn<void()> logout) {
 	box->addButton(ph::lng_wallet_delete_disconnect(), [=] {
 		logout();
 	}, st::attentionBoxButton);
-	box->addButton(ph::lng_wallet_delete_cancel(), [=] {
+	box->addButton(ph::lng_wallet_cancel(), [=] {
 		box->closeBox();
 	});
 }

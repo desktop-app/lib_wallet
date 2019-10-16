@@ -135,6 +135,54 @@ transactionFee: FlatLabel(defaultFlatLabel) {
 transactionFeeSkip: 4px;
 transactionSkip: 16px;
 
+confirmationAddressLabel: walletReceiveAddressLabel;
+confirmationSkip: transactionSkip;
+confirmationFee: transactionFee;
+confirmationFeeSkip: 8px;
+
+walletInput: InputField(defaultInputField) {
+	textBg: transparent;
+	textMargins: margins(0px, 7px, 0px, 7px);
+
+	placeholderFg: placeholderFg;
+	placeholderFgActive: placeholderFgActive;
+	placeholderFgError: placeholderFgActive;
+	placeholderMargins: margins(0px, 0px, 0px, 0px);
+	placeholderScale: 0.;
+	placeholderFont: boxTextFont;
+
+	heightMin: 32px;
+	heightMax: 100px;
+}
+walletSendInput: InputField(walletInput) {
+	textMargins: margins(0px, 7px, 0px, 0px);
+	heightMin: 52px;
+}
+walletSendAbout: FlatLabel(walletLabel) {
+	textFg: windowSubTextFg;
+}
+walletSendAboutPadding: margins(22px, 8px, 22px, 20px);
+walletSendBalanceLabel: FlatLabel(defaultFlatLabel) {
+	textFg: windowSubTextFg;
+}
+walletSendAmountPadding: margins(22px, 0px, 22px, 12px);
+
+walletPasscodeHeight: 190px;
+walletPasscodeInput: InputField(walletInput) {
+	textBg: boxBg;
+	width: 186px;
+	heightMin: 34px;
+	font: font(15px);
+	placeholderFont: font(15px);
+	placeholderAlign: align(top);
+}
+walletPasscodeInputTop: 132px;
+walletPasscodeError: FlatLabel(walletLabel) {
+	textFg: boxTextFgError;
+	align: align(top);
+}
+walletPasscodeErrorTop: 172px;
+
 walletWindowSize: size(392px, 520px);
 walletWindowSizeMin: size(392px, 520px);
 walletWindowTitle: WindowTitle(defaultWindowTitle) {

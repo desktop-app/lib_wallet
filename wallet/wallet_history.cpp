@@ -71,7 +71,7 @@ struct TransactionLayout {
 		const auto fee = ParseAmount(data.fee).full;
 		result.fees.setText(
 			st::defaultTextStyle,
-			ph::lng_wallet_row_fees(ph::now).replace("<0>", fee));
+			ph::lng_wallet_row_fees(ph::now).replace("{amount}", fee));
 	}
 	result.incoming = data.outgoing.empty();
 	return result;

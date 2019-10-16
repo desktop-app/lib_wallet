@@ -12,6 +12,9 @@
 #include "wallet/wallet_info.h"
 #include "wallet/wallet_view_transaction.h"
 #include "wallet/wallet_receive_grams.h"
+#include "wallet/wallet_send_grams.h"
+#include "wallet/wallet_enter_passcode.h"
+#include "wallet/wallet_confirm_transaction.h"
 #include "wallet/wallet_delete.h"
 #include "ton/ton_wallet.h"
 #include "ton/ton_account_viewer.h"
@@ -45,7 +48,6 @@ Window::Window(not_null<Ton::Wallet*> wallet)
 : _wallet(wallet)
 , _window(std::make_unique<Ui::Window>())
 , _layers(std::make_unique<Ui::LayerManager>(_window->body())) {
-	_layers->setHideByBackgroundClick(true);
 	init();
 	if (_wallet->publicKeys().empty()) {
 		showIntro();
@@ -57,12 +59,14 @@ Window::Window(not_null<Ton::Wallet*> wallet)
 Window::~Window() = default;
 
 void Window::init() {
-	_window->setTitle(ph::lng_wallet_window_title(ph::now));
+	_window->setTitle(QString());
 	_window->setGeometry(style::centerrect(
 		QApplication::desktop()->geometry(),
 		QRect(QPoint(), st::walletWindowSize)));
 	_window->setTitleStyle(st::walletWindowTitle);
 	_window->setFixedSize(st::walletWindowSize);
+
+	_layers->setHideByBackgroundClick(true);
 
 	updatePalette();
 	style::PaletteChanged(
@@ -110,6 +114,11 @@ void Window::showAccount(const QByteArray &publicKey) {
 
 	_address = Ton::Wallet::GetAddress(publicKey);
 	_viewer = _wallet->createAccountViewer(_address);
+	_balance = _viewer->state(
+	) | rpl::map([=](const Ton::WalletViewerState &state) {
+		return state.wallet.account.balance;
+	});
+
 	_viewer->setRefreshEach(kRefreshEachDelay);
 
 	auto data = Info::Data();
@@ -209,80 +218,122 @@ void Window::saveKey(const std::vector<QString> &words) {
 	}));
 }
 
-void Window::sendGrams(const QString &address) {
-	_layers->showBox(Box([=](not_null<Ui::GenericBox*> box) {
-		box->setTitle(rpl::single(QString("Send grams")));
-		const auto recipient = box->addRow(object_ptr<Ui::InputField>(
-			box,
-			st::defaultInputField,
-			rpl::single(QString("Recipient")),
-			address));
-		const auto amount = box->addRow(object_ptr<Ui::InputField>(
-			box,
-			st::defaultInputField,
-			rpl::single(QString("Amount"))));
-		const auto comment = box->addRow(object_ptr<Ui::InputField>(
-			box,
-			st::defaultInputField,
-			rpl::single(QString("Comment"))));
-		const auto passwordWrap = box->addRow(object_ptr<Ui::RpWidget>(box));
-		const auto password = Ui::CreateChild<Ui::PasswordInput>(
-			passwordWrap,
-			st::defaultInputField,
-			rpl::single(QString("Password")));
-		passwordWrap->widthValue(
-		) | rpl::start_with_next([=](int width) {
-			password->resize(width, password->height());
-		}, password->lifetime());
-		password->heightValue(
-		) | rpl::start_with_next([=](int height) {
-			passwordWrap->resize(passwordWrap->width(), height);
-		}, password->lifetime());
-		password->move(0, 0);
-		const auto sending = box->lifetime().make_state<bool>(false);
-		box->addButton(rpl::single(QString("Send")), [=] {
-			if (*sending) {
+void Window::sendGrams(const QString &invoice) {
+	const auto send = [=](
+			const PreparedInvoice &invoice,
+			Fn<void(InvoiceField)> showError) {
+		if (!Ton::Wallet::CheckAddress(invoice.address)) {
+			showError(InvoiceField::Address);
+		} else if (invoice.amount > _balance.current()) {
+			showError(InvoiceField::Amount);
+		} else {
+			askSendPassword(invoice, showError);
+		}
+	};
+	auto box = Box(
+		SendGramsBox,
+		invoice,
+		_balance.value(),
+		send);
+	_sendBox = box.data();
+	_layers->showBox(std::move(box));
+}
+
+void Window::askSendPassword(
+		const PreparedInvoice &invoice,
+		Fn<void(InvoiceField)> showInvoiceError) {
+	const auto checking = std::make_shared<bool>();
+	const auto ready = [=](
+			const QByteArray &passcode,
+			const PreparedInvoice &invoice,
+			Fn<void(QString)> showError) {
+		if (*checking) {
+			return;
+		}
+		*checking = true;
+		auto done = [=](Ton::Result<Ton::TransactionCheckResult> result) {
+			if (!result && IsIncorrectPasswordError(result.error())) {
+				*checking = false;
+				showError(ph::lng_wallet_passcode_incorrect(ph::now));
 				return;
 			}
-			auto data = Ton::TransactionToSend();
-			data.recipient = recipient->getLastText().trimmed();
-			if (data.recipient.isEmpty()) {
-				recipient->showError();
-				return;
+			if (_sendConfirmBox) {
+				_sendConfirmBox->closeBox();
 			}
-			data.amount = int64(amount->getLastText().trimmed().toDouble()
-				* 1'000'000'000);
-			if (data.amount <= 0) {
-				amount->showError();
-				return;
-			}
-			data.comment = comment->getLastText().trimmed();
-			data.allowSendToUninited = true;
-			auto pwd = password->getLastText().trimmed();
-			if (pwd.isEmpty()) {
-				password->showError();
-				return;
-			}
-			*sending = true;
-			auto done = [=](Ton::Result<Ton::PendingTransaction> result) {
-				*sending = false;
-				if (result) {
-					box->closeBox();
+			if (!result) {
+				if (const auto field = ErrorInvoiceField(result.error())) {
+					showInvoiceError(*field);
 				} else {
-					recipient->showError();
-					return;
+					// #TODO fatal?..
 				}
-			};
-			_wallet->sendGrams(
-				_wallet->publicKeys().front(),
-				pwd.toUtf8(),
-				data,
-				done);
-		});
-		box->addButton(rpl::single(QString("Cancel")), [=] {
-			box->closeBox();
-		});
-	}));
+				return;
+			}
+			showSendConfirmation(
+				invoice,
+				passcode,
+				*result,
+				showInvoiceError);
+		};
+		_wallet->checkSendGrams(
+			_wallet->publicKeys().front(),
+			passcode,
+			TransactionFromInvoice(invoice),
+			done);
+	};
+	auto box = Box(EnterPasscodeBox, [=](
+			const QByteArray &passcode,
+			Fn<void(QString)> showError) {
+		ready(passcode, invoice, showError);
+	});
+	_sendConfirmBox = box.data();
+	_layers->showBox(std::move(box));
+}
+
+void Window::showSendConfirmation(
+		const PreparedInvoice &invoice,
+		const QByteArray &passcode,
+		const Ton::TransactionCheckResult &checkResult,
+		Fn<void(InvoiceField)> showInvoiceError) {
+	if (invoice.amount + checkResult.sourceFees.sum() > _balance.current()) {
+		showInvoiceError(InvoiceField::Amount);
+		return;
+	}
+	const auto sending = std::make_shared<bool>();
+	const auto confirmed = [=] {
+		if (*sending) {
+			return;
+		}
+		*sending = true;
+		auto sent = [=](Ton::Result<Ton::PendingTransaction> result) {
+			*sending = false;
+			if (!result) {
+				if (const auto field = ErrorInvoiceField(result.error())) {
+					showInvoiceError(*field);
+				} else {
+					// #TODO fatal?..
+				}
+				return;
+			}
+			if (_sendConfirmBox) {
+				_sendConfirmBox->closeBox();
+			}
+			if (_sendBox) {
+				_sendBox->closeBox();
+			}
+		};
+		_wallet->sendGrams(
+			_wallet->publicKeys().front(),
+			passcode,
+			TransactionFromInvoice(invoice),
+			sent);
+	};
+	auto box = Box(
+		ConfirmTransactionBox,
+		invoice,
+		checkResult.sourceFees.sum(),
+		confirmed);
+	_sendConfirmBox = box.data();
+	_layers->showBox(std::move(box));
 }
 
 void Window::receiveGrams() {

@@ -6,7 +6,9 @@
 //
 #include "wallet/wallet_common.h"
 
+#include "wallet/wallet_send_grams.h"
 #include "ton/ton_state.h"
+#include "ton/ton_result.h"
 #include "ui/layers/generic_box.h"
 #include "styles/style_wallet.h"
 
@@ -36,6 +38,8 @@ std::optional<int64> ParseAmountNano(QString trimmed) {
 	for (const auto ch : trimmed) {
 		if (ch == '0') {
 			++zeros;
+		} else {
+			break;
 		}
 	}
 	if (zeros == trimmed.size()) {
@@ -144,15 +148,42 @@ QString TransferLink(const QString &address) {
 	return "ton://transfer/" + address;
 }
 
-void AddBoxSubtitle(
+not_null<Ui::FlatLabel*> AddBoxSubtitle(
 		not_null<Ui::GenericBox*> box,
 		rpl::producer<QString> text) {
-	box->addRow(
+	return box->addRow(
 		object_ptr<Ui::FlatLabel>(
 			box,
 			std::move(text),
 			st::subsectionTitle),
 		st::subsectionTitlePadding);
+}
+
+bool IsIncorrectPasswordError(const Ton::Error &error) {
+	return error.details.startsWith(qstr("KEY_DECRYPT"));
+}
+
+std::optional<Wallet::InvoiceField> ErrorInvoiceField(
+		const Ton::Error &error) {
+	const auto text = error.details;
+	if (text.startsWith(qstr("NOT_ENOUGH_FUNDS"))) {
+		return InvoiceField::Amount;
+	} else if (text.startsWith(qstr("MESSAGE_TOO_LONG"))) {
+		return InvoiceField::Comment;
+	} else if (text.startsWith(qstr("INVALID_ACCOUNT_ADDRESS"))) {
+		return InvoiceField::Address;
+	}
+	return std::nullopt;
+}
+
+Ton::TransactionToSend TransactionFromInvoice(
+		const PreparedInvoice &invoice) {
+	auto result = Ton::TransactionToSend();
+	result.recipient = invoice.address;
+	result.amount = invoice.amount;
+	result.comment = invoice.comment;
+	result.allowSendToUninited = true;
+	return result;
 }
 
 } // namespace Wallet

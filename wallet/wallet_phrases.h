@@ -13,7 +13,7 @@ class QTime;
 
 namespace ph {
 
-extern phrase lng_wallet_window_title;
+extern phrase lng_wallet_cancel;
 
 extern phrase lng_wallet_intro_title;
 extern phrase lng_wallet_intro_description;
@@ -55,7 +55,33 @@ extern phrase lng_wallet_menu_delete;
 extern phrase lng_wallet_delete_title;
 extern phrase lng_wallet_delete_about;
 extern phrase lng_wallet_delete_disconnect;
-extern phrase lng_wallet_delete_cancel;
+
+extern phrase lng_wallet_send_title;
+extern phrase lng_wallet_send_recipient;
+extern phrase lng_wallet_send_address;
+extern phrase lng_wallet_send_about;
+extern phrase lng_wallet_send_amount;
+extern phrase lng_wallet_send_balance;
+extern phrase lng_wallet_send_comment;
+extern phrase lng_wallet_send_button;
+extern phrase lng_wallet_send_button_amount;
+
+extern phrase lng_wallet_confirm_title;
+extern phrase lng_wallet_confirm_text;
+extern phrase lng_wallet_confirm_fee;
+extern phrase lng_wallet_confirm_send;
+
+extern phrase lng_wallet_passcode_title;
+extern phrase lng_wallet_passcode_enter;
+extern phrase lng_wallet_passcode_next;
+extern phrase lng_wallet_passcode_incorrect;
+
+extern phrase lng_wallet_sending_title;
+extern phrase lng_wallet_sending_text;
+
+extern phrase lng_wallet_sent_title;
+extern phrase lng_wallet_sent_text;
+extern phrase lng_wallet_sent_close;
 
 extern Fn<phrase(int)> lng_wallet_refreshed_minutes_ago;
 extern Fn<phrase(QDate)> lng_wallet_short_date;
@@ -65,7 +91,7 @@ extern Fn<phrase(QTime)> lng_wallet_short_time;
 
 namespace Wallet {
 
-inline constexpr auto kPhrasesCount = 34;
+inline constexpr auto kPhrasesCount = 55;
 
 void SetPhrases(
 	ph::details::phrase_value_array<kPhrasesCount> data,
