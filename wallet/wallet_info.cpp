@@ -12,6 +12,7 @@
 #include "wallet/wallet_empty_history.h"
 #include "wallet/wallet_history.h"
 #include "ui/rp_widget.h"
+#include "ui/lottie_widget.h"
 #include "ui/widgets/labels.h"
 #include "ui/widgets/scroll_area.h"
 #include "ui/widgets/buttons.h"

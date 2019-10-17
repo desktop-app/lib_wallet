@@ -10,6 +10,7 @@
 #include "wallet/wallet_common.h"
 #include "ton/ton_state.h"
 #include "ui/widgets/buttons.h"
+#include "ui/lottie_widget.h"
 #include "base/timer_rpl.h"
 #include "styles/style_layers.h"
 #include "styles/style_wallet.h"
@@ -27,6 +28,11 @@ void SendingTransactionBox(
 	const auto inner = box->addRow(object_ptr<Ui::FixedHeightWidget>(
 		box,
 		st::boxLayerTitleHeight + st::walletPasscodeHeight));
+
+	const auto lottie = inner->lifetime().make_state<Ui::LottieAnimation>(
+		inner,
+		Ui::LottieFromResource("money"));
+	lottie->start();
 
 	box->setCloseByEscape(false);
 	box->setCloseByOutsideClick(false);
@@ -49,6 +55,11 @@ void SendingTransactionBox(
 
 	inner->widthValue(
 	) | rpl::start_with_next([=](int width) {
+		lottie->setGeometry({
+			(width - st::walletSendingLottieSize) / 2,
+			st::walletSendingLottieTop,
+			st::walletSendingLottieSize,
+			st::walletSendingLottieSize });
 		title->moveToLeft(
 			(width - title->width()) / 2,
 			st::walletSendingTitleTop,
@@ -67,6 +78,12 @@ void SendingDoneBox(
 		box,
 		st::boxLayerTitleHeight + st::walletPasscodeHeight));
 
+	const auto lottie = inner->lifetime().make_state<Ui::LottieAnimation>(
+		inner,
+		Ui::LottieFromResource("done"));
+	lottie->start();
+	lottie->stopOnLoop(1);
+
 	const auto amount = ParseAmount(-CalculateValue(result)).full;
 	auto description = ph::lng_wallet_sent_text(
 	) | rpl::map([=](QString &&value) {
@@ -84,6 +101,11 @@ void SendingDoneBox(
 
 	inner->widthValue(
 	) | rpl::start_with_next([=](int width) {
+		lottie->setGeometry({
+			(width - st::walletSentLottieSize) / 2,
+			st::walletSentLottieTop,
+			st::walletSentLottieSize,
+			st::walletSentLottieSize });
 		title->moveToLeft(
 			(width - title->width()) / 2,
 			st::walletSendingTitleTop,

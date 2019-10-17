@@ -10,6 +10,7 @@
 #include "ton/ton_state.h"
 #include "ui/widgets/labels.h"
 #include "ui/address_label.h"
+#include "ui/lottie_widget.h"
 #include "styles/style_wallet.h"
 
 namespace Wallet {
@@ -34,6 +35,12 @@ rpl::lifetime &EmptyHistory::lifetime() {
 }
 
 void EmptyHistory::setupControls(rpl::producer<EmptyHistoryState> &&state) {
+	const auto lottie = _widget.lifetime().make_state<Ui::LottieAnimation>(
+		&_widget,
+		Ui::LottieFromResource("empty"));
+	lottie->stopOnLoop(1);
+	lottie->start();
+
 	const auto title = Ui::CreateChild<Ui::FlatLabel>(
 		&_widget,
 		ph::lng_wallet_empty_history_title(),
@@ -44,6 +51,13 @@ void EmptyHistory::setupControls(rpl::producer<EmptyHistoryState> &&state) {
 	) | rpl::start_with_next([=](QSize size, int width) {
 		const auto blockTop = (size.height()
 			- st::walletEmptyHistoryHeight) / 2;
+
+		lottie->setGeometry({
+			(size.width() - st::walletEmptyLottieSize) / 2,
+			blockTop + st::walletEmptyLottieTop,
+			st::walletEmptyLottieSize,
+			st::walletEmptyLottieSize });
+
 		title->moveToLeft(
 			(size.width() - width) / 2,
 			blockTop + st::walletEmptyHistoryTitleTop,

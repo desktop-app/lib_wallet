@@ -1,5 +1,13 @@
 <RCC>
   <qresource prefix="/gui">
+    <file alias="art/lottie/created.tgs">../art/lottie/created.tgs</file>
+    <file alias="art/lottie/empty.tgs">../art/lottie/empty.tgs</file>
+    <file alias="art/lottie/diamond.tgs">../art/lottie/diamond.tgs</file>
+    <file alias="art/lottie/done.tgs">../art/lottie/done.tgs</file>
+    <file alias="art/lottie/intro.tgs">../art/lottie/intro.tgs</file>
+    <file alias="art/lottie/lock.tgs">../art/lottie/lock.tgs</file>
+    <file alias="art/lottie/money.tgs">../art/lottie/money.tgs</file>
     <file alias="art/lottie/paper.tgs">../art/lottie/paper.tgs</file>
+    <file alias="art/lottie/test.tgs">../art/lottie/test.tgs</file>
   </qresource>
 </RCC>

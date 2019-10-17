@@ -8,6 +8,7 @@
 
 #include "wallet/wallet_phrases.h"
 #include "wallet/wallet_enter_passcode.h"
+#include "ui/lottie_widget.h"
 #include "ui/wrap/fade_wrap.h"
 #include "ui/widgets/input_fields.h"
 #include "ui/widgets/labels.h"
@@ -24,6 +25,12 @@ void EnterPasscodeBox(
 		box,
 		st::walletPasscodeHeight));
 
+	const auto lottie = inner->lifetime().make_state<Ui::LottieAnimation>(
+		inner,
+		Ui::LottieFromResource("lock"));
+	lottie->start();
+	lottie->stopOnLoop(1);
+
 	const auto input = Ui::CreateChild<Ui::PasswordInput>(
 		inner,
 		st::walletPasscodeInput,
@@ -37,6 +44,11 @@ void EnterPasscodeBox(
 
 	inner->widthValue(
 	) | rpl::start_with_next([=](int width) {
+		lottie->setGeometry({
+			(width - st::walletPasscodeLottieSize) / 2,
+			st::walletPasscodeLottieTop,
+			st::walletPasscodeLottieSize,
+			st::walletPasscodeLottieSize });
 		input->move(
 			(width - input->width()) / 2,
 			st::walletPasscodeInputTop);

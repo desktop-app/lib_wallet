@@ -74,6 +74,8 @@ walletCoverButton: RoundButton(defaultActiveButton) {
 }
 
 walletEmptyHistoryHeight: 212px;
+walletEmptyLottieTop: 12px;
+walletEmptyLottieSize: 88px;
 walletEmptyHistoryTitleTop: 108px;
 walletEmptyHistoryTitle: FlatLabel(defaultFlatLabel) {
 	textFg: windowBoldFg;
@@ -168,6 +170,8 @@ walletSendBalanceLabel: FlatLabel(defaultFlatLabel) {
 walletSendAmountPadding: margins(22px, 0px, 22px, 12px);
 
 walletPasscodeHeight: 190px;
+walletPasscodeLottieSize: 100px;
+walletPasscodeLottieTop: 8px;
 walletPasscodeInput: InputField(walletInput) {
 	textBg: boxBg;
 	width: 186px;
@@ -183,12 +187,17 @@ walletPasscodeError: FlatLabel(walletLabel) {
 }
 walletPasscodeErrorTop: 172px;
 
+walletSendingLottieSize: 100px;
+walletSendingLottieTop: 64px;
 walletSendingTitle: walletEmptyHistoryTitle;
 walletSendingTitleTop: 168px;
 walletSendingText: FlatLabel(walletSendAbout) {
 	align: align(top);
 }
 walletSendingTextTop: 204px;
+
+walletSentLottieSize: 100px;
+walletSentLottieTop: 64px;
 
 walletWindowSize: size(392px, 520px);
 walletWindowSizeMin: size(392px, 520px);

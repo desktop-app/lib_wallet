@@ -9,6 +9,7 @@
 #include "wallet/wallet_common.h"
 #include "wallet/wallet_phrases.h"
 #include "ui/address_label.h"
+#include "ui/lottie_widget.h"
 #include "ui/wrap/padding_wrap.h"
 #include "ui/widgets/buttons.h"
 #include "ton/ton_state.h"
@@ -31,6 +32,14 @@ object_ptr<Ui::RpWidget> CreateSummary(
 	auto result = object_ptr<Ui::FixedHeightWidget>(
 		parent,
 		height);
+
+	const auto diamond = result->lifetime().make_state<Ui::LottieAnimation>(
+		result.data(),
+		Ui::LottieFromResource("diamond"));
+	diamond->start();
+	const auto diamondSize = st::walletTransactionValue.style.font->height;
+	const auto diamondSkip = st::walletTransactionValue.style.font->spacew;
+
 	const auto balance = Ui::CreateChild<Ui::FlatLabel>(
 		result.data(),
 		ParseAmount(CalculateValue(data), true).full,
@@ -56,9 +65,17 @@ object_ptr<Ui::RpWidget> CreateSummary(
 		balance->widthValue(),
 		otherFee ? otherFee->widthValue() : rpl::single(0),
 		storageFee ? storageFee->widthValue() : rpl::single(0)
-	) | rpl::start_with_next([=](int width, int, int, int) {
+	) | rpl::start_with_next([=](int width, int bwidth, int, int) {
 		auto top = st::walletTransactionValueTop;
-		balance->move((width - balance->width()) / 2, top);
+
+		bwidth += diamondSkip + diamondSize;
+		balance->move((width - bwidth) / 2, top);
+		diamond->setGeometry({
+			(width - bwidth) / 2 + bwidth - diamondSize,
+			top,
+			diamondSize,
+			diamondSize });
+
 		top += balance->height() + feeSkip;
 		if (otherFee) {
 			otherFee->move((width - otherFee->width()) / 2, top);
