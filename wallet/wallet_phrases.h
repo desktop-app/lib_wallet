@@ -33,6 +33,7 @@ extern phrase lng_wallet_empty_history_address;
 extern phrase lng_wallet_row_from;
 extern phrase lng_wallet_row_to;
 extern phrase lng_wallet_row_fees;
+extern phrase lng_wallet_row_pending_date;
 
 extern phrase lng_wallet_view_title;
 extern phrase lng_wallet_view_transaction_fee;
@@ -91,7 +92,7 @@ extern Fn<phrase(QTime)> lng_wallet_short_time;
 
 namespace Wallet {
 
-inline constexpr auto kPhrasesCount = 55;
+inline constexpr auto kPhrasesCount = 56;
 
 void SetPhrases(
 	ph::details::phrase_value_array<kPhrasesCount> data,

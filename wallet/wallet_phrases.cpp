@@ -33,6 +33,7 @@ phrase lng_wallet_empty_history_address = "Your wallet address";
 phrase lng_wallet_row_from = "from:";
 phrase lng_wallet_row_to = "to:";
 phrase lng_wallet_row_fees = "blockchain fees: {amount}";
+phrase lng_wallet_row_pending_date = "Pending";
 
 phrase lng_wallet_view_title = "Transaction";
 phrase lng_wallet_view_transaction_fee = "{amount} transaction fee";

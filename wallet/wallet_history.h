@@ -50,7 +50,8 @@ private:
 	void mergeState(HistoryState &&state);
 	bool mergePendingChanged(std::vector<Ton::PendingTransaction> &&list);
 	bool mergeListChanged(Ton::TransactionsSlice &&data);
-	void refresh();
+	void refreshRows();
+	void refreshPending();
 	void paint(Painter &p, QRect clip);
 	[[nodiscard]] ScrollState computeScrollState() const;
 
@@ -65,6 +66,7 @@ private:
 	std::vector<Ton::Transaction> _listData;
 	Ton::TransactionId _previousId;
 
+	std::vector<std::unique_ptr<HistoryRow>> _pendingRows;
 	std::vector<std::unique_ptr<HistoryRow>> _rows;
 	int _visibleTop = 0;
 	int _visibleBottom = 0;

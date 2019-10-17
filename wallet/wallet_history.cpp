@@ -121,12 +121,16 @@ QDateTime HistoryRow::date() const {
 }
 
 void HistoryRow::setShowDate(bool show) {
-	if (show) {
+	if (!show) {
+		_layout.date.clear();
+	} else if (_id.lt != 0) {
 		_layout.date.setText(
 			st::semiboldTextStyle,
 			ph::lng_wallet_short_date(_layout.dateTime.date())(ph::now));
 	} else {
-		_layout.date.clear();
+		_layout.date.setText(
+			st::semiboldTextStyle,
+			ph::lng_wallet_row_pending_date(ph::now));
 	}
 }
 
@@ -257,13 +261,15 @@ void History::resizeToWidth(int width) {
 	if (!width) {
 		return;
 	}
-	auto height = _rows.empty() ? 0 : st::walletRowsSkip;
-	for (const auto &row : _rows) {
+	auto height = (_pendingRows.empty() && _rows.empty())
+		? 0
+		: st::walletRowsSkip;
+	for (const auto &row : ranges::view::concat(_pendingRows, _rows)) {
 		row->setTop(height);
 		row->resizeToWidth(width);
 		height += row->height();
 	}
-	if (!_rows.empty()) {
+	if (height > 0) {
 		height += st::walletRowsSkip;
 	}
 	_widget.resize(width, height);
@@ -276,7 +282,7 @@ rpl::producer<int> History::heightValue() const {
 void History::setVisibleTopBottom(int top, int bottom) {
 	_visibleTop = top - _widget.y();
 	_visibleBottom = bottom - _widget.y();
-	if (_visibleBottom <= _visibleTop || !_previousId.id || _rows.empty()) {
+	if (_visibleBottom <= _visibleTop || !_previousId.lt || _rows.empty()) {
 		return;
 	}
 	const auto visibleHeight = (_visibleBottom - _visibleTop);
@@ -317,7 +323,7 @@ void History::setupContent(
 			end(_listData),
 			slice.data.list.begin(),
 			slice.data.list.end());
-		refresh();
+		refreshRows();
 	}, lifetime());
 
 	_widget.paintRequest(
@@ -361,6 +367,14 @@ void History::selectRowByMouse() {
 		point.y(),
 		ranges::less(),
 		&HistoryRow::top);
+	if (from != till && from == end(_rows)) {
+		const auto b = ranges::upper_bound(
+			_rows,
+			point.y(),
+			ranges::less(),
+			&HistoryRow::bottom);
+		int a = 0;
+	}
 	if (from != till && (*from)->isUnderCursor(point)) {
 		selectRow(from - begin(_rows));
 	} else {
@@ -387,22 +401,27 @@ void History::releaseRow() {
 }
 
 void History::paint(Painter &p, QRect clip) {
-	if (_rows.empty()) {
+	if (_pendingRows.empty() && _rows.empty()) {
 		return;
 	}
-	const auto from = ranges::upper_bound(
-		_rows,
-		clip.top(),
-		ranges::less(),
-		&HistoryRow::bottom);
-	const auto till = ranges::lower_bound(
-		_rows,
-		clip.top() + clip.height(),
-		ranges::less(),
-		&HistoryRow::top);
-	for (auto i = from; i != till; ++i) {
-		(*i)->paint(p, 0, (*i)->top());
-	}
+	const auto paintRows = [&](
+		const std::vector<std::unique_ptr<HistoryRow>> &rows) {
+		const auto from = ranges::upper_bound(
+			rows,
+			clip.top(),
+			ranges::less(),
+			&HistoryRow::bottom);
+		const auto till = ranges::lower_bound(
+			rows,
+			clip.top() + clip.height(),
+			ranges::less(),
+			&HistoryRow::top);
+		for (const auto &row : ranges::make_subrange(from, till)) {
+			row->paint(p, 0, row->top());
+		}
+	};
+	paintRows(_pendingRows);
+	paintRows(_rows);
 }
 
 History::ScrollState History::computeScrollState() const {
@@ -423,12 +442,11 @@ History::ScrollState History::computeScrollState() const {
 }
 
 void History::mergeState(HistoryState &&state) {
-	const auto changed1 = mergePendingChanged(
-		std::move(state.pendingTransactions));
-	const auto changed2 = mergeListChanged(
-		std::move(state.lastTransactions));
-	if (changed1 || changed2) {
-		refresh();
+	if (mergePendingChanged(std::move(state.pendingTransactions))) {
+		refreshPending();
+	}
+	if (mergeListChanged(std::move(state.lastTransactions))) {
+		refreshRows();
 	}
 }
 
@@ -456,7 +474,20 @@ bool History::mergeListChanged(Ton::TransactionsSlice &&data) {
 	return false;
 }
 
-void History::refresh() {
+void History::refreshPending() {
+	_pendingRows = ranges::view::all(
+		_pendingData
+	) | ranges::view::transform([](const Ton::PendingTransaction &data) {
+		return std::make_unique<HistoryRow>(data.fake);
+	}) | ranges::to_vector;
+
+	if (!_pendingRows.empty()) {
+		_pendingRows.front()->setShowDate(true);
+	}
+	resizeToWidth(_widget.width());
+}
+
+void History::refreshRows() {
 	auto addedFront = std::vector<std::unique_ptr<HistoryRow>>();
 	auto addedBack = std::vector<std::unique_ptr<HistoryRow>>();
 	for (const auto &element : _listData) {

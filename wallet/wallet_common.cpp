@@ -133,9 +133,11 @@ int64 CalculateValue(const Ton::Transaction &data) {
 }
 
 QString ExtractAddress(const Ton::Transaction &data) {
-	return data.outgoing.empty()
+	return !data.outgoing.empty()
+		? data.outgoing.front().destination
+		: !data.incoming.source.isEmpty()
 		? data.incoming.source
-		: data.outgoing.front().destination;
+		: data.incoming.destination;
 }
 
 QString ExtractMessage(const Ton::Transaction &data) {
