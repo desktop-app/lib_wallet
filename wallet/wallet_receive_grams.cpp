@@ -30,7 +30,7 @@ void ReceiveGramsBox(
 
 	box->addRow(object_ptr<Ui::FixedHeightWidget>(
 		box,
-		st::transactionSkip));
+		st::walletTransactionSkip));
 
 	box->addRow(
 		object_ptr<Ui::RpWidget>::fromRaw(Ui::CreateAddressLabel(
@@ -40,7 +40,7 @@ void ReceiveGramsBox(
 
 	box->addRow(object_ptr<Ui::FixedHeightWidget>(
 		box,
-		st::transactionSkip));
+		st::walletTransactionSkip));
 
 	box->addButton(
 		ph::lng_wallet_receive_share(),

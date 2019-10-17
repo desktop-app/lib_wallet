@@ -15,6 +15,7 @@
 #include "wallet/wallet_send_grams.h"
 #include "wallet/wallet_enter_passcode.h"
 #include "wallet/wallet_confirm_transaction.h"
+#include "wallet/wallet_sending_transaction.h"
 #include "wallet/wallet_delete.h"
 #include "ton/ton_wallet.h"
 #include "ton/ton_account_viewer.h"
@@ -41,6 +42,7 @@ namespace Wallet {
 namespace {
 
 constexpr auto kRefreshEachDelay = 10 * crl::time(1000);
+constexpr auto kRefreshWhileSendingDelay = 3 * crl::time(1000);
 
 } // namespace
 
@@ -83,11 +85,12 @@ void Window::updatePalette() {
 }
 
 void Window::showIntro() {
-	_info = nullptr;
-	_intro = std::make_unique<Intro>(_window->body());
-
-	_layers->raise();
 	_layers->hideAll();
+	_info = nullptr;
+	_viewer = nullptr;
+
+	_intro = std::make_unique<Intro>(_window->body());
+	_layers->raise();
 
 	_window->body()->sizeValue(
 	) | rpl::start_with_next([=](QSize size) {
@@ -114,12 +117,10 @@ void Window::showAccount(const QByteArray &publicKey) {
 
 	_address = Ton::Wallet::GetAddress(publicKey);
 	_viewer = _wallet->createAccountViewer(_address);
-	_balance = _viewer->state(
-	) | rpl::map([=](const Ton::WalletViewerState &state) {
-		return state.wallet.account.balance;
-	});
-
 	_viewer->setRefreshEach(kRefreshEachDelay);
+	_state = _viewer->state() | rpl::map([](Ton::WalletViewerState &&state) {
+		return std::move(state.wallet);
+	});
 
 	auto data = Info::Data();
 	data.state = _viewer->state();
@@ -224,16 +225,20 @@ void Window::sendGrams(const QString &invoice) {
 			Fn<void(InvoiceField)> showError) {
 		if (!Ton::Wallet::CheckAddress(invoice.address)) {
 			showError(InvoiceField::Address);
-		} else if (invoice.amount > _balance.current()) {
+		} else if (invoice.amount > _state.current().account.balance) {
 			showError(InvoiceField::Amount);
 		} else {
 			askSendPassword(invoice, showError);
 		}
 	};
+	auto balance = _state.value(
+	) | rpl::map([](const Ton::WalletState &state) {
+		return state.account.balance;
+	});
 	auto box = Box(
 		SendGramsBox,
 		invoice,
-		_balance.value(),
+		std::move(balance),
 		send);
 	_sendBox = box.data();
 	_layers->showBox(std::move(box));
@@ -294,7 +299,8 @@ void Window::showSendConfirmation(
 		const QByteArray &passcode,
 		const Ton::TransactionCheckResult &checkResult,
 		Fn<void(InvoiceField)> showInvoiceError) {
-	if (invoice.amount + checkResult.sourceFees.sum() > _balance.current()) {
+	const auto balance = _state.current().account.balance;
+	if (invoice.amount + checkResult.sourceFees.sum() > balance) {
 		showInvoiceError(InvoiceField::Amount);
 		return;
 	}
@@ -303,8 +309,9 @@ void Window::showSendConfirmation(
 		if (*sending) {
 			return;
 		}
+		const auto confirmations = std::make_shared<rpl::event_stream<>>();
 		*sending = true;
-		auto sent = [=](Ton::Result<Ton::PendingTransaction> result) {
+		auto ready = [=](Ton::Result<Ton::PendingTransaction> result) {
 			*sending = false;
 			if (!result) {
 				if (const auto field = ErrorInvoiceField(result.error())) {
@@ -314,17 +321,20 @@ void Window::showSendConfirmation(
 				}
 				return;
 			}
-			if (_sendConfirmBox) {
-				_sendConfirmBox->closeBox();
+			showSendingTransaction(*result, confirmations->events());
+		};
+		const auto sent = [=](Ton::Result<> result) {
+			if (!result) {
+				// #TODO fatal?..
+				return;
 			}
-			if (_sendBox) {
-				_sendBox->closeBox();
-			}
+			confirmations->fire({});
 		};
 		_wallet->sendGrams(
 			_wallet->publicKeys().front(),
 			passcode,
 			TransactionFromInvoice(invoice),
+			ready,
 			sent);
 	};
 	auto box = Box(
@@ -334,6 +344,51 @@ void Window::showSendConfirmation(
 		confirmed);
 	_sendConfirmBox = box.data();
 	_layers->showBox(std::move(box));
+}
+
+void Window::showSendingTransaction(
+		const Ton::PendingTransaction &transaction,
+		rpl::producer<> confirmed) {
+	if (_sendBox) {
+		_sendBox->closeBox();
+	}
+	auto box = Box(SendingTransactionBox, std::move(confirmed));
+	_sendBox = box.data();
+	_viewer->setRefreshEach(kRefreshWhileSendingDelay);
+	_sendBox->lifetime().add(crl::guard(_viewer.get(), [=] {
+		_viewer->setRefreshEach(kRefreshEachDelay);
+	}));
+	_state.value(
+	) | rpl::filter([=](const Ton::WalletState &state) {
+		return ranges::find(state.pendingTransactions, transaction)
+			== end(state.pendingTransactions);
+	}) | rpl::map([=](const Ton::WalletState &state) {
+		const auto i = ranges::find(
+			state.lastTransactions.list,
+			transaction.fake);
+		return (i != end(state.lastTransactions.list))
+			? std::make_optional(*i)
+			: std::nullopt;
+	}) | rpl::start_with_next([=](std::optional<Ton::Transaction> &&result) {
+		showSendingDone(std::move(result));
+	}, _sendBox->lifetime());
+	_layers->showBox(std::move(box));
+
+	if (_sendConfirmBox) {
+		_sendConfirmBox->closeBox();
+	}
+}
+
+void Window::showSendingDone(std::optional<Ton::Transaction> result) {
+	if (result) {
+		_layers->showBox(Box(SendingDoneBox, *result));
+	} else {
+		// #TODO fatal?..
+	}
+
+	if (_sendBox) {
+		_sendBox->closeBox();
+	}
 }
 
 void Window::receiveGrams() {

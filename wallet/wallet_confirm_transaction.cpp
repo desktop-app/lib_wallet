@@ -39,13 +39,13 @@ void ConfirmTransactionBox(
 
 	box->addRow(object_ptr<Ui::FixedHeightWidget>(
 		box,
-		st::confirmationSkip));
+		st::walletConfirmationSkip));
 
 	box->addRow(
 		object_ptr<Ui::RpWidget>::fromRaw(Ui::CreateAddressLabel(
 			box,
 			invoice.address,
-			st::confirmationAddressLabel)));
+			st::walletConfirmationAddressLabel)));
 
 	const auto feeParsed = ParseAmount(fee).full;
 	auto feeText = ph::lng_wallet_confirm_fee(
@@ -54,26 +54,26 @@ void ConfirmTransactionBox(
 	});
 	const auto feeWrap = box->addRow(object_ptr<Ui::FixedHeightWidget>(
 		box,
-		(st::confirmationFeeSkip
-			+ st::confirmationFee.style.font->height
-			+ st::confirmationSkip)));
+		(st::walletConfirmationFeeSkip
+			+ st::walletConfirmationFee.style.font->height
+			+ st::walletConfirmationSkip)));
 	const auto feeLabel = Ui::CreateChild<Ui::FlatLabel>(
 		feeWrap,
 		std::move(feeText),
-		st::confirmationFee);
+		st::walletConfirmationFee);
 	rpl::combine(
 		feeLabel->widthValue(),
 		feeWrap->widthValue()
 	) | rpl::start_with_next([=](int innerWidth, int outerWidth) {
 		feeLabel->moveToLeft(
 			(outerWidth - innerWidth) / 2,
-			st::confirmationFeeSkip,
+			st::walletConfirmationFeeSkip,
 			outerWidth);
 	}, feeLabel->lifetime());
 
 	box->addRow(object_ptr<Ui::FixedHeightWidget>(
 		box,
-		st::confirmationSkip));
+		st::walletConfirmationSkip));
 
 	box->addButton(ph::lng_wallet_confirm_send(), confirmed);
 	box->addButton(ph::lng_wallet_cancel(), [=] { box->closeBox(); });

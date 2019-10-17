@@ -24,8 +24,8 @@ namespace {
 object_ptr<Ui::RpWidget> CreateSummary(
 		not_null<Ui::RpWidget*> parent,
 		const Ton::Transaction &data) {
-	const auto feeSkip = st::transactionFeeSkip;
-	const auto height = st::transactionSummaryHeight
+	const auto feeSkip = st::walletTransactionFeeSkip;
+	const auto height = st::walletTransactionSummaryHeight
 		+ (data.otherFee ? (st::normalFont->height + feeSkip) : 0)
 		+ (data.storageFee ? (st::normalFont->height + feeSkip) : 0);
 	auto result = object_ptr<Ui::FixedHeightWidget>(
@@ -34,14 +34,14 @@ object_ptr<Ui::RpWidget> CreateSummary(
 	const auto balance = Ui::CreateChild<Ui::FlatLabel>(
 		result.data(),
 		ParseAmount(CalculateValue(data), true).full,
-		st::transactionValue);
+		st::walletTransactionValue);
 	const auto otherFee = data.otherFee
 		? Ui::CreateChild<Ui::FlatLabel>(
 			result.data(),
 			ph::lng_wallet_view_transaction_fee(ph::now).replace(
 				"{amount}",
 				ParseAmount(data.otherFee).full),
-			st::transactionFee)
+			st::walletTransactionFee)
 		: nullptr;
 	const auto storageFee = data.storageFee
 		? Ui::CreateChild<Ui::FlatLabel>(
@@ -49,7 +49,7 @@ object_ptr<Ui::RpWidget> CreateSummary(
 			ph::lng_wallet_view_storage_fee(ph::now).replace(
 				"{amount}",
 				ParseAmount(data.storageFee).full),
-			st::transactionFee)
+			st::walletTransactionFee)
 		: nullptr;
 	rpl::combine(
 		result->widthValue(),
@@ -57,7 +57,7 @@ object_ptr<Ui::RpWidget> CreateSummary(
 		otherFee ? otherFee->widthValue() : rpl::single(0),
 		storageFee ? storageFee->widthValue() : rpl::single(0)
 	) | rpl::start_with_next([=](int width, int, int, int) {
-		auto top = st::transactionValueTop;
+		auto top = st::walletTransactionValueTop;
 		balance->move((width - balance->width()) / 2, top);
 		top += balance->height() + feeSkip;
 		if (otherFee) {
@@ -116,7 +116,7 @@ void ViewTransactionBox(
 
 	box->addRow(object_ptr<Ui::FixedHeightWidget>(
 		box,
-		st::transactionSkip));
+		st::walletTransactionSkip));
 
 	auto text = incoming
 		? ph::lng_wallet_view_send_to_address()

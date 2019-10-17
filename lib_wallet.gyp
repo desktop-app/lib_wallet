@@ -76,6 +76,8 @@
       '<(src_loc)/wallet/wallet_receive_grams.h',
       '<(src_loc)/wallet/wallet_send_grams.cpp',
       '<(src_loc)/wallet/wallet_send_grams.h',
+      '<(src_loc)/wallet/wallet_sending_transaction.cpp',
+      '<(src_loc)/wallet/wallet_sending_transaction.h',
       '<(src_loc)/wallet/wallet_top_bar.cpp',
       '<(src_loc)/wallet/wallet_top_bar.h',
       '<(src_loc)/wallet/wallet_view_transaction.cpp',

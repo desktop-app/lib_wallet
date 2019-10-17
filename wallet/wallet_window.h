@@ -6,12 +6,17 @@
 //
 #pragma once
 
+#include "ton/ton_state.h"
+
 #include <QtCore/QPointer>
 
 namespace Ton {
 class Wallet;
 class AccountViewer;
 struct TransactionCheckResult;
+struct PendingTransaction;
+struct Transaction;
+struct WalletState;
 } // namespace Ton
 
 namespace Ui {
@@ -53,6 +58,10 @@ private:
 		const QByteArray &passcode,
 		const Ton::TransactionCheckResult &checkResult,
 		Fn<void(InvoiceField)> showInvoiceError);
+	void showSendingTransaction(
+		const Ton::PendingTransaction &transaction,
+		rpl::producer<> confirmed);
+	void showSendingDone(std::optional<Ton::Transaction> result);
 	void receiveGrams();
 	void changePassword();
 	void logout();
@@ -65,7 +74,7 @@ private:
 
 	QString _address;
 	std::unique_ptr<Ton::AccountViewer> _viewer;
-	rpl::variable<int64> _balance;
+	rpl::variable<Ton::WalletState> _state;
 	std::unique_ptr<Info> _info;
 	QPointer<Ui::GenericBox> _sendBox;
 	QPointer<Ui::GenericBox> _sendConfirmBox;

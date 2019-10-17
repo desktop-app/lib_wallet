@@ -155,8 +155,8 @@ not_null<Ui::FlatLabel*> AddBoxSubtitle(
 		object_ptr<Ui::FlatLabel>(
 			box,
 			std::move(text),
-			st::subsectionTitle),
-		st::subsectionTitlePadding);
+			st::walletSubsectionTitle),
+		st::walletSubsectionTitlePadding);
 }
 
 bool IsIncorrectPasswordError(const Ton::Error &error) {

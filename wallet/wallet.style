@@ -101,7 +101,7 @@ walletRowAddressTop: 2px;
 walletRowCommentTop: 4px;
 walletRowFeesTop: 4px;
 
-subsectionTitle: FlatLabel(defaultFlatLabel) {
+walletSubsectionTitle: FlatLabel(defaultFlatLabel) {
 	style: TextStyle(semiboldTextStyle) {
 		font: font(boxFontSize semibold);
 		linkFont: font(boxFontSize semibold);
@@ -110,7 +110,7 @@ subsectionTitle: FlatLabel(defaultFlatLabel) {
 	textFg: windowActiveTextFg;
 	minWidth: 240px;
 }
-subsectionTitlePadding: margins(22px, 7px, 10px, 9px);
+walletSubsectionTitlePadding: margins(22px, 7px, 10px, 9px);
 
 walletBottomButton: RoundButton(defaultActiveButton) {
 	width: 304px;
@@ -124,21 +124,21 @@ walletReceiveAddressLabel: FlatLabel(defaultFlatLabel) {
 	align: align(top);
 }
 
-transactionSummaryHeight: 60px;
-transactionValue: FlatLabel(walletCoverBalance) {
+walletTransactionSummaryHeight: 60px;
+walletTransactionValue: FlatLabel(walletCoverBalance) {
 	textFg: windowBoldFg;
 }
-transactionValueTop: 20px;
-transactionFee: FlatLabel(defaultFlatLabel) {
+walletTransactionValueTop: 20px;
+walletTransactionFee: FlatLabel(defaultFlatLabel) {
 	textFg: windowSubTextFg;
 }
-transactionFeeSkip: 4px;
-transactionSkip: 16px;
+walletTransactionFeeSkip: 4px;
+walletTransactionSkip: 16px;
 
-confirmationAddressLabel: walletReceiveAddressLabel;
-confirmationSkip: transactionSkip;
-confirmationFee: transactionFee;
-confirmationFeeSkip: 8px;
+walletConfirmationAddressLabel: walletReceiveAddressLabel;
+walletConfirmationSkip: walletTransactionSkip;
+walletConfirmationFee: walletTransactionFee;
+walletConfirmationFeeSkip: 8px;
 
 walletInput: InputField(defaultInputField) {
 	textBg: transparent;
@@ -182,6 +182,13 @@ walletPasscodeError: FlatLabel(walletLabel) {
 	align: align(top);
 }
 walletPasscodeErrorTop: 172px;
+
+walletSendingTitle: walletEmptyHistoryTitle;
+walletSendingTitleTop: 168px;
+walletSendingText: FlatLabel(walletSendAbout) {
+	align: align(top);
+}
+walletSendingTextTop: 204px;
 
 walletWindowSize: size(392px, 520px);
 walletWindowSizeMin: size(392px, 520px);

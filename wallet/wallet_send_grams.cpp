@@ -169,7 +169,7 @@ void SendGramsBox(
 		balanceLabel->widthValue()
 	) | rpl::start_with_next([=](QRect rect, int innerWidth) {
 		const auto top = rect.top()
-			+ st::subsectionTitle.style.font->ascent
+			+ st::walletSubsectionTitle.style.font->ascent
 			- st::walletSendBalanceLabel.style.font->ascent;
 		balanceLabel->moveToRight(st::boxRowPadding.right(), top);
 	}, balanceLabel->lifetime());
@@ -234,7 +234,12 @@ void SendGramsBox(
 	});
 
 	box->setFocusCallback([=] {
-		address->setFocusFast();
+		if (prepared.address.isEmpty()
+			|| address->getLastText() != prepared.address) {
+			address->setFocusFast();
+		} else {
+			amount->setFocusFast();
+		}
 	});
 
 	const auto showError = crl::guard(box, [=](InvoiceField field) {
