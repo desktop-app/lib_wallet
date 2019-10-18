@@ -38,7 +38,7 @@ constexpr auto kWaitForWordsDelay = 30 * crl::time(1000);
 	auto generator = std::mt19937(std::random_device()());
 	auto result = base::flat_set<int>();
 	for (auto i = 0; i != select; ++i) {
-		const auto distribution = std::uniform_int_distribution<int>(
+		auto distribution = std::uniform_int_distribution<int>(
 			0,
 			count - i - 1);
 		auto value = distribution(generator);

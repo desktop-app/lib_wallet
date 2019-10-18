@@ -15,6 +15,10 @@
 #include "ui/text/text_entity.h"
 #include "styles/style_wallet.h"
 
+void wallet_InitResource() {
+        Q_INIT_RESOURCE(wallet);
+}
+
 namespace Wallet::Create {
 
 Intro::Intro() : Step(Type::Default) {
@@ -25,7 +29,7 @@ Intro::Intro() : Step(Type::Default) {
 }
 
 void Intro::initControls() {
-	Q_INIT_RESOURCE(wallet);
+	wallet_InitResource();
 
 	auto termsText = rpl::combine(
 		ph::lng_wallet_intro_accept_text(),

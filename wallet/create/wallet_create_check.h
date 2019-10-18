@@ -31,7 +31,6 @@ private:
 		const std::vector<int> &indices);
 	void showFinishedHook() override;
 
-	int _desiredHeight = 0;
 	Fn<std::vector<QString>()> _words;
 	Fn<void()> _setFocus;
 	Fn<bool()> _checkAll;
