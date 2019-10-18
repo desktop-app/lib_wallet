@@ -21,6 +21,70 @@ walletNextButton: RoundButton(defaultActiveButton) {
 	font: font(17px semibold);
 }
 
+walletCenteredLabel: FlatLabel(defaultFlatLabel) {
+	align: align(center);
+}
+walletBoldCenteredLabel: FlatLabel(walletCenteredLabel) {
+	textFg: introTitleFg;
+}
+walletGrayCenteredLabel: FlatLabel(walletCenteredLabel) {
+	textFg: introDescriptionFg;
+}
+walletStepIntroTerms: FlatLabel(walletGrayCenteredLabel) {
+	palette: TextPalette(defaultTextPalette) {
+		linkFg: introDescriptionFg;
+	}
+}
+walletStepIntroTermsSkip: 20px;
+walletStepBackButton: IconButton(backButton) {
+	width: 56px;
+	height: 56px;
+	rippleAreaPosition: point(8px, 8px);
+}
+walletStepNextTop: 300px;
+walletStepHeight: 400px;
+walletStepTitle: FlatLabel(walletBoldCenteredLabel) {
+	style: TextStyle(defaultTextStyle) {
+		font: font(19px semibold);
+		linkFont: font(19px semibold);
+		linkFontOver: font(19px semibold underline);
+	}
+}
+walletStepTitleTop: 118px;
+walletStepDescription: FlatLabel(walletGrayCenteredLabel) {
+	minWidth: 440px;
+	style: TextStyle(defaultTextStyle) {
+		font: font(14px);
+		linkFont: font(14px);
+		linkFontOver: font(14px underline);
+		lineHeight: 20px;
+	}
+}
+walletStepDescriptionTop: 40px;
+walletStepScrollTitleTop: 118px;
+walletStepScrollDescriptionTop: 40px;
+
+walletStepIntroLottieTop: 20px;
+walletStepIntroLottieSize: 100px;
+
+walletWordsTop: 300px;
+walletWordIndexLabel: FlatLabel(defaultFlatLabel) {
+	textFg: introDescriptionFg;
+}
+walletWordLabel: FlatLabel(defaultFlatLabel) {
+	style: TextStyle(defaultTextStyle) {
+		font: semiboldFont;
+		linkFont: semiboldFont;
+		linkFontOver: font(fsize semibold underline);
+	}
+}
+walletWordIndexSkip: 8px;
+walletWordSkipLeft: 117px;
+walletWordSkipRight: 69px;
+walletWordHeight: 32px;
+walletWordsNextSkip: 40px;
+walletWordsNextBottomSkip: 110px;
+
 walletMenuPosition: point(2px, 40px);
 walletDiamondSize: 22px;
 walletDiamondAscent: 16px;

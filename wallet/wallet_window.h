@@ -26,8 +26,10 @@ class GenericBox;
 } // namespace Ui
 
 namespace Wallet {
+namespace Create {
+class Manager;
+} // namespace Create
 
-class Intro;
 class Info;
 struct PreparedInvoice;
 enum class InvoiceField;
@@ -45,7 +47,7 @@ public:
 private:
 	void init();
 	void updatePalette();
-	void showIntro();
+	void showCreate();
 	void showAccount(const QByteArray &publicKey);
 
 	void saveKey(const std::vector<QString> &words);
@@ -70,7 +72,7 @@ private:
 	const std::unique_ptr<Ui::Window> _window;
 	const std::unique_ptr<Ui::LayerManager> _layers;
 
-	std::unique_ptr<Intro> _intro;
+	std::unique_ptr<Create::Manager> _createManager;
 
 	QString _address;
 	std::unique_ptr<Ton::AccountViewer> _viewer;

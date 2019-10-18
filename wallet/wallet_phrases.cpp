@@ -14,10 +14,38 @@ namespace ph {
 const auto walletCountStart = start_phrase_count();
 
 phrase lng_wallet_cancel = "Cancel";
+phrase lng_wallet_continue = "Continue";
 
 phrase lng_wallet_intro_title = "Gram Wallet";
-phrase lng_wallet_intro_description = "The gram wallet allows you to make fast and secure blockchain-based payments without intermediaries";
-phrase lng_wallet_intro_create = "Create my wallet";
+phrase lng_wallet_intro_description = "Gram wallet allows you to make fast and\nsecure blockchain-based payments\nwithout intermediaries.";
+phrase lng_wallet_intro_create = "Create My Wallet";
+phrase lng_wallet_intro_accept_text = "By creating the wallet you accept\n{terms_link}.";
+phrase lng_wallet_intro_accept_terms = "Terms and Conditions";
+
+phrase lng_wallet_created_title = "Congratulations";
+phrase lng_wallet_created_description = "Your Gram wallet has just been created.\nOnly you control it.\n\nTo be able to always have access to it,\nplease set up a secure passcode and write\ndown secret words.";
+
+phrase lng_wallet_words_title = "24 secret words";
+phrase lng_wallet_words_description = "Write down these 24 words in the correct\norder and store them in a secret place.\n\nUse these secret words to restore access to\nyour wallet if you lose your passcode or\naccess to this device.";
+phrase lng_wallet_words_sure_title = "Sure done?";
+phrase lng_wallet_words_sure_text = "You didn't have enough time to write these words down.";
+phrase lng_wallet_words_sure_ok = "OK, Sorry";
+
+phrase lng_wallet_check_title = "Test Time!";
+phrase lng_wallet_check_description = "Now let's check that you wrote your secret\nwords correctly.\n\nPlease enter words {index1}, {index2} and {index3} below:";
+phrase lng_wallet_check_incorrect_title = "Incorrect words";
+phrase lng_wallet_check_incorrect_text = "The secret words you have entered do not match the ones in the list.";
+phrase lng_wallet_check_incorrect_view = "See words";
+phrase lng_wallet_check_incorrect_retry = "Try again";
+
+phrase lng_wallet_set_passcode_title = "Secure Passcode";
+phrase lng_wallet_set_passcode_description = "Please choose a secure passcode for payments confirmation.";
+phrase lng_wallet_set_passcode_enter = "Enter your passcode";
+phrase lng_wallet_set_passcode_repeat = "Repeat your passcode";
+
+phrase lng_wallet_ready_title = "Ready to go!";
+phrase lng_wallet_ready_description = "You're all set. Now you have a wallet that\nonly you control \xe2\x80\x93 directly, without\nmiddlemen or bankers.";
+phrase lng_wallet_ready_show_account = "View My Wallet";
 
 phrase lng_wallet_refreshing = "updating...";
 phrase lng_wallet_refreshed_just_now = "updated just now";

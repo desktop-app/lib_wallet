@@ -8,7 +8,6 @@
 
 #include "wallet/wallet_phrases.h"
 #include "wallet/wallet_common.h"
-#include "wallet/wallet_intro.h"
 #include "wallet/wallet_info.h"
 #include "wallet/wallet_view_transaction.h"
 #include "wallet/wallet_receive_grams.h"
@@ -17,6 +16,7 @@
 #include "wallet/wallet_confirm_transaction.h"
 #include "wallet/wallet_sending_transaction.h"
 #include "wallet/wallet_delete.h"
+#include "wallet/create/wallet_create_manager.h"
 #include "ton/ton_wallet.h"
 #include "ton/ton_account_viewer.h"
 #include "ui/address_label.h"
@@ -52,7 +52,7 @@ Window::Window(not_null<Ton::Wallet*> wallet)
 , _layers(std::make_unique<Ui::LayerManager>(_window->body())) {
 	init();
 	if (_wallet->publicKeys().empty()) {
-		showIntro();
+		showCreate();
 	} else {
 		showAccount(_wallet->publicKeys()[0]);
 	}
@@ -65,7 +65,6 @@ void Window::init() {
 	_window->setGeometry(style::centerrect(
 		QApplication::desktop()->geometry(),
 		QRect(QPoint(), st::walletWindowSize)));
-	_window->setTitleStyle(st::walletWindowTitle);
 	_window->setFixedSize(st::walletWindowSize);
 
 	_layers->setHideByBackgroundClick(true);
@@ -84,36 +83,46 @@ void Window::updatePalette() {
 	Ui::ForceFullRepaint(_window.get());
 }
 
-void Window::showIntro() {
+void Window::showCreate() {
 	_layers->hideAll();
 	_info = nullptr;
 	_viewer = nullptr;
 
-	_intro = std::make_unique<Intro>(_window->body());
+	_window->setTitleStyle(st::defaultWindowTitle);
+	_createManager = std::make_unique<Create::Manager>(
+		_window->body(),
+		[=](QString query) { return std::vector<QString>(); });
 	_layers->raise();
 
 	_window->body()->sizeValue(
 	) | rpl::start_with_next([=](QSize size) {
-		_intro->setGeometry({ QPoint(), size });
-	}, _intro->lifetime());
+		_createManager->setGeometry({ QPoint(), size });
+	}, _createManager->lifetime());
 
-	_intro->actionRequests(
-	) | rpl::start_with_next([=](Intro::Action action) {
+	const auto creating = std::make_shared<bool>();
+	_createManager->actionRequests(
+	) | rpl::start_with_next([=](Create::Manager::Action action) {
 		switch (action) {
-		case Intro::Action::CreateWallet: {
+		case Create::Manager::Action::CreateKey: {
+			if (*creating) {
+				return;
+			}
+			*creating = true;
 			_wallet->createKey([=](
-				Ton::Result<std::vector<QString>> result) {
-				if (result) {
-					saveKey(*result);
-				}
+					Ton::Result<std::vector<QString>> result) {
+				Expects(result.has_value());
+
+				*creating = false;
+				_createManager->showCreated(std::move(*result));
 			});
 		} break;
 		}
-	}, _intro->lifetime());
+	}, _createManager->lifetime());
 }
 
 void Window::showAccount(const QByteArray &publicKey) {
-	_intro = nullptr;
+	_layers->hideAll();
+	_createManager = nullptr;
 
 	_address = Ton::Wallet::GetAddress(publicKey);
 	_viewer = _wallet->createAccountViewer(_address);
@@ -122,13 +131,12 @@ void Window::showAccount(const QByteArray &publicKey) {
 		return std::move(state.wallet);
 	});
 
+	_window->setTitleStyle(st::walletWindowTitle);
 	auto data = Info::Data();
 	data.state = _viewer->state();
 	data.loaded = _viewer->loaded();
 	_info = std::make_unique<Info>(_window->body(), data);
-
 	_layers->raise();
-	_layers->hideAll();
 
 	_window->body()->sizeValue(
 	) | rpl::start_with_next([=](QSize size) {
@@ -469,7 +477,7 @@ void Window::logout() {
 	_layers->showBox(Box(DeleteWalletBox, [=] {
 		_wallet->deleteAllKeys([=](Ton::Result<> result) {
 			if (result) {
-				showIntro();
+				showCreate();
 			}
 		});
 	}));

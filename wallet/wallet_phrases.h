@@ -14,10 +14,38 @@ class QTime;
 namespace ph {
 
 extern phrase lng_wallet_cancel;
+extern phrase lng_wallet_continue;
 
 extern phrase lng_wallet_intro_title;
 extern phrase lng_wallet_intro_description;
 extern phrase lng_wallet_intro_create;
+extern phrase lng_wallet_intro_accept_text;
+extern phrase lng_wallet_intro_accept_terms;
+
+extern phrase lng_wallet_created_title;
+extern phrase lng_wallet_created_description;
+
+extern phrase lng_wallet_words_title;
+extern phrase lng_wallet_words_description;
+extern phrase lng_wallet_words_sure_title;
+extern phrase lng_wallet_words_sure_text;
+extern phrase lng_wallet_words_sure_ok;
+
+extern phrase lng_wallet_check_title;
+extern phrase lng_wallet_check_description;
+extern phrase lng_wallet_check_incorrect_title;
+extern phrase lng_wallet_check_incorrect_text;
+extern phrase lng_wallet_check_incorrect_view;
+extern phrase lng_wallet_check_incorrect_retry;
+
+extern phrase lng_wallet_set_passcode_title;
+extern phrase lng_wallet_set_passcode_description;
+extern phrase lng_wallet_set_passcode_enter;
+extern phrase lng_wallet_set_passcode_repeat;
+
+extern phrase lng_wallet_ready_title;
+extern phrase lng_wallet_ready_description;
+extern phrase lng_wallet_ready_show_account;
 
 extern phrase lng_wallet_refreshing;
 extern phrase lng_wallet_refreshed_just_now;
@@ -92,7 +120,7 @@ extern Fn<phrase(QTime)> lng_wallet_short_time;
 
 namespace Wallet {
 
-inline constexpr auto kPhrasesCount = 56;
+inline constexpr auto kPhrasesCount = 79;
 
 void SetPhrases(
 	ph::details::phrase_value_array<kPhrasesCount> data,
