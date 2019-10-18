@@ -212,6 +212,7 @@ void Window::setFocus() {
 }
 
 void Window::sendGrams(const QString &invoice) {
+	const auto checking = std::make_shared<bool>();
 	const auto send = [=](
 			const PreparedInvoice &invoice,
 			Fn<void(InvoiceField)> showError) {
@@ -220,7 +221,7 @@ void Window::sendGrams(const QString &invoice) {
 		} else if (invoice.amount > _state.current().account.balance) {
 			showError(InvoiceField::Amount);
 		} else {
-			askSendPassword(invoice, showError);
+			confirmTransaction(invoice, showError, checking);
 		}
 	};
 	auto balance = _state.value(
@@ -236,75 +237,57 @@ void Window::sendGrams(const QString &invoice) {
 	_layers->showBox(std::move(box));
 }
 
+void Window::confirmTransaction(
+		const PreparedInvoice &invoice,
+		Fn<void(InvoiceField)> showInvoiceError,
+		std::shared_ptr<bool> guard) {
+	if (*guard) {
+		return;
+	}
+	*guard = true;
+	auto done = [=](Ton::Result<Ton::TransactionCheckResult> result) {
+		*guard = false;
+		if (!result) {
+			if (const auto field = ErrorInvoiceField(result.error())) {
+				showInvoiceError(*field);
+			} else {
+				// #TODO fatal?..
+			}
+			return;
+		}
+		showSendConfirmation(
+			invoice,
+			*result,
+			showInvoiceError);
+	};
+	_wallet->checkSendGrams(
+		_wallet->publicKeys().front(),
+		TransactionFromInvoice(invoice),
+		done);
+}
+
 void Window::askSendPassword(
 		const PreparedInvoice &invoice,
 		Fn<void(InvoiceField)> showInvoiceError) {
-	const auto checking = std::make_shared<bool>();
+	const auto sending = std::make_shared<bool>();
 	const auto ready = [=](
 			const QByteArray &passcode,
 			const PreparedInvoice &invoice,
 			Fn<void(QString)> showError) {
-		if (*checking) {
-			return;
-		}
-		*checking = true;
-		auto done = [=](Ton::Result<Ton::TransactionCheckResult> result) {
-			if (!result && IsIncorrectPasswordError(result.error())) {
-				*checking = false;
-				showError(ph::lng_wallet_passcode_incorrect(ph::now));
-				return;
-			}
-			if (_sendConfirmBox) {
-				_sendConfirmBox->closeBox();
-			}
-			if (!result) {
-				if (const auto field = ErrorInvoiceField(result.error())) {
-					showInvoiceError(*field);
-				} else {
-					// #TODO fatal?..
-				}
-				return;
-			}
-			showSendConfirmation(
-				invoice,
-				passcode,
-				*result,
-				showInvoiceError);
-		};
-		_wallet->checkSendGrams(
-			_wallet->publicKeys().front(),
-			passcode,
-			TransactionFromInvoice(invoice),
-			done);
-	};
-	auto box = Box(EnterPasscodeBox, [=](
-			const QByteArray &passcode,
-			Fn<void(QString)> showError) {
-		ready(passcode, invoice, showError);
-	});
-	_sendConfirmBox = box.data();
-	_layers->showBox(std::move(box));
-}
-
-void Window::showSendConfirmation(
-		const PreparedInvoice &invoice,
-		const QByteArray &passcode,
-		const Ton::TransactionCheckResult &checkResult,
-		Fn<void(InvoiceField)> showInvoiceError) {
-	const auto balance = _state.current().account.balance;
-	if (invoice.amount + checkResult.sourceFees.sum() > balance) {
-		showInvoiceError(InvoiceField::Amount);
-		return;
-	}
-	const auto sending = std::make_shared<bool>();
-	const auto confirmed = [=] {
 		if (*sending) {
 			return;
 		}
 		const auto confirmations = std::make_shared<rpl::event_stream<>>();
 		*sending = true;
 		auto ready = [=](Ton::Result<Ton::PendingTransaction> result) {
-			*sending = false;
+			if (!result && IsIncorrectPasswordError(result.error())) {
+				*sending = false;
+				showError(ph::lng_wallet_passcode_incorrect(ph::now));
+				return;
+			}
+			if (_sendConfirmBox) {
+				_sendConfirmBox->closeBox();
+			}
 			if (!result) {
 				if (const auto field = ErrorInvoiceField(result.error())) {
 					showInvoiceError(*field);
@@ -328,6 +311,30 @@ void Window::showSendConfirmation(
 			TransactionFromInvoice(invoice),
 			ready,
 			sent);
+	};
+	if (_sendConfirmBox) {
+		_sendConfirmBox->closeBox();
+	}
+	auto box = Box(EnterPasscodeBox, [=](
+			const QByteArray &passcode,
+			Fn<void(QString)> showError) {
+		ready(passcode, invoice, showError);
+	});
+	_sendConfirmBox = box.data();
+	_layers->showBox(std::move(box));
+}
+
+void Window::showSendConfirmation(
+		const PreparedInvoice &invoice,
+		const Ton::TransactionCheckResult &checkResult,
+		Fn<void(InvoiceField)> showInvoiceError) {
+	const auto balance = _state.current().account.balance;
+	if (invoice.amount + checkResult.sourceFees.sum() > balance) {
+		showInvoiceError(InvoiceField::Amount);
+		return;
+	}
+	const auto confirmed = [=] {
+		askSendPassword(invoice, showInvoiceError);
 	};
 	auto box = Box(
 		ConfirmTransactionBox,

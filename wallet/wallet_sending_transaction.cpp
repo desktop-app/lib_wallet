@@ -20,6 +20,12 @@ namespace {
 
 constexpr auto kShowCloseDelay = 10 * crl::time(1000);
 
+[[nodiscard]] int AskPasswordBoxHeight() {
+	return st::boxLayerTitleHeight
+		- st::boxTopMargin
+		+ st::walletPasscodeHeight;
+}
+
 } // namespace
 
 void SendingTransactionBox(
@@ -27,7 +33,7 @@ void SendingTransactionBox(
 		rpl::producer<> confirmed) {
 	const auto inner = box->addRow(object_ptr<Ui::FixedHeightWidget>(
 		box,
-		st::boxLayerTitleHeight + st::walletPasscodeHeight));
+		AskPasswordBoxHeight()));
 
 	const auto lottie = inner->lifetime().make_state<Ui::LottieAnimation>(
 		inner,
@@ -76,7 +82,7 @@ void SendingDoneBox(
 		const Ton::Transaction &result) {
 	const auto inner = box->addRow(object_ptr<Ui::FixedHeightWidget>(
 		box,
-		st::boxLayerTitleHeight + st::walletPasscodeHeight));
+		AskPasswordBoxHeight()));
 
 	const auto lottie = inner->lifetime().make_state<Ui::LottieAnimation>(
 		inner,

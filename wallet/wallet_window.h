@@ -57,13 +57,16 @@ private:
 
 	void showAccount(const QByteArray &publicKey);
 	void sendGrams(const QString &invoice = QString());
-	void askSendPassword(
+	void confirmTransaction(
 		const PreparedInvoice &invoice,
-		Fn<void(InvoiceField)> showInvoiceError);
+		Fn<void(InvoiceField)> showInvoiceError,
+		std::shared_ptr<bool> guard);
 	void showSendConfirmation(
 		const PreparedInvoice &invoice,
-		const QByteArray &passcode,
 		const Ton::TransactionCheckResult &checkResult,
+		Fn<void(InvoiceField)> showInvoiceError);
+	void askSendPassword(
+		const PreparedInvoice &invoice,
 		Fn<void(InvoiceField)> showInvoiceError);
 	void showSendingTransaction(
 		const Ton::PendingTransaction &transaction,
