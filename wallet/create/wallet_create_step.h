@@ -46,7 +46,7 @@ public:
 	[[nodiscard]] virtual int desiredHeight() const;
 	[[nodiscard]] virtual bool allowEscapeBack() const;
 	[[nodiscard]] not_null<Ui::RpWidget*> widget() const;
-	[[nodiscard]] rpl::producer<> nextRequests() const;
+	[[nodiscard]] rpl::producer<Qt::KeyboardModifiers> nextClicks() const;
 
 	void showAnimated(not_null<Step*> previous, Direction direction);
 	void showFast();

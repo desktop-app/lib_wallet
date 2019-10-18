@@ -134,10 +134,11 @@ not_null<Ui::RpWidget*> Step::widget() const {
 	return _widget.get();
 }
 
-rpl::producer<> Step::nextRequests() const {
-	return _nextButton
-		? _nextButton->clicks() | rpl::map([] { return rpl::empty_value(); })
-		: rpl::producer<>();
+rpl::producer<Qt::KeyboardModifiers> Step::nextClicks() const {
+	return !_nextButton
+		? rpl::producer<Qt::KeyboardModifiers>()
+		: _nextButton->clicks(
+		) | rpl::map([=] { return _nextButton->clickModifiers(); });
 }
 
 int Step::desiredHeight() const {

@@ -109,6 +109,10 @@ void Window::showCreate() {
 			createShowIncorrectWords();
 		} break;
 
+		case Create::Manager::Action::ShowCheckTooSoon: {
+			createShowTooFastWords();
+		} break;
+
 		case Create::Manager::Action::ShowAccount: {
 			showAccount(_createManager->publicKey());
 		} break;
@@ -148,6 +152,20 @@ void Window::createShowIncorrectWords() {
 		box->addButton(ph::lng_wallet_check_incorrect_view(), [=] {
 			box->closeBox();
 			_createManager->showWords(Create::Direction::Backward);
+		});
+	}));
+}
+
+void Window::createShowTooFastWords() {
+	_layers->showBox(Box([=](not_null<Ui::GenericBox*> box) {
+		box->setTitle(ph::lng_wallet_words_sure_title());
+		box->addRow(object_ptr<Ui::FlatLabel>(
+			box,
+			ph::lng_wallet_words_sure_text(),
+			st::walletLabel));
+		box->addButton(ph::lng_wallet_words_sure_ok(), [=] {
+			box->closeBox();
+			_createManager->setFocus();
 		});
 	}));
 }

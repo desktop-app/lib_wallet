@@ -29,6 +29,7 @@ namespace Wallet::Create {
 namespace {
 
 constexpr auto kCheckWordCount = 3;
+constexpr auto kWaitForWordsDelay = 30 * crl::time(1000);
 
 [[nodiscard]] std::vector<int> SelectRandomIndices(int select, int count) {
 	Expects(select <= count);
@@ -89,7 +90,8 @@ Manager::Manager(not_null<QWidget*> parent)
 	std::in_place,
 	_content.get(),
 	object_ptr<Ui::IconButton>(_content.get(), st::walletStepBackButton))
-, _validWords(Ton::Wallet::GetValidWords()) {
+, _validWords(Ton::Wallet::GetValidWords())
+, _waitForWords([=] { _wordsShouldBeReady = true; }) {
 	_content->show();
 	initButtons();
 	showIntro();
@@ -147,8 +149,15 @@ void Manager::showCreated(std::vector<QString> &&words) {
 }
 
 void Manager::showWords(Direction direction) {
+	if (!_waitForWords.isActive() && !_wordsShouldBeReady) {
+		_waitForWords.callOnce(kWaitForWordsDelay);
+	}
 	showStep(std::make_unique<View>(_words), direction, [=] {
-		showCheck();
+		if (!_wordsShouldBeReady) {
+			_actionRequests.fire(Action::ShowCheckTooSoon);
+		} else {
+			showCheck();
+		}
 	});
 }
 
@@ -225,8 +234,9 @@ void Manager::showStep(
 	_backButton->toggle(_back != nullptr, anim::type::normal);
 	_backButton->raise();
 
-	_step->nextRequests(
-	) | rpl::start_with_next([=] {
+	_step->nextClicks(
+	) | rpl::start_with_next([=](Qt::KeyboardModifiers modifiers) {
+		acceptWordsDelayByModifiers(modifiers);
 		this->next();
 	}, _step->lifetime());
 
@@ -235,6 +245,16 @@ void Manager::showStep(
 	} else {
 		_step->showFast();
 	}
+}
+
+void Manager::acceptWordsDelayByModifiers(Qt::KeyboardModifiers modifiers) {
+	const auto kRequired = Qt::ControlModifier | Qt::AltModifier;
+	if (!_waitForWords.isActive()) {
+		return;
+	} else if ((modifiers & kRequired) != kRequired) {
+		return;
+	}
+	_wordsShouldBeReady = true;
 }
 
 void Manager::setGeometry(QRect geometry) {

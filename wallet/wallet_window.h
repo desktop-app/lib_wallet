@@ -51,6 +51,7 @@ private:
 	void showCreate();
 	void createKey(std::shared_ptr<bool> guard);
 	void createShowIncorrectWords();
+	void createShowTooFastWords();
 	void createSavePasscode(
 		const QByteArray &passcode,
 		std::shared_ptr<bool> guard);

@@ -9,6 +9,7 @@
 #include "wallet/create/wallet_create_step.h"
 #include "ui/effects/animations.h"
 #include "base/unique_qptr.h"
+#include "base/timer.h"
 
 namespace Ui {
 class RpWidget;
@@ -66,6 +67,7 @@ private:
 	[[nodiscard]] std::vector<QString> wordsByPrefix(
 		const QString &word) const;
 	void initButtons();
+	void acceptWordsDelayByModifiers(Qt::KeyboardModifiers modifiers);
 
 	const std::unique_ptr<Ui::RpWidget> _content;
 	const base::unique_qptr<Ui::FadeWrap<Ui::IconButton>> _backButton;
@@ -74,6 +76,8 @@ private:
 
 	std::unique_ptr<Step> _step;
 	std::vector<QString> _words;
+	base::Timer _waitForWords;
+	bool _wordsShouldBeReady = false;
 	QByteArray _publicKey;
 
 	FnMut<void()> _next;
