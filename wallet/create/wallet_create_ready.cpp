@@ -27,6 +27,8 @@ void Ready::initControls() {
 		st::walletStepIntroLottieTop,
 		st::walletStepIntroLottieSize);
 	stopLottieOnLoop();
+
+	showNextButton(ph::lng_wallet_ready_show_account());
 }
 
 void Ready::showFinishedHook() {

@@ -15,10 +15,10 @@ walletScrollArea: ScrollArea(defaultScrollArea) {
 }
 walletNextButton: RoundButton(defaultActiveButton) {
 	width: 224px;
-	height: 56px;
+	height: 39px;
 
-	textTop: 17px;
-	font: font(17px semibold);
+	textTop: 10px;
+	font: font(14px semibold);
 }
 
 walletCenteredLabel: FlatLabel(defaultFlatLabel) {
@@ -35,14 +35,14 @@ walletStepIntroTerms: FlatLabel(walletGrayCenteredLabel) {
 		linkFg: introDescriptionFg;
 	}
 }
-walletStepIntroTermsSkip: 20px;
+walletStepIntroTermsSkip: 22px;
 walletStepBackButton: IconButton(backButton) {
 	width: 56px;
 	height: 56px;
 	rippleAreaPosition: point(8px, 8px);
 }
-walletStepNextTop: 300px;
 walletStepHeight: 400px;
+walletStepNextTop: 342px;
 walletStepTitle: FlatLabel(walletBoldCenteredLabel) {
 	style: TextStyle(defaultTextStyle) {
 		font: font(19px semibold);
@@ -50,7 +50,7 @@ walletStepTitle: FlatLabel(walletBoldCenteredLabel) {
 		linkFontOver: font(19px semibold underline);
 	}
 }
-walletStepTitleTop: 118px;
+walletStepTitleTop: 136px;
 walletStepDescription: FlatLabel(walletGrayCenteredLabel) {
 	minWidth: 440px;
 	style: TextStyle(defaultTextStyle) {
@@ -60,14 +60,14 @@ walletStepDescription: FlatLabel(walletGrayCenteredLabel) {
 		lineHeight: 20px;
 	}
 }
-walletStepDescriptionTop: 40px;
-walletStepScrollTitleTop: 118px;
-walletStepScrollDescriptionTop: 40px;
+walletStepDescriptionTop: 36px;
+walletStepScrollTitleTop: 164px;
+walletStepScrollDescriptionTop: 36px;
 
 walletStepIntroLottieTop: 20px;
 walletStepIntroLottieSize: 100px;
 
-walletWordsTop: 300px;
+walletWordsTop: 332px;
 walletWordIndexLabel: FlatLabel(defaultFlatLabel) {
 	textFg: introDescriptionFg;
 }
@@ -82,8 +82,29 @@ walletWordIndexSkip: 8px;
 walletWordSkipLeft: 117px;
 walletWordSkipRight: 69px;
 walletWordHeight: 32px;
-walletWordsNextSkip: 40px;
-walletWordsNextBottomSkip: 110px;
+walletWordsNextSkip: 28px;
+walletWordsNextBottomSkip: 80px;
+
+walletChecksHeight: 516px;
+walletChecksTop: 272px;
+walletCheckInputField: InputField(defaultInputField) {
+	textMargins: margins(0px, 6px, 0px, 4px);
+	width: 224px;
+	heightMin: 32px;
+}
+walletCheckInputSkip: 8px;
+
+walletSetPasscodeEnterTop: 242px;
+walletSetPasscodeRepeatTop: 282px;
+
+walletSuggestionsScroll: defaultSolidScroll;
+walletSuggestionsSkip: 4px;
+walletSuggestionsRadius: 2px;
+walletSuggestionsHeightMax: 106px;
+walletSuggestionHeight: 28px;
+walletSuggestionShadowWidth: 1px;
+walletSuggestionLeft: 10px;
+walletSuggestionTop: 5px;
 
 walletMenuPosition: point(2px, 40px);
 walletDiamondSize: 22px;

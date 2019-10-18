@@ -23,9 +23,7 @@ namespace Wallet::Create {
 
 class Manager final {
 public:
-	Manager(
-		not_null<QWidget*> parent,
-		Fn<std::vector<QString>(QString)> wordsByPrefix);
+	Manager(not_null<QWidget*> parent);
 	Manager(const Manager &other) = delete;
 	Manager &operator=(const Manager &other) = delete;
 	~Manager();
@@ -42,6 +40,8 @@ public:
 	};
 
 	[[nodiscard]] rpl::producer<Action> actionRequests() const;
+	[[nodiscard]] rpl::producer<QByteArray> passcodeChosen() const;
+	[[nodiscard]] QByteArray publicKey() const;
 
 	void next();
 	void back();
@@ -52,7 +52,7 @@ public:
 	void showWords(Direction direction);
 	void showCheck();
 	void showPasscode();
-	void showReady();
+	void showReady(const QByteArray &publicKey);
 
 	[[nodiscard]] rpl::lifetime &lifetime();
 
@@ -62,20 +62,24 @@ private:
 		Direction direction,
 		FnMut<void()> next = nullptr,
 		FnMut<void()> back = nullptr);
+	[[nodiscard]] std::vector<QString> wordsByPrefix(
+		const QString &word) const;
 	void initButtons();
 
 	const std::unique_ptr<Ui::RpWidget> _content;
 	const base::unique_qptr<Ui::FadeWrap<Ui::IconButton>> _backButton;
-
+	const base::flat_set<QString> _validWords;
 	const Fn<std::vector<QString>(QString)> _wordsByPrefix;
 
 	std::unique_ptr<Step> _step;
 	std::vector<QString> _words;
+	QByteArray _publicKey;
 
 	FnMut<void()> _next;
 	FnMut<void()> _back;
 
 	rpl::event_stream<Action> _actionRequests;
+	rpl::event_stream<QByteArray> _passcodeChosen;
 
 };
 

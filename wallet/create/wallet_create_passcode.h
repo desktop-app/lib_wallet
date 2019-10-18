@@ -14,9 +14,16 @@ class Passcode final : public Step {
 public:
 	Passcode();
 
+	[[nodiscard]] QByteArray passcode() const;
+
+	void setFocus() override;
+
 private:
 	void initControls();
 	void showFinishedHook() override;
+
+	Fn<QByteArray()> _passcode;
+	Fn<void()> _setFocus;
 
 };
 

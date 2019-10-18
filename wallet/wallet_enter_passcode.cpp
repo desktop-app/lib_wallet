@@ -12,6 +12,7 @@
 #include "ui/wrap/fade_wrap.h"
 #include "ui/widgets/input_fields.h"
 #include "ui/widgets/labels.h"
+#include "base/platform/base_platform_layout_switch.h"
 #include "styles/style_wallet.h"
 
 namespace Wallet {
@@ -66,6 +67,7 @@ void EnterPasscodeBox(
 	});
 
 	box->setFocusCallback([=] {
+		base::Platform::SwitchKeyboardLayoutToEnglish();
 		input->setFocusFast();
 	});
 

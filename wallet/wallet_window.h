@@ -47,10 +47,15 @@ public:
 private:
 	void init();
 	void updatePalette();
-	void showCreate();
-	void showAccount(const QByteArray &publicKey);
 
-	void saveKey(const std::vector<QString> &words);
+	void showCreate();
+	void createKey(std::shared_ptr<bool> guard);
+	void createShowIncorrectWords();
+	void createSavePasscode(
+		const QByteArray &passcode,
+		std::shared_ptr<bool> guard);
+
+	void showAccount(const QByteArray &publicKey);
 	void sendGrams(const QString &invoice = QString());
 	void askSendPassword(
 		const PreparedInvoice &invoice,

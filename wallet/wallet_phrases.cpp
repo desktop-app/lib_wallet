@@ -39,7 +39,7 @@ phrase lng_wallet_check_incorrect_view = "See words";
 phrase lng_wallet_check_incorrect_retry = "Try again";
 
 phrase lng_wallet_set_passcode_title = "Secure Passcode";
-phrase lng_wallet_set_passcode_description = "Please choose a secure passcode for payments confirmation.";
+phrase lng_wallet_set_passcode_description = "Please choose a secure passcode\nfor your payments confirmation.";
 phrase lng_wallet_set_passcode_enter = "Enter your passcode";
 phrase lng_wallet_set_passcode_repeat = "Repeat your passcode";
 

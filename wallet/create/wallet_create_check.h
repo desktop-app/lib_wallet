@@ -17,6 +17,7 @@ public:
 		const std::vector<int> &indices);
 
 	bool allowEscapeBack() const override;
+	int desiredHeight() const override;
 
 	[[nodiscard]] std::vector<QString> words() const;
 	[[nodiscard]] rpl::producer<> submitRequests() const;

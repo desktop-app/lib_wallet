@@ -13,10 +13,12 @@
 #include "wallet/create/wallet_create_passcode.h"
 #include "wallet/create/wallet_create_ready.h"
 #include "wallet/wallet_phrases.h"
+#include "ton/ton_wallet.h"
 #include "ui/wrap/fade_wrap.h"
 #include "ui/widgets/buttons.h"
 #include "ui/text/text_utilities.h"
 #include "ui/toast/toast.h"
+#include "ui/ton_word_input.h"
 #include "ui/rp_widget.h"
 #include "base/call_delayed.h"
 #include "styles/style_wallet.h"
@@ -33,7 +35,7 @@ constexpr auto kCheckWordCount = 3;
 	Expects(select >= 0);
 
 	auto generator = std::mt19937(std::random_device()());
-	auto result = std::vector<int>();
+	auto result = base::flat_set<int>();
 	for (auto i = 0; i != select; ++i) {
 		const auto distribution = std::uniform_int_distribution<int>(
 			0,
@@ -46,14 +48,13 @@ constexpr auto kCheckWordCount = 3;
 				break;
 			}
 		}
-		result.push_back(value);
+		result.emplace(value);
 	}
-	ranges::sort(result);
 
 	for (const auto value : result) {
 		Ensures(value >= 0 && value < count);
 	}
-	return result;
+	return result | ranges::to_vector;
 }
 
 [[nodiscard]] bool CheckWords(
@@ -65,6 +66,10 @@ constexpr auto kCheckWordCount = 3;
 		Expects(indices[i] >= 0 && indices[i] < original.size());
 	}
 
+	if (!offered.empty()
+		&& offered.front() == Ui::TonWordInput::kSkipPassword) {
+		return true;
+	}
 	for (auto i = 0; i != indices.size(); ++i) {
 		const auto different = offered[i].trimmed().compare(
 			original[indices[i]].trimmed(),
@@ -78,15 +83,14 @@ constexpr auto kCheckWordCount = 3;
 
 } // namespace
 
-Manager::Manager(
-	not_null<QWidget*> parent,
-	Fn<std::vector<QString>(QString)> wordsByPrefix)
+Manager::Manager(not_null<QWidget*> parent)
 : _content(std::make_unique<Ui::RpWidget>(parent))
 , _backButton(
 	std::in_place,
 	_content.get(),
 	object_ptr<Ui::IconButton>(_content.get(), st::walletStepBackButton))
-, _wordsByPrefix(std::move(wordsByPrefix)) {
+, _validWords(Ton::Wallet::GetValidWords()) {
+	_content->show();
 	initButtons();
 	showIntro();
 }
@@ -147,7 +151,9 @@ void Manager::showWords(Direction direction) {
 void Manager::showCheck() {
 	const auto indices = SelectRandomIndices(kCheckWordCount, _words.size());
 
-	auto check = std::make_unique<Check>(_wordsByPrefix, indices);
+	auto check = std::make_unique<Check>([=](const QString &prefix) {
+		return wordsByPrefix(prefix);
+	}, indices);
 
 	const auto raw = check.get();
 
@@ -170,12 +176,26 @@ void Manager::showCheck() {
 }
 
 void Manager::showPasscode() {
-	showStep(std::make_unique<Passcode>(), Direction::Forward, [=] {
-		showReady();
+	auto passcode = std::make_unique<Passcode>();
+
+	const auto raw = passcode.get();
+
+	//raw->submitRequests( // #TODO
+	//) | rpl::start_with_next([=] {
+	//	next();
+	//}, raw->lifetime());
+
+	showStep(std::move(passcode), Direction::Forward, [=] {
+		if (auto passcode = raw->passcode(); !passcode.isEmpty()) {
+			_passcodeChosen.fire(std::move(passcode));
+		}
 	});
 }
 
-void Manager::showReady() {
+void Manager::showReady(const QByteArray &publicKey) {
+	Expects(!publicKey.isEmpty());
+
+	_publicKey = publicKey;
 	showStep(std::make_unique<Ready>(), Direction::Forward, [=] {
 		_actionRequests.fire(Action::ShowAccount);
 	});
@@ -221,8 +241,48 @@ rpl::producer<Manager::Action> Manager::actionRequests() const {
 	return _actionRequests.events();
 }
 
+rpl::producer<QByteArray> Manager::passcodeChosen() const {
+	return _passcodeChosen.events();
+}
+
+QByteArray Manager::publicKey() const {
+	Expects(!_publicKey.isEmpty());
+
+	return _publicKey;
+}
+
 rpl::lifetime &Manager::lifetime() {
 	return _content->lifetime();
+}
+
+std::vector<QString> Manager::wordsByPrefix(const QString &word) const {
+	const auto adjusted = word.trimmed().toLower();
+	if (adjusted.isEmpty()) {
+		return {};
+	} else if (_validWords.empty()) {
+		return { word };
+	}
+	auto prefix = QString();
+	auto count = 0;
+	auto maxCount = 0;
+	for (auto word : _validWords) {
+		if (word.midRef(0, 3) != prefix) {
+			prefix = word.mid(0, 3);
+			count = 1;
+		} else {
+			++count;
+		}
+		if (maxCount < count) {
+			maxCount = count;
+		}
+	}
+	auto result = std::vector<QString>();
+	const auto from = ranges::lower_bound(_validWords, adjusted);
+	const auto end = _validWords.end();
+	for (auto i = from; i != end && i->startsWith(adjusted); ++i) {
+		result.push_back(*i);
+	}
+	return result;
 }
 
 } // namespace Wallet::Create

@@ -84,6 +84,7 @@ private:
 		std::unique_ptr<Ui::LottieAnimation> lottieNow;
 
 		std::unique_ptr<Ui::SlideAnimation> slide;
+		Direction direction = Direction();
 		int slideTop = 0;
 		int slideWidth = 0;
 		int lottieWasTop = 0;

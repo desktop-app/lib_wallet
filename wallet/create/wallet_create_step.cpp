@@ -151,16 +151,17 @@ bool Step::allowEscapeBack() const {
 Step::SlideAnimationData Step::prepareSlideAnimationData() {
 	Expects(_title != nullptr);
 
+	const auto scrollTop = (_scroll ? _scroll->scrollTop() : 0);
+
 	auto result = SlideAnimationData();
 	result.type = _type;
 	if (_lottie) {
 		_lottie->detach();
 		result.lottie = std::move(_lottie);
-		result.lottieTop = contentTop() + _lottieTop;
+		result.lottieTop = contentTop() + _lottieTop - scrollTop;
 		result.lottieSize = _lottieSize;
 	}
 	result.content = prepareSlideAnimationContent();
-	const auto scrollTop = (_scroll ? _scroll->scrollTop() : 0);
 	result.contentTop = slideAnimationContentTop() - scrollTop;
 	return result;
 }
@@ -169,7 +170,9 @@ QImage Step::prepareSlideAnimationContent() const {
 	Expects(_title != nullptr);
 
 	const auto contentTop = slideAnimationContentTop();
-	const auto contentWidth = _description->naturalWidth();
+	const auto contentWidth = std::max(
+		_description->naturalWidth(),
+		st::walletWindowSize.width());
 	const auto contentRect = QRect(
 		(inner()->width() - contentWidth) / 2,
 		contentTop,
@@ -261,11 +264,12 @@ void Step::showNextButton(rpl::producer<QString> text) {
 		Ui::RoundButton::TextTransform::NoTransform);
 	inner()->sizeValue(
 	) | rpl::start_with_next([=](QSize size) {
+		const auto skip = (_type == Type::Scroll)
+			? st::walletWordsNextBottomSkip
+			: (st::walletStepHeight - st::walletStepNextTop);
 		_nextButton->move(
 			(size.width() - _nextButton->width()) / 2,
-			(contentTop()
-				+ (desiredHeight() - st::walletStepHeight)
-				+ st::walletStepNextTop));
+			contentTop() + desiredHeight() - skip);
 	}, _nextButton->lifetime());
 }
 
@@ -312,14 +316,12 @@ void Step::showAnimatedSlide(not_null<Step*> previous, Direction direction) {
 	auto was = previous->prepareSlideAnimationData();
 	auto now = prepareSlideAnimationData();
 	_slideAnimation.slide = std::make_unique<Ui::SlideAnimation>();
+	_slideAnimation.direction = direction;
 
 	adjustSlideSnapshots(was, now);
 	Assert(now.contentTop == was.contentTop);
 	Assert(now.content.size() == was.content.size());
 
-	_slideAnimation.slide->setSnapshots(
-		Ui::PixmapFromImage(std::move(was.content)),
-		Ui::PixmapFromImage(std::move(now.content)));
 	_slideAnimation.slideTop = was.contentTop;
 	_slideAnimation.slideWidth = was.content.width() / pixelRatio;
 	_slideAnimation.lottieWas = std::move(was.lottie);
@@ -328,6 +330,9 @@ void Step::showAnimatedSlide(not_null<Step*> previous, Direction direction) {
 	_slideAnimation.lottieNow = std::move(now.lottie);
 	_slideAnimation.lottieNowTop = now.lottieTop;
 	_slideAnimation.lottieNowSize = now.lottieSize;
+	_slideAnimation.slide->setSnapshots(
+		Ui::PixmapFromImage(std::move(was.content)),
+		Ui::PixmapFromImage(std::move(now.content)));
 
 	if (_slideAnimation.lottieWas) {
 		_slideAnimation.lottieWas->attach(_widget.get());
@@ -349,27 +354,32 @@ void Step::showAnimatedSlide(not_null<Step*> previous, Direction direction) {
 
 void Step::slideAnimationCallback() {
 	const auto state = _slideAnimation.slide->state();
+	const auto forward = (_slideAnimation.direction == Direction::Forward);
 	if (_slideAnimation.lottieWas) {
-		const auto shown = (1. - state.leftProgress);
-		const auto scale = state.leftAlpha;
+		const auto shown = 1. - (forward
+			? state.leftProgress
+			: state.rightProgress);
+		const auto scale = forward ? state.leftAlpha : state.rightAlpha;
 		const auto fullHeight = _slideAnimation.lottieWasSize;
 		const auto height = scale * fullHeight;
 		const auto delta = (1. - shown) * _slideAnimation.slideWidth;
-		_slideAnimation.lottieWas->setOpacity(state.leftAlpha);
+		_slideAnimation.lottieWas->setOpacity(scale);
 		_slideAnimation.lottieWas->setGeometry(lottieGeometry(
 			_slideAnimation.lottieWasTop + (1. - scale) * fullHeight / 2.,
-			height).translated(-delta, 0));
+			height).translated(forward ? -delta : delta, 0));
 	}
 	if (_slideAnimation.lottieNow) {
-		const auto shown = state.rightProgress;
-		const auto scale = state.rightAlpha;
+		const auto shown = forward
+			? state.rightProgress
+			: state.leftProgress;
+		const auto scale = forward ? state.rightAlpha : state.leftAlpha;
 		const auto fullHeight = _slideAnimation.lottieNowSize;
 		const auto height = scale * fullHeight;
 		const auto delta = (1. - shown) * _slideAnimation.slideWidth;
-		_slideAnimation.lottieNow->setOpacity(state.rightAlpha);
+		_slideAnimation.lottieNow->setOpacity(scale);
 		_slideAnimation.lottieNow->setGeometry(lottieGeometry(
 			_slideAnimation.lottieNowTop + (1. - scale) * fullHeight / 2.,
-			height).translated(delta, 0));
+			height).translated(forward ? delta : -delta, 0));
 	}
 	_widget->update();
 }

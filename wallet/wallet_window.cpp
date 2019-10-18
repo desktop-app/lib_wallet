@@ -89,9 +89,7 @@ void Window::showCreate() {
 	_viewer = nullptr;
 
 	_window->setTitleStyle(st::defaultWindowTitle);
-	_createManager = std::make_unique<Create::Manager>(
-		_window->body(),
-		[=](QString query) { return std::vector<QString>(); });
+	_createManager = std::make_unique<Create::Manager>(_window->body());
 	_layers->raise();
 
 	_window->body()->sizeValue(
@@ -104,20 +102,56 @@ void Window::showCreate() {
 	) | rpl::start_with_next([=](Create::Manager::Action action) {
 		switch (action) {
 		case Create::Manager::Action::CreateKey: {
-			if (*creating) {
-				return;
-			}
-			*creating = true;
-			_wallet->createKey([=](
-					Ton::Result<std::vector<QString>> result) {
-				Expects(result.has_value());
+			createKey(creating);
+		} break;
 
-				*creating = false;
-				_createManager->showCreated(std::move(*result));
-			});
+		case Create::Manager::Action::ShowCheckIncorrect: {
+			createShowIncorrectWords();
+		} break;
+
+		case Create::Manager::Action::ShowAccount: {
+			showAccount(_createManager->publicKey());
 		} break;
 		}
 	}, _createManager->lifetime());
+
+	const auto saving = std::make_shared<bool>();
+	_createManager->passcodeChosen(
+	) | rpl::start_with_next([=](const QByteArray &passcode) {
+		createSavePasscode(passcode, saving);
+	}, _createManager->lifetime());
+}
+
+void Window::createKey(std::shared_ptr<bool> guard) {
+	if (std::exchange(*guard, true)) {
+		return;
+	}
+	_wallet->createKey([=](Ton::Result<std::vector<QString>> result) {
+		Expects(result.has_value());
+
+		*guard = false;
+		_createManager->showCreated(std::move(*result));
+	});
+}
+
+void Window::createShowIncorrectWords() {
+	// #TODO
+}
+
+void Window::createSavePasscode(
+		const QByteArray &passcode,
+		std::shared_ptr<bool> guard) {
+	if (std::exchange(*guard, true)) {
+		return;
+	}
+	_wallet->saveKey(passcode, [=](Ton::Result<QByteArray> result) {
+		*guard = false;
+		if (!result) {
+			// #TODO fatal?..
+			return;
+		}
+		_createManager->showReady(*result);
+	});
 }
 
 void Window::showAccount(const QByteArray &publicKey) {
@@ -175,56 +209,6 @@ void Window::show() {
 
 void Window::setFocus() {
 	_window->setFocus();
-}
-
-void Window::saveKey(const std::vector<QString> &words) {
-	_layers->showBox(Box([=](not_null<Ui::GenericBox*> box) {
-		box->setTitle(rpl::single(QString("Words")));
-		for (const auto &word : words) {
-			box->addRow(object_ptr<Ui::FlatLabel>(
-				box,
-				rpl::single(word),
-				st::boxLabel));
-		}
-		const auto passwordWrap = box->addRow(object_ptr<Ui::RpWidget>(box));
-		const auto password = Ui::CreateChild<Ui::PasswordInput>(
-			passwordWrap,
-			st::defaultInputField,
-			rpl::single(QString("Password")));
-		passwordWrap->widthValue(
-		) | rpl::start_with_next([=](int width) {
-			password->resize(width, password->height());
-		}, password->lifetime());
-		password->heightValue(
-		) | rpl::start_with_next([=](int height) {
-			passwordWrap->resize(passwordWrap->width(), height);
-		}, password->lifetime());
-		password->move(0, 0);
-		const auto saving = box->lifetime().make_state<bool>(false);
-		box->setCloseByEscape(false);
-		box->setCloseByOutsideClick(false);
-		box->addButton(rpl::single(QString("Save")), [=] {
-			if (*saving) {
-				return;
-			}
-			auto pwd = password->getLastText().trimmed();
-			if (pwd.isEmpty()) {
-				password->showError();
-				return;
-			}
-			*saving = true;
-			_wallet->saveKey(pwd.toUtf8(), [=](Ton::Result<QByteArray> r) {
-				*saving = false;
-				if (r) {
-					box->closeBox();
-					showAccount(_wallet->publicKeys()[0]);
-				} else {
-					password->showError();
-					return;
-				}
-			});
-		});
-	}));
 }
 
 void Window::sendGrams(const QString &invoice) {
