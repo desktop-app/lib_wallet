@@ -10,6 +10,7 @@
 #include "wallet/wallet_phrases.h"
 #include "base/unixtime.h"
 #include "ui/address_label.h"
+#include "ui/inline_diamond.h"
 #include "ui/painter.h"
 #include "ui/text/text.h"
 #include "styles/style_wallet.h"
@@ -191,8 +192,13 @@ void HistoryRow::paint(Painter &p, int x, int y) {
 	p.setPen(_layout.incoming ? st::boxTextFgGood : st::boxTextFgError);
 	_layout.amount.draw(p, x, y, avail);
 
-	const auto labelLeft = x
+	const auto diamondLeft = x
 		+ _layout.amount.maxWidth()
+		+ st::normalFont->spacew;
+	Ui::PaintInlineDiamond(p, diamondLeft, y, st::normalFont);
+
+	const auto labelLeft = diamondLeft
+		+ st::walletDiamondSize
 		+ st::normalFont->spacew;
 	p.setPen(st::windowFg);
 	p.setFont(st::normalFont);

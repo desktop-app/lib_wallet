@@ -9,5 +9,9 @@
     <file alias="art/lottie/money.tgs">../art/lottie/money.tgs</file>
     <file alias="art/lottie/paper.tgs">../art/lottie/paper.tgs</file>
     <file alias="art/lottie/test.tgs">../art/lottie/test.tgs</file>
+    <file alias="art/gem.png">../art/gem.png</file>
+    <file alias="art/gem@2x.png">../art/gem@2x.png</file>
+    <file alias="art/gem@4x.png">../art/gem@4x.png</file>
+    <file alias="art/gem@large.png">../art/gem@large.png</file>
   </qresource>
 </RCC>

@@ -11,6 +11,7 @@
 #include "ui/widgets/input_fields.h"
 #include "ui/widgets/labels.h"
 #include "ui/widgets/buttons.h"
+#include "ui/inline_diamond.h"
 #include "base/algorithm.h"
 #include "base/qthelp_url.h"
 #include "styles/style_wallet.h"
@@ -160,6 +161,11 @@ void SendGramsBox(
 			ParseAmount(std::max(value, 0LL)).full);
 	});
 
+	const auto diamondLabel = Ui::CreateInlineDiamond(
+		subtitle->parentWidget(),
+		0,
+		0,
+		st::walletSendBalanceLabel.style.font);
 	const auto balanceLabel = Ui::CreateChild<Ui::FlatLabel>(
 		subtitle->parentWidget(),
 		std::move(balanceText),
@@ -168,10 +174,18 @@ void SendGramsBox(
 		subtitle->geometryValue(),
 		balanceLabel->widthValue()
 	) | rpl::start_with_next([=](QRect rect, int innerWidth) {
-		const auto top = rect.top()
+		const auto diamondTop = rect.top()
+			+ st::walletSubsectionTitle.style.font->ascent
+			- st::walletDiamondAscent;
+		const auto diamondRight = st::boxRowPadding.right();
+		diamondLabel->moveToRight(diamondRight, diamondTop);
+		const auto labelTop = rect.top()
 			+ st::walletSubsectionTitle.style.font->ascent
 			- st::walletSendBalanceLabel.style.font->ascent;
-		balanceLabel->moveToRight(st::boxRowPadding.right(), top);
+		const auto labelRight = diamondRight
+			+ st::walletDiamondSize
+			+ st::walletSendBalanceLabel.style.font->spacew;
+		balanceLabel->moveToRight(labelRight, labelTop);
 	}, balanceLabel->lifetime());
 
 	const auto comment = box->addRow(
