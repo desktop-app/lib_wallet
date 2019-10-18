@@ -46,6 +46,7 @@ public:
 	void next();
 	void back();
 	void backByEscape();
+	void setFocus();
 
 	void showIntro();
 	void showCreated(std::vector<QString> &&words);

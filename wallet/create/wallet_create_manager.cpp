@@ -126,6 +126,10 @@ void Manager::backByEscape() {
 	}
 }
 
+void Manager::setFocus() {
+	_step->setFocus();
+}
+
 void Manager::showIntro() {
 	showStep(std::make_unique<Intro>(), Direction::Forward, [=] {
 		_actionRequests.fire(Action::CreateKey);

@@ -135,7 +135,21 @@ void Window::createKey(std::shared_ptr<bool> guard) {
 }
 
 void Window::createShowIncorrectWords() {
-	// #TODO
+	_layers->showBox(Box([=](not_null<Ui::GenericBox*> box) {
+		box->setTitle(ph::lng_wallet_check_incorrect_title());
+		box->addRow(object_ptr<Ui::FlatLabel>(
+			box,
+			ph::lng_wallet_check_incorrect_text(),
+			st::walletLabel));
+		box->addButton(ph::lng_wallet_check_incorrect_retry(), [=] {
+			box->closeBox();
+			_createManager->setFocus();
+		});
+		box->addButton(ph::lng_wallet_check_incorrect_view(), [=] {
+			box->closeBox();
+			_createManager->showWords(Create::Direction::Backward);
+		});
+	}));
 }
 
 void Window::createSavePasscode(
