@@ -302,6 +302,7 @@ void Window::showAccount(const QByteArray &publicKey) {
 	auto data = Info::Data();
 	data.state = _viewer->state();
 	data.loaded = _viewer->loaded();
+	data.updates = _wallet->updates();
 	_info = std::make_unique<Info>(_window->body(), std::move(data));
 	_layers->raise();
 

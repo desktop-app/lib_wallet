@@ -67,6 +67,8 @@ phrase lng_wallet_ready_title = "Ready to go!";
 phrase lng_wallet_ready_description = "You're all set. Now you have a wallet that\nonly you control \xe2\x80\x93 directly, without\nmiddlemen or bankers.";
 phrase lng_wallet_ready_show_account = "View My Wallet";
 
+phrase lng_wallet_sync = "syncing...";
+phrase lng_wallet_sync_percent = "syncing... {percent}%";
 phrase lng_wallet_refreshing = "updating...";
 phrase lng_wallet_refreshed_just_now = "updated just now";
 

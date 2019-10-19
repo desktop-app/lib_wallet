@@ -67,6 +67,8 @@ extern phrase lng_wallet_ready_title;
 extern phrase lng_wallet_ready_description;
 extern phrase lng_wallet_ready_show_account;
 
+extern phrase lng_wallet_sync;
+extern phrase lng_wallet_sync_percent;
 extern phrase lng_wallet_refreshing;
 extern phrase lng_wallet_refreshed_just_now;
 
@@ -144,7 +146,7 @@ extern Fn<phrase(QTime)> lng_wallet_short_time;
 
 namespace Wallet {
 
-inline constexpr auto kPhrasesCount = 99;
+inline constexpr auto kPhrasesCount = 101;
 
 void SetPhrases(
 	ph::details::phrase_value_array<kPhrasesCount> data,

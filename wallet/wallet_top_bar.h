@@ -15,6 +15,7 @@ class DropdownMenu;
 
 namespace Ton {
 struct WalletViewerState;
+struct Update;
 } // namespace Ton
 
 namespace Wallet {
@@ -47,6 +48,7 @@ private:
 
 [[nodiscard]] rpl::producer<TopBarState> MakeTopBarState(
 	rpl::producer<Ton::WalletViewerState> &&state,
+	rpl::producer<Ton::Update> &&updates,
 	rpl::lifetime &alive);
 
 } // namespace Wallet

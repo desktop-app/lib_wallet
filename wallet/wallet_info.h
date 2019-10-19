@@ -23,6 +23,7 @@ public:
 	struct Data {
 		rpl::producer<Ton::WalletViewerState> state;
 		rpl::producer<Ton::Result<Ton::LoadedSlice>> loaded;
+		rpl::producer<Ton::Update> updates;
 	};
 	Info(not_null<QWidget*> parent, Data data);
 	~Info();

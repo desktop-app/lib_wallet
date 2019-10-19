@@ -51,10 +51,13 @@ rpl::producer<Ton::Transaction> Info::viewRequests() const {
 }
 
 void Info::setupControls(Data &&data) {
-	auto &state = data.state;
+	const auto &state = data.state;
 	const auto topBar = _widget->lifetime().make_state<TopBar>(
 		_widget.get(),
-		MakeTopBarState(rpl::duplicate(state), _widget->lifetime()));
+		MakeTopBarState(
+			rpl::duplicate(state),
+			rpl::duplicate(data.updates),
+			_widget->lifetime()));
 	topBar->actionRequests(
 	) | rpl::start_to_stream(_actionRequests, topBar->lifetime());
 

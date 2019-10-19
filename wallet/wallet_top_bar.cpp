@@ -22,11 +22,14 @@ namespace {
 
 constexpr auto kMsInMinute = 60 * crl::time(1000);
 
-[[nodiscard]] rpl::producer<TopBarState> MakeTopBarStateRefreshing() {
-	return ph::lng_wallet_refreshing(
-	) | rpl::map([](QString &&text) {
-		return TopBarState{ std::move(text), true };
+[[nodiscard]] auto ToTopBarState(bool refreshing = false) {
+	return rpl::map([=](QString &&text) {
+		return TopBarState{ std::move(text), refreshing };
 	});
+}
+
+[[nodiscard]] rpl::producer<TopBarState> MakeTopBarStateRefreshing() {
+	return ph::lng_wallet_refreshing() | ToTopBarState(true);
 }
 
 [[nodiscard]] rpl::producer<int> MakeRefreshedMinutesAgo(crl::time when) {
@@ -56,9 +59,15 @@ constexpr auto kMsInMinute = 60 * crl::time(1000);
 			? ph::lng_wallet_refreshed_minutes_ago(minutes)()
 			: ph::lng_wallet_refreshed_just_now();
 	}) | rpl::flatten_latest(
-	) | rpl::map([](QString &&text) {
-		return TopBarState{ std::move(text), false };
-	});
+	) | ToTopBarState();
+}
+
+[[nodiscard]] rpl::producer<TopBarState> MakeNonSyncTopBarState(
+		const Ton::WalletViewerState &state) {
+	if (state.refreshing || !state.lastRefresh) {
+		return MakeTopBarStateRefreshing();
+	}
+	return MakeTopBarStateRefreshed(state.lastRefresh);
 }
 
 } // namespace
@@ -182,17 +191,35 @@ void TopBar::showMenu(not_null<Ui::IconButton*> toggle) {
 
 rpl::producer<TopBarState> MakeTopBarState(
 		rpl::producer<Ton::WalletViewerState> &&state,
+		rpl::producer<Ton::Update> &&updates,
 		rpl::lifetime &alive) {
-	return std::move(
-		state
-	) | rpl::map([](const Ton::WalletViewerState &data)
-		-> rpl::producer<TopBarState> {
-		if (data.refreshing || !data.lastRefresh) {
-			return MakeTopBarStateRefreshing();
-		}
-		return MakeTopBarStateRefreshed(data.lastRefresh);
-	}) | rpl::flatten_latest(
-	) | rpl::start_spawning(alive);
+	return rpl::combine(
+		std::move(state),
+		std::move(updates)
+	) | rpl::map([=](
+			const Ton::WalletViewerState &state,
+			const Ton::Update &update) -> rpl::producer<TopBarState> {
+		return update.data.match([&](const Ton::SyncState &data) {
+			if (!data.valid() || data.current == data.to) {
+				return MakeNonSyncTopBarState(state);
+			} else if (data.current == data.from) {
+				return ph::lng_wallet_sync() | ToTopBarState();
+			} else {
+				const auto percent = QString::number(
+					(100 * (data.current - data.from)
+						/ (data.to - data.from)));
+				return ph::lng_wallet_sync_percent(
+				) | rpl::map([=](QString &&text) {
+					return TopBarState{
+						text.replace("{percent}", percent),
+						false
+					};
+				});
+			}
+		}, [&](const Ton::LiteServerQuery &) {
+			return MakeNonSyncTopBarState(state);
+		});
+	}) | rpl::flatten_latest() | rpl::start_spawning(alive);
 }
 
 } // namespace Wallet
