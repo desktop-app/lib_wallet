@@ -16,6 +16,7 @@
 #include "wallet/wallet_confirm_transaction.h"
 #include "wallet/wallet_sending_transaction.h"
 #include "wallet/wallet_delete.h"
+#include "wallet/wallet_export.h"
 #include "wallet/create/wallet_create_manager.h"
 #include "ton/ton_wallet.h"
 #include "ton/ton_account_viewer.h"
@@ -213,7 +214,7 @@ void Window::showAccount(const QByteArray &publicKey) {
 	) | rpl::start_with_next([=](Action action) {
 		switch (action) {
 		case Action::Refresh: _viewer->refreshNow(nullptr); break;
-		case Action::Export: /*export();*/ break;
+		case Action::Export: askExportPassword(); break;
 		case Action::Send: sendGrams(); break;
 		case Action::Receive: receiveGrams(); break;
 		case Action::ChangePassword: changePassword(); break;
@@ -494,6 +495,49 @@ void Window::changePassword() {
 			box->closeBox();
 		});
 	}));
+}
+
+void Window::askExportPassword() {
+	const auto exporting = std::make_shared<bool>();
+	const auto weakBox = std::make_shared<QPointer<Ui::GenericBox>>();
+	const auto ready = [=](
+			const QByteArray &passcode,
+			Fn<void(QString)> showError) {
+		if (*exporting) {
+			return;
+		}
+		*exporting = true;
+		auto ready = [=](Ton::Result<std::vector<QString>> result) {
+			if (!result) {
+				*exporting = false;
+				if (IsIncorrectPasswordError(result.error())) {
+					showError(ph::lng_wallet_passcode_incorrect(ph::now));
+				} else {
+					// #TODO fatal?..
+				}
+				return;
+			}
+			if (*weakBox) {
+				(*weakBox)->closeBox();
+			}
+			showExported(*result);
+		};
+		_wallet->exportKey(
+			_wallet->publicKeys().front(),
+			passcode,
+			ready);
+	};
+	auto box = Box(EnterPasscodeBox, [=](
+			const QByteArray &passcode,
+			Fn<void(QString)> showError) {
+		ready(passcode, showError);
+	});
+	*weakBox = box.data();
+	_layers->showBox(std::move(box));
+}
+
+void Window::showExported(const std::vector<QString> &words) {
+	_layers->showBox(Box(ExportedBox, words));
 }
 
 void Window::logout() {

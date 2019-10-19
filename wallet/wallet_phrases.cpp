@@ -15,6 +15,7 @@ const auto walletCountStart = start_phrase_count();
 
 phrase lng_wallet_cancel = "Cancel";
 phrase lng_wallet_continue = "Continue";
+phrase lng_wallet_done = "Done";
 
 phrase lng_wallet_intro_title = "Gram Wallet";
 phrase lng_wallet_intro_description = "Gram wallet allows you to make fast and\nsecure blockchain-based payments\nwithout intermediaries.";

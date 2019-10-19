@@ -75,6 +75,8 @@ private:
 	void showSendingDone(std::optional<Ton::Transaction> result);
 	void receiveGrams();
 	void changePassword();
+	void askExportPassword();
+	void showExported(const std::vector<QString> &words);
 	void logout();
 
 	const not_null<Ton::Wallet*> _wallet;

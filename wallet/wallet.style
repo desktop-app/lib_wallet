@@ -205,6 +205,10 @@ walletBottomButton: RoundButton(defaultActiveButton) {
 	width: 304px;
 }
 
+walletWideBottomButton: RoundButton(defaultActiveButton) {
+	width: 348px;
+}
+
 walletLabel: FlatLabel(defaultFlatLabel) {
 	minWidth: 274px;
 	align: align(topleft);

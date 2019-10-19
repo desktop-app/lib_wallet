@@ -15,6 +15,7 @@ namespace ph {
 
 extern phrase lng_wallet_cancel;
 extern phrase lng_wallet_continue;
+extern phrase lng_wallet_done;
 
 extern phrase lng_wallet_intro_title;
 extern phrase lng_wallet_intro_description;
@@ -120,7 +121,7 @@ extern Fn<phrase(QTime)> lng_wallet_short_time;
 
 namespace Wallet {
 
-inline constexpr auto kPhrasesCount = 79;
+inline constexpr auto kPhrasesCount = 80;
 
 void SetPhrases(
 	ph::details::phrase_value_array<kPhrasesCount> data,

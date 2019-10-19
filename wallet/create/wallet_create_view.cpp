@@ -45,18 +45,19 @@ int Word::top() const {
 
 } // namespace
 
-View::View(const std::vector<QString> &words) : Step(Type::Scroll) {
+View::View(const std::vector<QString> &words, Layout layout)
+: Step(Type::Scroll) {
 	setTitle(ph::lng_wallet_words_title(Ui::Text::RichLangValue));
 	setDescription(
 		ph::lng_wallet_words_description(Ui::Text::RichLangValue));
-	initControls(words);
+	initControls(words, layout);
 }
 
 int View::desiredHeight() const {
 	return _desiredHeight;
 }
 
-void View::initControls(const std::vector<QString> &words) {
+void View::initControls(const std::vector<QString> &words, Layout layout) {
 	Expects(words.size() % 2 == 0);
 
 	showLottie(
@@ -74,8 +75,6 @@ void View::initControls(const std::vector<QString> &words) {
 	}
 	const auto rowsBottom = st::walletWordsTop + rows * st::walletWordHeight;
 
-	showNextButton(ph::lng_wallet_continue());
-
 	inner()->sizeValue(
 	) | rpl::start_with_next([=](QSize size) {
 		const auto half = size.width() / 2;
@@ -89,9 +88,14 @@ void View::initControls(const std::vector<QString> &words) {
 		}
 	}, inner()->lifetime());
 
-	_desiredHeight = rowsBottom
-		+ st::walletWordsNextSkip
-		+ st::walletWordsNextBottomSkip;
+	if (layout != Layout::Export) {
+		showNextButton(ph::lng_wallet_continue());
+		_desiredHeight = rowsBottom
+			+ st::walletWordsNextSkip
+			+ st::walletWordsNextBottomSkip;
+	} else {
+		_desiredHeight = rowsBottom + st::walletWordsNextSkip;
+	}
 }
 
 void View::showFinishedHook() {
