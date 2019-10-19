@@ -7,6 +7,7 @@
 #pragma once
 
 #include "ton/ton_state.h"
+#include "base/weak_ptr.h"
 
 #include <QtCore/QPointer>
 
@@ -34,7 +35,7 @@ class Info;
 struct PreparedInvoice;
 enum class InvoiceField;
 
-class Window final {
+class Window final : public base::has_weak_ptr {
 public:
 	explicit Window(not_null<Ton::Wallet*> wallet);
 	~Window();
@@ -51,6 +52,7 @@ private:
 		rpl::producer<QString> title,
 		rpl::producer<QString> text,
 		rpl::producer<QString> button);
+	void showToast(const QString &text);
 
 	void showCreate();
 	void createImportKey(const std::vector<QString> &words);

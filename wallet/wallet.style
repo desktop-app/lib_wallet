@@ -277,7 +277,7 @@ walletPasscodeLottieSize: 100px;
 walletPasscodeLottieTop: 8px;
 walletPasscodeInput: InputField(walletInput) {
 	textBg: boxBg;
-	width: 186px;
+	width: 206px;
 	heightMin: 34px;
 	font: font(15px);
 	placeholderFont: font(15px);
@@ -289,6 +289,12 @@ walletPasscodeError: FlatLabel(walletLabel) {
 	align: align(top);
 }
 walletPasscodeErrorTop: 172px;
+
+walletChangePasscodeHeight: 280px;
+walletChangePasscodeOldTop: 120px;
+walletChangePasscodeErrorTop: 160px;
+walletChangePasscodeNowTop: 196px;
+walletChangePasscodeRepeatTop: 236px;
 
 walletSendingLottieSize: 100px;
 walletSendingLottieTop: 64px;

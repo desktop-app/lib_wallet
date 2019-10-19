@@ -159,6 +159,9 @@ void TopBar::showMenu(not_null<Ui::IconButton*> toggle) {
 		}
 	}));
 
+	menu->addAction(ph::lng_wallet_menu_change_passcode(ph::now), [=] {
+		_actionRequests.fire(Action::ChangePassword);
+	});
 	menu->addAction(ph::lng_wallet_menu_export(ph::now), [=] {
 		_actionRequests.fire(Action::Export);
 	});

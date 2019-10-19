@@ -13,6 +13,7 @@
 #include "wallet/wallet_receive_grams.h"
 #include "wallet/wallet_send_grams.h"
 #include "wallet/wallet_enter_passcode.h"
+#include "wallet/wallet_change_passcode.h"
 #include "wallet/wallet_confirm_transaction.h"
 #include "wallet/wallet_sending_transaction.h"
 #include "wallet/wallet_delete.h"
@@ -142,26 +143,27 @@ void Window::createImportKey(const std::vector<QString> &words) {
 	if (std::exchange(_importing, true)) {
 		return;
 	}
-	_wallet->importKey(words, [=](Ton::Result<> result) {
+	_wallet->importKey(words, crl::guard(this, [=](Ton::Result<> result) {
 		_importing = false;
 		if (result) {
 			_createManager->showPasscode();
 		} else {
 			createShowIncorrectImport();
 		}
-	});
+	}));
 }
 
 void Window::createKey(std::shared_ptr<bool> guard) {
 	if (std::exchange(*guard, true)) {
 		return;
 	}
-	_wallet->createKey([=](Ton::Result<std::vector<QString>> result) {
+	const auto done = [=](Ton::Result<std::vector<QString>> result) {
 		Expects(result.has_value());
 
 		*guard = false;
 		_createManager->showCreated(std::move(*result));
-	});
+	};
+	_wallet->createKey(crl::guard(this, done));
 }
 
 void Window::createShowIncorrectWords() {
@@ -221,14 +223,15 @@ void Window::createSavePasscode(
 	if (std::exchange(*guard, true)) {
 		return;
 	}
-	_wallet->saveKey(passcode, [=](Ton::Result<QByteArray> result) {
+	const auto done = [=](Ton::Result<QByteArray> result) {
 		*guard = false;
 		if (!result) {
 			// #TODO fatal?..
 			return;
 		}
 		_createManager->showReady(*result);
-	});
+	};
+	_wallet->saveKey(passcode, crl::guard(this, done));
 }
 
 void Window::showAccount(const QByteArray &publicKey) {
@@ -340,7 +343,7 @@ void Window::confirmTransaction(
 	_wallet->checkSendGrams(
 		_wallet->publicKeys().front(),
 		TransactionFromInvoice(invoice),
-		done);
+		crl::guard(this, done));
 }
 
 void Window::askSendPassword(
@@ -386,8 +389,8 @@ void Window::askSendPassword(
 			_wallet->publicKeys().front(),
 			passcode,
 			TransactionFromInvoice(invoice),
-			ready,
-			sent);
+			crl::guard(this, ready),
+			crl::guard(this, sent));
 	};
 	if (_sendConfirmBox) {
 		_sendConfirmBox->closeBox();
@@ -470,75 +473,46 @@ void Window::showSendingDone(std::optional<Ton::Transaction> result) {
 void Window::receiveGrams() {
 	const auto share = [=](const QString &address) {
 		QGuiApplication::clipboard()->setText(TransferLink(address));
-		auto toast = Ui::Toast::Config();
-		toast.text = ph::lng_wallet_receive_copied(ph::now);
-		Ui::Toast::Show(_window.get(), toast);
+		showToast(ph::lng_wallet_receive_copied(ph::now));
 	};
 	_layers->showBox(Box(ReceiveGramsBox, _address, share));
 }
 
+void Window::showToast(const QString &text) {
+	auto toast = Ui::Toast::Config();
+	toast.text = text;
+	Ui::Toast::Show(_window.get(), toast);
+}
+
 void Window::changePassword() {
-	_layers->showBox(Box([=](not_null<Ui::GenericBox*> box) {
-		box->setTitle(rpl::single(QString("Change password")));
-		const auto oldWrap = box->addRow(object_ptr<Ui::RpWidget>(box));
-		const auto old = Ui::CreateChild<Ui::PasswordInput>(
-			oldWrap,
-			st::defaultInputField,
-			rpl::single(QString("Old password")));
-		oldWrap->widthValue(
-		) | rpl::start_with_next([=](int width) {
-			old->resize(width, old->height());
-		}, old->lifetime());
-		old->heightValue(
-		) | rpl::start_with_next([=](int height) {
-			oldWrap->resize(oldWrap->width(), height);
-		}, old->lifetime());
-		old->move(0, 0);
-		const auto passwordWrap = box->addRow(object_ptr<Ui::RpWidget>(box));
-		const auto password = Ui::CreateChild<Ui::PasswordInput>(
-			passwordWrap,
-			st::defaultInputField,
-			rpl::single(QString("New password")));
-		passwordWrap->widthValue(
-		) | rpl::start_with_next([=](int width) {
-			password->resize(width, password->height());
-		}, password->lifetime());
-		password->heightValue(
-		) | rpl::start_with_next([=](int height) {
-			passwordWrap->resize(passwordWrap->width(), height);
-		}, password->lifetime());
-		password->move(0, 0);
-		const auto saving = box->lifetime().make_state<bool>(false);
-		box->addButton(rpl::single(QString("Change")), [=] {
-			if (*saving) {
-				return;
-			}
-			auto from = old->getLastText().trimmed();
-			if (from.isEmpty()) {
-				old->showError();
-				return;
-			}
-			auto pwd = password->getLastText().trimmed();
-			if (pwd.isEmpty()) {
-				password->showError();
-				return;
-			}
-			*saving = true;
-			auto done = [=](Ton::Result<> result) {
+	const auto saving = std::make_shared<bool>();
+	const auto weakBox = std::make_shared<QPointer<Ui::GenericBox>>();
+	auto box = Box(ChangePasscodeBox, [=](
+			const QByteArray &old,
+			const QByteArray &now,
+			Fn<void(QString)> showError) {
+		if (std::exchange(*saving, true)) {
+			return;
+		}
+		const auto done = [=](Ton::Result<> result) {
+			if (!result) {
 				*saving = false;
-				if (result) {
-					box->closeBox();
+				if (IsIncorrectPasswordError(result.error())) {
+					showError(ph::lng_wallet_passcode_incorrect(ph::now));
 				} else {
-					old->showError();
-					return;
+					// #TODO fatal?..
 				}
-			};
-			_wallet->changePassword(from.toUtf8(), pwd.toUtf8(), done);
-		});
-		box->addButton(rpl::single(QString("Cancel")), [=] {
-			box->closeBox();
-		});
-	}));
+				return;
+			}
+			if (*weakBox) {
+				(*weakBox)->closeBox();
+			}
+			showToast(ph::lng_wallet_change_passcode_done(ph::now));
+		};
+		_wallet->changePassword(old, now, crl::guard(this, done));
+	});
+	*weakBox = box.data();
+	_layers->showBox(std::move(box));
 }
 
 void Window::askExportPassword() {
@@ -551,7 +525,7 @@ void Window::askExportPassword() {
 			return;
 		}
 		*exporting = true;
-		auto ready = [=](Ton::Result<std::vector<QString>> result) {
+		const auto ready = [=](Ton::Result<std::vector<QString>> result) {
 			if (!result) {
 				*exporting = false;
 				if (IsIncorrectPasswordError(result.error())) {
@@ -569,7 +543,7 @@ void Window::askExportPassword() {
 		_wallet->exportKey(
 			_wallet->publicKeys().front(),
 			passcode,
-			ready);
+			crl::guard(this, ready));
 	};
 	auto box = Box(EnterPasscodeBox, [=](
 			const QByteArray &passcode,
@@ -586,11 +560,11 @@ void Window::showExported(const std::vector<QString> &words) {
 
 void Window::logout() {
 	_layers->showBox(Box(DeleteWalletBox, [=] {
-		_wallet->deleteAllKeys([=](Ton::Result<> result) {
+		_wallet->deleteAllKeys(crl::guard(this, [=](Ton::Result<> result) {
 			if (result) {
 				showCreate();
 			}
-		});
+		}));
 	}));
 }
 

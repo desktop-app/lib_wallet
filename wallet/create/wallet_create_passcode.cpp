@@ -70,6 +70,7 @@ void Passcode::initControls() {
 		return enter->getLastText().toUtf8();
 	};
 	_setFocus = [=] {
+		base::Platform::SwitchKeyboardLayoutToEnglish();
 		enter->setFocusFast();
 	};
 }

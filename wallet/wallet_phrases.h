@@ -16,6 +16,7 @@ namespace ph {
 extern phrase lng_wallet_cancel;
 extern phrase lng_wallet_continue;
 extern phrase lng_wallet_done;
+extern phrase lng_wallet_save;
 
 extern phrase lng_wallet_intro_title;
 extern phrase lng_wallet_intro_description;
@@ -57,6 +58,12 @@ extern phrase lng_wallet_set_passcode_description;
 extern phrase lng_wallet_set_passcode_enter;
 extern phrase lng_wallet_set_passcode_repeat;
 
+extern phrase lng_wallet_change_passcode_title;
+extern phrase lng_wallet_change_passcode_old;
+extern phrase lng_wallet_change_passcode_new;
+extern phrase lng_wallet_change_passcode_repeat;
+extern phrase lng_wallet_change_passcode_done;
+
 extern phrase lng_wallet_ready_title;
 extern phrase lng_wallet_ready_description;
 extern phrase lng_wallet_ready_show_account;
@@ -92,6 +99,7 @@ extern phrase lng_wallet_receive_description;
 extern phrase lng_wallet_receive_share;
 extern phrase lng_wallet_receive_copied;
 
+extern phrase lng_wallet_menu_change_passcode;
 extern phrase lng_wallet_menu_export;
 extern phrase lng_wallet_menu_delete;
 
@@ -134,7 +142,7 @@ extern Fn<phrase(QTime)> lng_wallet_short_time;
 
 namespace Wallet {
 
-inline constexpr auto kPhrasesCount = 91;
+inline constexpr auto kPhrasesCount = 98;
 
 void SetPhrases(
 	ph::details::phrase_value_array<kPhrasesCount> data,

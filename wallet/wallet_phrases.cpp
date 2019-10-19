@@ -16,6 +16,7 @@ const auto walletCountStart = start_phrase_count();
 phrase lng_wallet_cancel = "Cancel";
 phrase lng_wallet_continue = "Continue";
 phrase lng_wallet_done = "Done";
+phrase lng_wallet_save = "Save";
 
 phrase lng_wallet_intro_title = "Gram Wallet";
 phrase lng_wallet_intro_description = "Gram wallet allows you to make fast and\nsecure blockchain-based payments\nwithout intermediaries.";
@@ -57,6 +58,12 @@ phrase lng_wallet_set_passcode_description = "Please choose a secure passcode\nf
 phrase lng_wallet_set_passcode_enter = "Enter your passcode";
 phrase lng_wallet_set_passcode_repeat = "Repeat your passcode";
 
+phrase lng_wallet_change_passcode_title = "Change Passcode";
+phrase lng_wallet_change_passcode_old = "Enter your old passcode";
+phrase lng_wallet_change_passcode_new = "Enter a new passcode";
+phrase lng_wallet_change_passcode_repeat = "Repeat the new passcode";
+phrase lng_wallet_change_passcode_done = "Passcode changed successfully.";
+
 phrase lng_wallet_ready_title = "Ready to go!";
 phrase lng_wallet_ready_description = "You're all set. Now you have a wallet that\nonly you control \xe2\x80\x93 directly, without\nmiddlemen or bankers.";
 phrase lng_wallet_ready_show_account = "View My Wallet";
@@ -92,6 +99,7 @@ phrase lng_wallet_receive_description = "Share this address with other Gram wall
 phrase lng_wallet_receive_share = "Share Wallet Address";
 phrase lng_wallet_receive_copied = "Transfer link copied to clipboard.";
 
+phrase lng_wallet_menu_change_passcode = "Change passcode";
 phrase lng_wallet_menu_export = "Export wallet";
 phrase lng_wallet_menu_delete = "Delete wallet";
 

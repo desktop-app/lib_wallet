@@ -78,6 +78,8 @@
       '<(src_loc)/wallet/create/wallet_create_step.h',
       '<(src_loc)/wallet/create/wallet_create_view.cpp',
       '<(src_loc)/wallet/create/wallet_create_view.h',
+      '<(src_loc)/wallet/wallet_change_passcode.cpp',
+      '<(src_loc)/wallet/wallet_change_passcode.h',
       '<(src_loc)/wallet/wallet_common.cpp',
       '<(src_loc)/wallet/wallet_common.h',
       '<(src_loc)/wallet/wallet_confirm_transaction.cpp',
