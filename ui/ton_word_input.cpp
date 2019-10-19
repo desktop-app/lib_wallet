@@ -22,10 +22,11 @@ const QString TonWordInput::kSkipPassword = "speakfriendandenter";
 
 TonWordInput::TonWordInput(
 	not_null<QWidget*> parent,
+	const style::InputField &st,
 	int index,
 	Fn<std::vector<QString>(QString)> wordsByPrefix)
 : _index(parent, QString::number(index + 1) + '.', st::walletWordIndexLabel)
-, _word(parent, st::walletCheckInputField, rpl::single(QString()), QString())
+, _word(parent, st, rpl::single(QString()), QString())
 , _wordsByPrefix(std::move(wordsByPrefix)) {
 	_word->customUpDown(true);
 	base::install_event_filter(_word.data(), [=](not_null<QEvent*> e) {

@@ -22,6 +22,19 @@ extern phrase lng_wallet_intro_description;
 extern phrase lng_wallet_intro_create;
 extern phrase lng_wallet_intro_accept_text;
 extern phrase lng_wallet_intro_accept_terms;
+extern phrase lng_wallet_intro_import;
+
+extern phrase lng_wallet_import_title;
+extern phrase lng_wallet_import_description;
+extern phrase lng_wallet_import_dont_have;
+extern phrase lng_wallet_import_incorrect_title;
+extern phrase lng_wallet_import_incorrect_text;
+extern phrase lng_wallet_import_incorrect_retry;
+
+extern phrase lng_wallet_too_bad_title;
+extern phrase lng_wallet_too_bad_description;
+extern phrase lng_wallet_too_bad_enter_words;
+extern phrase lng_wallet_too_bad_create_new;
 
 extern phrase lng_wallet_created_title;
 extern phrase lng_wallet_created_description;
@@ -121,7 +134,7 @@ extern Fn<phrase(QTime)> lng_wallet_short_time;
 
 namespace Wallet {
 
-inline constexpr auto kPhrasesCount = 80;
+inline constexpr auto kPhrasesCount = 91;
 
 void SetPhrases(
 	ph::details::phrase_value_array<kPhrasesCount> data,

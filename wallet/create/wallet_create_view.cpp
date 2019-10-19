@@ -47,7 +47,9 @@ int Word::top() const {
 
 View::View(const std::vector<QString> &words, Layout layout)
 : Step(Type::Scroll) {
-	setTitle(ph::lng_wallet_words_title(Ui::Text::RichLangValue));
+	setTitle(
+		ph::lng_wallet_words_title(Ui::Text::RichLangValue),
+		(layout == Layout::Export) ? st::walletExportTitleTop : 0);
 	setDescription(
 		ph::lng_wallet_words_description(Ui::Text::RichLangValue));
 	initControls(words, layout);
@@ -73,14 +75,17 @@ void View::initControls(const std::vector<QString> &words, Layout layout) {
 			Word(inner(), i, words[i]),
 			Word(inner(), i + rows, words[i + rows]));
 	}
-	const auto rowsBottom = st::walletWordsTop + rows * st::walletWordHeight;
+	const auto wordsTop = (layout == Layout::Export)
+		? st::walletExportWordsTop
+		: st::walletWordsTop;
+	const auto rowsBottom = wordsTop + rows * st::walletWordHeight;
 
 	inner()->sizeValue(
 	) | rpl::start_with_next([=](QSize size) {
 		const auto half = size.width() / 2;
 		const auto left = half - st::walletWordSkipLeft;
 		const auto right = half + st::walletWordSkipRight;
-		auto top = contentTop() + st::walletWordsTop;
+		auto top = contentTop() + wordsTop;
 		for (const auto &pair : *labels) {
 			pair.first.move(left, top);
 			pair.second.move(right, top);
@@ -94,7 +99,7 @@ void View::initControls(const std::vector<QString> &words, Layout layout) {
 			+ st::walletWordsNextSkip
 			+ st::walletWordsNextBottomSkip;
 	} else {
-		_desiredHeight = rowsBottom + st::walletWordsNextSkip;
+		_desiredHeight = rowsBottom + st::walletExportBottomSkip;
 	}
 }
 

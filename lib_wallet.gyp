@@ -64,6 +64,8 @@
       '<(src_loc)/wallet/create/wallet_create_check.h',
       '<(src_loc)/wallet/create/wallet_create_created.cpp',
       '<(src_loc)/wallet/create/wallet_create_created.h',
+      '<(src_loc)/wallet/create/wallet_create_import.cpp',
+      '<(src_loc)/wallet/create/wallet_create_import.h',
       '<(src_loc)/wallet/create/wallet_create_intro.cpp',
       '<(src_loc)/wallet/create/wallet_create_intro.h',
       '<(src_loc)/wallet/create/wallet_create_manager.cpp',

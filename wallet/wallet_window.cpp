@@ -102,6 +102,12 @@ void Window::showCreate() {
 	_createManager->actionRequests(
 	) | rpl::start_with_next([=](Create::Manager::Action action) {
 		switch (action) {
+		case Create::Manager::Action::NewKey: {
+			if (!_importing) {
+				_createManager->showIntro();
+			}
+		}
+
 		case Create::Manager::Action::CreateKey: {
 			createKey(creating);
 		} break;
@@ -120,11 +126,30 @@ void Window::showCreate() {
 		}
 	}, _createManager->lifetime());
 
+	_createManager->importRequests(
+	) | rpl::start_with_next([=](const std::vector<QString> &words) {
+		createImportKey(words);
+	}, _createManager->lifetime());
+
 	const auto saving = std::make_shared<bool>();
 	_createManager->passcodeChosen(
 	) | rpl::start_with_next([=](const QByteArray &passcode) {
 		createSavePasscode(passcode, saving);
 	}, _createManager->lifetime());
+}
+
+void Window::createImportKey(const std::vector<QString> &words) {
+	if (std::exchange(_importing, true)) {
+		return;
+	}
+	_wallet->importKey(words, [=](Ton::Result<> result) {
+		_importing = false;
+		if (result) {
+			_createManager->showPasscode();
+		} else {
+			createShowIncorrectImport();
+		}
+	});
 }
 
 void Window::createKey(std::shared_ptr<bool> guard) {
@@ -158,15 +183,34 @@ void Window::createShowIncorrectWords() {
 }
 
 void Window::createShowTooFastWords() {
-	_layers->showBox(Box([=](not_null<Ui::GenericBox*> box) {
-		box->setTitle(ph::lng_wallet_words_sure_title());
+	showSimpleError(
+		ph::lng_wallet_words_sure_title(),
+		ph::lng_wallet_words_sure_text(),
+		ph::lng_wallet_words_sure_ok());
+}
+
+void Window::createShowIncorrectImport() {
+	showSimpleError(
+		ph::lng_wallet_import_incorrect_title(),
+		ph::lng_wallet_import_incorrect_text(),
+		ph::lng_wallet_import_incorrect_retry());
+}
+
+void Window::showSimpleError(
+		rpl::producer<QString> title,
+		rpl::producer<QString> text,
+		rpl::producer<QString> button) {
+	_layers->showBox(Box([&](not_null<Ui::GenericBox*> box) mutable {
+		box->setTitle(std::move(title));
 		box->addRow(object_ptr<Ui::FlatLabel>(
 			box,
-			ph::lng_wallet_words_sure_text(),
+			std::move(text),
 			st::walletLabel));
-		box->addButton(ph::lng_wallet_words_sure_ok(), [=] {
+		box->addButton(std::move(button), [=] {
 			box->closeBox();
-			_createManager->setFocus();
+			if (_createManager) {
+				_createManager->setFocus();
+			}
 		});
 	}));
 }

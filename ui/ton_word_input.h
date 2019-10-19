@@ -8,6 +8,10 @@
 
 #include "base/object_ptr.h"
 
+namespace style {
+struct InputField;
+} // namespace style
+
 namespace Ui {
 
 class FlatLabel;
@@ -25,6 +29,7 @@ public:
 
 	TonWordInput(
 		not_null<QWidget*> parent,
+		const style::InputField &st,
 		int index,
 		Fn<std::vector<QString>(QString)> wordsByPrefix);
 	TonWordInput(const TonWordInput &other) = delete;

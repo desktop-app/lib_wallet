@@ -4,7 +4,7 @@
 // For license and copyright information please follow this link:
 // https://github.com/desktop-app/legal/blob/master/LEGAL
 //
-#include "wallet/create/wallet_create_check.h"
+#include "wallet/create/wallet_create_import.h"
 
 #include "wallet/wallet_phrases.h"
 #include "ui/text/text_utilities.h"
@@ -20,66 +20,47 @@ using TonWordInput = Ui::TonWordInput;
 
 } // namespace
 
-Check::Check(
-	Fn<std::vector<QString>(QString)> wordsByPrefix,
-	const std::vector<int> &indices)
-: Step(Type::Default) {
-	Expects(indices.size() == 3);
-
-	setTitle(ph::lng_wallet_check_title(Ui::Text::RichLangValue));
-	setDescription(ph::lng_wallet_check_description(
-	) | rpl::map([=](QString text) {
-		return text.replace(
-			"{index1}",
-			QString::number(indices[0] + 1)
-		).replace(
-			"{index2}",
-			QString::number(indices[1] + 1)
-		).replace(
-			"{index3}",
-			QString::number(indices[2] + 1));
-	}) | Ui::Text::ToRichLangValue());
-	initControls(std::move(wordsByPrefix), indices);
+Import::Import(Fn<std::vector<QString>(QString)> wordsByPrefix)
+: Step(Type::Scroll) {
+	setTitle(
+		ph::lng_wallet_import_title(Ui::Text::RichLangValue),
+		st::walletImportTitleTop);
+	setDescription(
+		ph::lng_wallet_import_description(Ui::Text::RichLangValue));
+	initControls(std::move(wordsByPrefix));
 }
 
-std::vector<QString> Check::words() const {
+std::vector<QString> Import::words() const {
 	return _words();
 }
 
-rpl::producer<> Check::submitRequests() const {
+rpl::producer<> Import::submitRequests() const {
 	return _submitRequests.events();
 }
 
-void Check::setFocus() {
+void Import::setFocus() {
 	_setFocus();
 }
 
-bool Check::checkAll() {
+bool Import::checkAll() {
 	return _checkAll();
 }
 
-bool Check::allowEscapeBack() const {
+bool Import::allowEscapeBack() const {
 	return false;
 }
 
-int Check::desiredHeight() const {
-	return st::walletChecksHeight;
+int Import::desiredHeight() const {
+	return _desiredHeight;
 }
 
-void Check::initControls(
-		Fn<std::vector<QString>(QString)> wordsByPrefix,
-		const std::vector<int> &indices) {
-	showLottie(
-		"test",
-		st::walletStepIntroLottieTop,
-		st::walletStepIntroLottieSize);
-	stopLottieOnLoop();
-
-	const auto count = indices.size();
+void Import::initControls(Fn<std::vector<QString>(QString)> wordsByPrefix) {
+	constexpr auto rows = 12;
+	constexpr auto count = rows * 2;
 	auto inputs = std::make_shared<std::vector<
 		std::unique_ptr<TonWordInput>>>();
-	const auto wordsTop = st::walletChecksTop;
-	const auto rowsBottom = wordsTop + count * st::walletWordHeight;
+	const auto wordsTop = st::walletImportWordsTop;
+	const auto rowsBottom = wordsTop + rows * st::walletWordHeight;
 	const auto isValid = [=](int index) {
 		Expects(index < count);
 
@@ -107,6 +88,14 @@ void Check::initControls(
 				? (*inputs)[index - 1].get()
 				: nullptr;
 		};
+
+		word.focused(
+		) | rpl::start_with_next([=] {
+			const auto row = index % rows;
+			ensureVisible(
+				wordsTop + (row - 1) * st::walletWordHeight,
+				2 * st::walletWordHeight + st::walletSuggestionsHeightMax);
+		}, lifetime());
 
 		word.blurred(
 		) | rpl::filter([=] {
@@ -145,8 +134,8 @@ void Check::initControls(
 	for (auto i = 0; i != count; ++i) {
 		inputs->push_back(std::make_unique<TonWordInput>(
 			inner(),
-			st::walletCheckInputField,
-			indices[i],
+			st::walletImportInputField,
+			i,
 			wordsByPrefix));
 		init(*inputs->back(), i);
 	}
@@ -162,6 +151,10 @@ void Check::initControls(
 		for (const auto &input : *inputs) {
 			input->move(x, y);
 			y += st::walletWordHeight;
+			if (++index == rows) {
+				x = right;
+				y = contentTop() + wordsTop;
+			}
 		}
 	}, inner()->lifetime());
 
@@ -176,19 +169,16 @@ void Check::initControls(
 		inputs->front()->setFocus();
 	};
 	_checkAll = [=] {
-		if ((*inputs)[0]->word() == TonWordInput::kSkipPassword) {
-			return true;
-		}
 		auto result = true;
 		for (auto i = count; i != 0;) {
 			result = !showError(--i) && result;
 		}
 		return result;
 	};
-}
 
-void Check::showFinishedHook() {
-	startLottie();
+	_desiredHeight = rowsBottom
+		+ st::walletWordsNextSkip
+		+ st::walletWordsNextBottomSkip;
 }
 
 } // namespace Wallet::Create

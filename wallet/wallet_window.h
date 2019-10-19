@@ -47,11 +47,17 @@ public:
 private:
 	void init();
 	void updatePalette();
+	void showSimpleError(
+		rpl::producer<QString> title,
+		rpl::producer<QString> text,
+		rpl::producer<QString> button);
 
 	void showCreate();
+	void createImportKey(const std::vector<QString> &words);
 	void createKey(std::shared_ptr<bool> guard);
 	void createShowIncorrectWords();
 	void createShowTooFastWords();
+	void createShowIncorrectImport();
 	void createSavePasscode(
 		const QByteArray &passcode,
 		std::shared_ptr<bool> guard);
@@ -84,6 +90,7 @@ private:
 	const std::unique_ptr<Ui::LayerManager> _layers;
 
 	std::unique_ptr<Create::Manager> _createManager;
+	bool _importing = false;
 
 	QString _address;
 	std::unique_ptr<Ton::AccountViewer> _viewer;

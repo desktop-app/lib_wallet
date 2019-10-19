@@ -34,13 +34,16 @@ public:
 	void setGeometry(QRect geometry);
 
 	enum class Action {
+		NewKey,
 		CreateKey,
+		ImportKey,
 		ShowAccount,
 		ShowCheckTooSoon,
 		ShowCheckIncorrect,
 	};
 
 	[[nodiscard]] rpl::producer<Action> actionRequests() const;
+	[[nodiscard]] rpl::producer<std::vector<QString>> importRequests() const;
 	[[nodiscard]] rpl::producer<QByteArray> passcodeChosen() const;
 	[[nodiscard]] QByteArray publicKey() const;
 
@@ -50,6 +53,7 @@ public:
 	void setFocus();
 
 	void showIntro();
+	void showImport();
 	void showCreated(std::vector<QString> &&words);
 	void showWords(Direction direction);
 	void showCheck();
@@ -84,6 +88,7 @@ private:
 	FnMut<void()> _back;
 
 	rpl::event_stream<Action> _actionRequests;
+	rpl::event_stream<std::vector<QString>> _importRequests;
 	rpl::event_stream<QByteArray> _passcodeChosen;
 
 };

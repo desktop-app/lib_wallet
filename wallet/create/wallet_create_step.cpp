@@ -6,6 +6,7 @@
 //
 #include "wallet/create/wallet_create_step.h"
 
+#include "wallet/wallet_phrases.h"
 #include "ui/rp_widget.h"
 #include "ui/widgets/scroll_area.h"
 #include "ui/widgets/labels.h"
@@ -15,6 +16,7 @@
 #include "ui/text/text_utilities.h"
 #include "ui/lottie_widget.h"
 #include "styles/style_wallet.h"
+#include "styles/style_layers.h"
 #include "styles/palette.h"
 
 namespace Wallet::Create {
@@ -141,6 +143,13 @@ rpl::producer<Qt::KeyboardModifiers> Step::nextClicks() const {
 		) | rpl::map([=] { return _nextButton->clickModifiers(); });
 }
 
+rpl::producer<> Step::importClicks() const {
+	return !_importButton
+		? rpl::producer<>()
+		: _importButton->clicks(
+		) | rpl::map([=] { return rpl::empty_value(); });
+}
+
 int Step::desiredHeight() const {
 	return st::walletStepHeight;
 }
@@ -257,6 +266,22 @@ void Step::showAnimated(not_null<Step*> previous, Direction direction) {
 
 void Step::showFast() {
 	showFinished();
+}
+
+void Step::showImportButton() {
+	_importButton.emplace(
+		inner(),
+		ph::lng_wallet_intro_import(),
+		st::defaultBoxButton);
+	rpl::combine(
+		inner()->widthValue(),
+		_importButton->widthValue()
+	) | rpl::start_with_next([=](int width, int importWidth) {
+		_importButton->moveToRight(
+			st::walletImportButtonPosition.x(),
+			st::walletImportButtonPosition.y(),
+			width);
+	}, _importButton->lifetime());
 }
 
 void Step::showNextButton(rpl::producer<QString> text) {

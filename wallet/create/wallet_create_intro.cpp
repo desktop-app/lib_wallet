@@ -53,6 +53,7 @@ void Intro::initControls() {
 			std::move(termsText),
 			st::walletStepIntroTerms),
 		QMargins{ 0, st::walletStepIntroTermsSkip, 0, 0 }));
+	showImportButton();
 }
 
 void Intro::showFinishedHook() {

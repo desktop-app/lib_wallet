@@ -67,6 +67,8 @@ walletStepScrollDescriptionTop: 36px;
 walletStepIntroLottieTop: 20px;
 walletStepIntroLottieSize: 100px;
 
+walletImportButtonPosition: point(12px, 12px);
+
 walletWordsTop: 332px;
 walletWordIndexLabel: FlatLabel(defaultFlatLabel) {
 	textFg: introDescriptionFg;
@@ -85,6 +87,10 @@ walletWordHeight: 32px;
 walletWordsNextSkip: 28px;
 walletWordsNextBottomSkip: 80px;
 
+walletExportTitleTop: 140px;
+walletExportWordsTop: 308px;
+walletExportBottomSkip: 16px;
+
 walletChecksHeight: 516px;
 walletChecksTop: 272px;
 walletCheckInputField: InputField(defaultInputField) {
@@ -93,6 +99,12 @@ walletCheckInputField: InputField(defaultInputField) {
 	heightMin: 32px;
 }
 walletCheckInputSkip: 8px;
+
+walletImportTitleTop: 64px;
+walletImportWordsTop: 172px;
+walletImportInputField: InputField(walletCheckInputField) {
+	width: 92px;
+}
 
 walletSetPasscodeEnterTop: 242px;
 walletSetPasscodeRepeatTop: 282px;

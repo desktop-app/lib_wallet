@@ -7,6 +7,7 @@
 #include "wallet/create/wallet_create_manager.h"
 
 #include "wallet/create/wallet_create_intro.h"
+#include "wallet/create/wallet_creatE_import.h"
 #include "wallet/create/wallet_create_created.h"
 #include "wallet/create/wallet_create_view.h"
 #include "wallet/create/wallet_create_check.h"
@@ -240,11 +241,37 @@ void Manager::showStep(
 		this->next();
 	}, _step->lifetime());
 
+	_step->importClicks(
+	) | rpl::start_with_next([=] {
+		showImport();
+	}, _step->lifetime());
+
 	if (step) {
 		_step->showAnimated(step.get(), direction);
 	} else {
 		_step->showFast();
 	}
+}
+
+void Manager::showImport() {
+	auto step = std::make_unique<Import>([=](const QString &prefix) {
+		return wordsByPrefix(prefix);
+	});
+
+	const auto raw = step.get();
+
+	raw->submitRequests(
+	) | rpl::start_with_next([=] {
+		next();
+	}, raw->lifetime());
+
+	showStep(std::move(step), Direction::Forward, [=] {
+		if (raw->checkAll()) {
+			_importRequests.fire(raw->words());
+		}
+	}, [=] {
+		showIntro();
+	});
 }
 
 void Manager::acceptWordsDelayByModifiers(Qt::KeyboardModifiers modifiers) {
@@ -263,6 +290,10 @@ void Manager::setGeometry(QRect geometry) {
 
 rpl::producer<Manager::Action> Manager::actionRequests() const {
 	return _actionRequests.events();
+}
+
+rpl::producer<std::vector<QString>> Manager::importRequests() const {
+	return _importRequests.events();
 }
 
 rpl::producer<QByteArray> Manager::passcodeChosen() const {
@@ -289,7 +320,7 @@ std::vector<QString> Manager::wordsByPrefix(const QString &word) const {
 	auto prefix = QString();
 	auto count = 0;
 	auto maxCount = 0;
-	for (auto word : _validWords) {
+	for (const auto &word : _validWords) {
 		if (word.midRef(0, 3) != prefix) {
 			prefix = word.mid(0, 3);
 			count = 1;

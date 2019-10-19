@@ -22,6 +22,19 @@ phrase lng_wallet_intro_description = "Gram wallet allows you to make fast and\n
 phrase lng_wallet_intro_create = "Create My Wallet";
 phrase lng_wallet_intro_accept_text = "By creating the wallet you accept\n{terms_link}.";
 phrase lng_wallet_intro_accept_terms = "Terms and Conditions";
+phrase lng_wallet_intro_import = "Import existing wallet";
+
+phrase lng_wallet_import_title = "24 Secret Words";
+phrase lng_wallet_import_description = "Please restore access to your wallet by\nentering the 24 secret words you wrote\ndown when creating the wallet.";
+phrase lng_wallet_import_dont_have = "I don't have them";
+phrase lng_wallet_import_incorrect_title = "Incorrect words";
+phrase lng_wallet_import_incorrect_text = "Sorry, you have entered incorrect secret words. Please double check and try again.";
+phrase lng_wallet_import_incorrect_retry = "Try again";
+
+phrase lng_wallet_too_bad_title = "Too Bad";
+phrase lng_wallet_too_bad_description = "Without the secret words, you can't\nrestore access to your wallet.";
+phrase lng_wallet_too_bad_enter_words = "Enter 24 words";
+phrase lng_wallet_too_bad_create_new = "Create a New Wallet";
 
 phrase lng_wallet_created_title = "Congratulations";
 phrase lng_wallet_created_description = "Your Gram wallet has just been created.\nOnly you control it.\n\nTo be able to always have access to it,\nplease set up a secure passcode and write\ndown secret words.";
