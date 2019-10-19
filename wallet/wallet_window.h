@@ -18,6 +18,7 @@ struct TransactionCheckResult;
 struct PendingTransaction;
 struct Transaction;
 struct WalletState;
+struct Error;
 } // namespace Ton
 
 namespace Ui {
@@ -52,6 +53,10 @@ private:
 		rpl::producer<QString> title,
 		rpl::producer<QString> text,
 		rpl::producer<QString> button);
+	void showGenericError(
+		const Ton::Error &error,
+		const QString &additional = QString());
+	void showSendingError(const Ton::Error &error);
 	void showToast(const QString &text);
 
 	void showCreate();
@@ -100,6 +105,7 @@ private:
 	std::unique_ptr<Info> _info;
 	QPointer<Ui::GenericBox> _sendBox;
 	QPointer<Ui::GenericBox> _sendConfirmBox;
+	QPointer<Ui::GenericBox> _simpleErrorBox;
 
 };
 

@@ -117,6 +117,9 @@ phrase lng_wallet_send_comment = "Comment (optional)";
 phrase lng_wallet_send_button = "Send Grams";
 phrase lng_wallet_send_button_amount = "Send {amount} Grams";
 
+phrase lng_wallet_send_failed_title = "Send failed";
+phrase lng_wallet_send_failed_text = "Could not perform the transaction. Please check the balance and try again.";
+
 phrase lng_wallet_confirm_title = "Confirmation";
 phrase lng_wallet_confirm_text = "Do you want to send **{amount} Grams** to:";
 phrase lng_wallet_confirm_fee = "Fee: ~{amount} Grams";

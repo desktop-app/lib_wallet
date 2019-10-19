@@ -53,6 +53,7 @@ not_null<Ui::FlatLabel*> AddBoxSubtitle(
 	rpl::producer<QString> text);
 
 [[nodiscard]] bool IsIncorrectPasswordError(const Ton::Error &error);
+[[nodiscard]] bool IsIncorrectMnemonicError(const Ton::Error &error);
 [[nodiscard]] std::optional<InvoiceField> ErrorInvoiceField(
 	const Ton::Error &error);
 [[nodiscard]] Ton::TransactionToSend TransactionFromInvoice(

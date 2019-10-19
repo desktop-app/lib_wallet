@@ -147,8 +147,10 @@ void Window::createImportKey(const std::vector<QString> &words) {
 		_importing = false;
 		if (result) {
 			_createManager->showPasscode();
-		} else {
+		} else if (IsIncorrectMnemonicError(result.error())) {
 			createShowIncorrectImport();
+		} else {
+			showGenericError(result.error());
 		}
 	}));
 }
@@ -202,7 +204,10 @@ void Window::showSimpleError(
 		rpl::producer<QString> title,
 		rpl::producer<QString> text,
 		rpl::producer<QString> button) {
-	_layers->showBox(Box([&](not_null<Ui::GenericBox*> box) mutable {
+	if (_simpleErrorBox) {
+		_simpleErrorBox->closeBox();
+	}
+	auto box = Box([&](not_null<Ui::GenericBox*> box) mutable {
 		box->setTitle(std::move(title));
 		box->addRow(object_ptr<Ui::FlatLabel>(
 			box,
@@ -214,7 +219,37 @@ void Window::showSimpleError(
 				_createManager->setFocus();
 			}
 		});
-	}));
+	});
+	_simpleErrorBox = box.data();
+	_layers->showBox(std::move(box));
+}
+
+void Window::showGenericError(
+		const Ton::Error &error,
+		const QString &additional) {
+	const auto title = [&] {
+		switch (error.type) {
+		case Ton::Error::Type::IO: return "Disk Error";
+		case Ton::Error::Type::TonLib: return "Library Error";
+		case Ton::Error::Type::WrongPassword: return "Encryption Error";
+		}
+		Unexpected("Error type in Window::showGenericError.");
+	}();
+	showSimpleError(
+		rpl::single(QString(title)),
+		rpl::single((error.details + "\n\n" + additional).trimmed()),
+		rpl::single(QString("OK")));
+}
+
+void Window::showSendingError(const Ton::Error &error) {
+	const auto additional = ""
+		"Your transaction may or may not be processed successfully, "
+		"so please wait till it disappears from the 'Pending' block "
+		"and see if it appears in the recent transactions list.";
+	showGenericError(error, additional);
+	if (_sendBox) {
+		_sendBox->closeBox();
+	}
 }
 
 void Window::createSavePasscode(
@@ -226,7 +261,7 @@ void Window::createSavePasscode(
 	const auto done = [=](Ton::Result<QByteArray> result) {
 		*guard = false;
 		if (!result) {
-			// #TODO fatal?..
+			showGenericError(result.error());
 			return;
 		}
 		_createManager->showReady(*result);
@@ -249,8 +284,17 @@ void Window::showAccount(const QByteArray &publicKey) {
 	auto data = Info::Data();
 	data.state = _viewer->state();
 	data.loaded = _viewer->loaded();
-	_info = std::make_unique<Info>(_window->body(), data);
+	_info = std::make_unique<Info>(_window->body(), std::move(data));
 	_layers->raise();
+
+	_viewer->loaded(
+	) | rpl::filter([](const Ton::Result<Ton::LoadedSlice> &value) {
+		return !value;
+	}) | rpl::map([](Ton::Result<Ton::LoadedSlice> &&value) {
+		return std::move(value.error());
+	}) | rpl::start_with_next([=](const Ton::Error &error) {
+		showGenericError(error);
+	}, _info->lifetime());
 
 	_window->body()->sizeValue(
 	) | rpl::start_with_next([=](QSize size) {
@@ -331,7 +375,7 @@ void Window::confirmTransaction(
 			if (const auto field = ErrorInvoiceField(result.error())) {
 				showInvoiceError(*field);
 			} else {
-				// #TODO fatal?..
+				showGenericError(result.error());
 			}
 			return;
 		}
@@ -372,7 +416,7 @@ void Window::askSendPassword(
 				if (const auto field = ErrorInvoiceField(result.error())) {
 					showInvoiceError(*field);
 				} else {
-					// #TODO fatal?..
+					showGenericError(result.error());
 				}
 				return;
 			}
@@ -380,9 +424,10 @@ void Window::askSendPassword(
 		};
 		const auto sent = [=](Ton::Result<> result) {
 			if (!result) {
-				// #TODO fatal?..
+				showSendingError(result.error());
 				return;
 			}
+			showSendingError(Ton::Error{ Ton::Error::Type::IO, "C:\\Users\\preston\\AppData\\Roaming\\TonDesktopWallet\\data\\db\\binlog" });
 			confirmations->fire({});
 		};
 		_wallet->sendGrams(
@@ -462,7 +507,10 @@ void Window::showSendingDone(std::optional<Ton::Transaction> result) {
 	if (result) {
 		_layers->showBox(Box(SendingDoneBox, *result));
 	} else {
-		// #TODO fatal?..
+		showSimpleError(
+			ph::lng_wallet_send_failed_title(),
+			ph::lng_wallet_send_failed_text(),
+			ph::lng_wallet_continue());
 	}
 
 	if (_sendBox) {
@@ -500,7 +548,7 @@ void Window::changePassword() {
 				if (IsIncorrectPasswordError(result.error())) {
 					showError(ph::lng_wallet_passcode_incorrect(ph::now));
 				} else {
-					// #TODO fatal?..
+					showGenericError(result.error());
 				}
 				return;
 			}
@@ -526,12 +574,12 @@ void Window::askExportPassword() {
 		}
 		*exporting = true;
 		const auto ready = [=](Ton::Result<std::vector<QString>> result) {
+			*exporting = false;
 			if (!result) {
-				*exporting = false;
 				if (IsIncorrectPasswordError(result.error())) {
 					showError(ph::lng_wallet_passcode_incorrect(ph::now));
 				} else {
-					// #TODO fatal?..
+					showGenericError(result.error());
 				}
 				return;
 			}
@@ -561,9 +609,11 @@ void Window::showExported(const std::vector<QString> &words) {
 void Window::logout() {
 	_layers->showBox(Box(DeleteWalletBox, [=] {
 		_wallet->deleteAllKeys(crl::guard(this, [=](Ton::Result<> result) {
-			if (result) {
-				showCreate();
+			if (!result) {
+				showGenericError(result.error());
+				return;
 			}
+			showCreate();
 		}));
 	}));
 }

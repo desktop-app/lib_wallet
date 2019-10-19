@@ -194,7 +194,7 @@ void Manager::showPasscode() {
 
 	const auto raw = passcode.get();
 
-	//raw->submitRequests( // #TODO
+	//raw->submitRequests( // #TODO keyboard
 	//) | rpl::start_with_next([=] {
 	//	next();
 	//}, raw->lifetime());

@@ -7,6 +7,7 @@
 #pragma once
 
 #include "ton/ton_state.h"
+#include "ton/ton_result.h"
 
 namespace Ui {
 class RpWidget;
@@ -21,7 +22,7 @@ class Info final {
 public:
 	struct Data {
 		rpl::producer<Ton::WalletViewerState> state;
-		rpl::producer<Ton::LoadedSlice> loaded;
+		rpl::producer<Ton::Result<Ton::LoadedSlice>> loaded;
 	};
 	Info(not_null<QWidget*> parent, Data data);
 	~Info();
@@ -35,10 +36,9 @@ public:
 	[[nodiscard]] rpl::lifetime &lifetime();
 
 private:
-	void setupControls();
+	void setupControls(Data &&data);
 
 	const std::unique_ptr<Ui::RpWidget> _widget;
-	const Data _data;
 	const not_null<Ui::ScrollArea*> _scroll;
 	const not_null<Ui::RpWidget*> _inner;
 

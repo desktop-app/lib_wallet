@@ -117,6 +117,9 @@ extern phrase lng_wallet_send_comment;
 extern phrase lng_wallet_send_button;
 extern phrase lng_wallet_send_button_amount;
 
+extern phrase lng_wallet_send_failed_title;
+extern phrase lng_wallet_send_failed_text;
+
 extern phrase lng_wallet_confirm_title;
 extern phrase lng_wallet_confirm_text;
 extern phrase lng_wallet_confirm_fee;
@@ -142,7 +145,7 @@ extern Fn<phrase(QTime)> lng_wallet_short_time;
 
 namespace Wallet {
 
-inline constexpr auto kPhrasesCount = 98;
+inline constexpr auto kPhrasesCount = 100;
 
 void SetPhrases(
 	ph::details::phrase_value_array<kPhrasesCount> data,

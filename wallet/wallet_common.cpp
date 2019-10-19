@@ -165,6 +165,11 @@ bool IsIncorrectPasswordError(const Ton::Error &error) {
 	return error.details.startsWith(qstr("KEY_DECRYPT"));
 }
 
+bool IsIncorrectMnemonicError(const Ton::Error &error) {
+	return error.details.startsWith(qstr("INVALID_MNEMONIC"))
+		|| error.details.startsWith(qstr("NEED_MNEMONIC_PASSWORD"));
+}
+
 std::optional<Wallet::InvoiceField> ErrorInvoiceField(
 		const Ton::Error &error) {
 	const auto text = error.details;

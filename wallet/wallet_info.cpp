@@ -25,11 +25,10 @@ namespace Wallet {
 
 Info::Info(not_null<QWidget*> parent, Data data)
 : _widget(std::make_unique<Ui::RpWidget>(parent))
-, _data(std::move(data))
 , _scroll(
 	Ui::CreateChild<Ui::ScrollArea>(_widget.get(), st::walletScrollArea))
 , _inner(_scroll->setOwnedWidget(object_ptr<Ui::RpWidget>(_scroll.get()))) {
-	setupControls();
+	setupControls(std::move(data));
 	_widget->show();
 }
 
@@ -51,8 +50,8 @@ rpl::producer<Ton::Transaction> Info::viewRequests() const {
 	return _viewRequests.events();
 }
 
-void Info::setupControls() {
-	const auto &state = _data.state;
+void Info::setupControls(Data &&data) {
+	auto &state = data.state;
 	const auto topBar = _widget->lifetime().make_state<TopBar>(
 		_widget.get(),
 		MakeTopBarState(rpl::duplicate(state), _widget->lifetime()));
@@ -67,10 +66,17 @@ void Info::setupControls() {
 		cover->receiveRequests() | rpl::map([] { return Action::Receive; })
 	) | rpl::start_to_stream(_actionRequests, cover->lifetime());
 
+	auto loaded = std::move(
+		data.loaded
+	) | rpl::filter([](const Ton::Result<Ton::LoadedSlice> &value) {
+		return value.has_value();
+	}) | rpl::map([](Ton::Result<Ton::LoadedSlice> &&value) {
+		return std::move(*value);
+	});
 	const auto history = _widget->lifetime().make_state<History>(
 		_inner.get(),
 		MakeHistoryState(rpl::duplicate(state)),
-		rpl::duplicate(_data.loaded));
+		std::move(loaded));
 	const auto emptyHistory = _widget->lifetime().make_state<EmptyHistory>(
 		_inner.get(),
 		MakeEmptyHistoryState(rpl::duplicate(state)));
