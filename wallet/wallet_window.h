@@ -44,8 +44,6 @@ public:
 	void show();
 	void setFocus();
 
-	void criticalError(const QString &error);
-
 private:
 	void init();
 	void updatePalette();
@@ -65,6 +63,7 @@ private:
 	void createShowIncorrectWords();
 	void createShowTooFastWords();
 	void createShowIncorrectImport();
+	void createShowImportFail();
 	void createSavePasscode(
 		const QByteArray &passcode,
 		std::shared_ptr<bool> guard);

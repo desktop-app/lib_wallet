@@ -101,7 +101,8 @@ walletCheckInputField: InputField(defaultInputField) {
 walletCheckInputSkip: 8px;
 
 walletImportTitleTop: 64px;
-walletImportWordsTop: 172px;
+walletImportNoWordsTop: 172px;
+walletImportWordsTop: 202px;
 walletImportInputField: InputField(walletCheckInputField) {
 	width: 92px;
 }

@@ -34,8 +34,7 @@ phrase lng_wallet_import_incorrect_retry = "Try again";
 
 phrase lng_wallet_too_bad_title = "Too Bad";
 phrase lng_wallet_too_bad_description = "Without the secret words, you can't\nrestore access to your wallet.";
-phrase lng_wallet_too_bad_enter_words = "Enter 24 words";
-phrase lng_wallet_too_bad_create_new = "Create a New Wallet";
+phrase lng_wallet_too_bad_enter_words = "Enter words";
 
 phrase lng_wallet_created_title = "Congratulations";
 phrase lng_wallet_created_description = "Your Gram wallet has just been created.\nOnly you control it.\n\nTo be able to always have access to it,\nplease set up a secure passcode and write\ndown secret words.";

@@ -103,28 +103,28 @@ void Window::showCreate() {
 	_createManager->actionRequests(
 	) | rpl::start_with_next([=](Create::Manager::Action action) {
 		switch (action) {
-		case Create::Manager::Action::NewKey: {
+		case Create::Manager::Action::NewKey:
 			if (!_importing) {
 				_createManager->showIntro();
 			}
-		}
-
-		case Create::Manager::Action::CreateKey: {
+			return;
+		case Create::Manager::Action::CreateKey:
 			createKey(creating);
-		} break;
-
-		case Create::Manager::Action::ShowCheckIncorrect: {
+			return;
+		case Create::Manager::Action::ShowCheckIncorrect:
 			createShowIncorrectWords();
-		} break;
-
-		case Create::Manager::Action::ShowCheckTooSoon: {
+			return;
+		case Create::Manager::Action::ShowCheckTooSoon:
 			createShowTooFastWords();
-		} break;
-
-		case Create::Manager::Action::ShowAccount: {
+			return;
+		case Create::Manager::Action::ShowImportFail:
+			createShowImportFail();
+			return;
+		case Create::Manager::Action::ShowAccount:
 			showAccount(_createManager->publicKey());
-		} break;
+			return;
 		}
+		Unexpected("Action in Create::Manager::actionRequests().");
 	}, _createManager->lifetime());
 
 	_createManager->importRequests(
@@ -198,6 +198,24 @@ void Window::createShowIncorrectImport() {
 		ph::lng_wallet_import_incorrect_title(),
 		ph::lng_wallet_import_incorrect_text(),
 		ph::lng_wallet_import_incorrect_retry());
+}
+
+void Window::createShowImportFail() {
+	_layers->showBox(Box([=](not_null<Ui::GenericBox*> box) {
+		box->setTitle(ph::lng_wallet_too_bad_title());
+		box->addRow(object_ptr<Ui::FlatLabel>(
+			box,
+			ph::lng_wallet_too_bad_description(),
+			st::walletLabel));
+		box->addButton(ph::lng_wallet_too_bad_enter_words(), [=] {
+			box->closeBox();
+			_createManager->setFocus();
+		});
+		box->addButton(ph::lng_wallet_cancel(), [=] {
+			box->closeBox();
+			_createManager->showIntro();
+		});
+	}));
 }
 
 void Window::showSimpleError(
@@ -304,13 +322,14 @@ void Window::showAccount(const QByteArray &publicKey) {
 	_info->actionRequests(
 	) | rpl::start_with_next([=](Action action) {
 		switch (action) {
-		case Action::Refresh: _viewer->refreshNow(nullptr); break;
-		case Action::Export: askExportPassword(); break;
-		case Action::Send: sendGrams(); break;
-		case Action::Receive: receiveGrams(); break;
-		case Action::ChangePassword: changePassword(); break;
-		case Action::LogOut: logout(); break;
+		case Action::Refresh: _viewer->refreshNow(nullptr); return;
+		case Action::Export: askExportPassword(); return;
+		case Action::Send: sendGrams(); return;
+		case Action::Receive: receiveGrams(); return;
+		case Action::ChangePassword: changePassword(); return;
+		case Action::LogOut: logout(); return;
 		}
+		Unexpected("Action in Info::actionRequests().");
 	}, _info->lifetime());
 
 	_info->preloadRequests(

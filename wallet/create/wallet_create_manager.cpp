@@ -260,9 +260,13 @@ void Manager::showImport() {
 
 	const auto raw = step.get();
 
-	raw->submitRequests(
-	) | rpl::start_with_next([=] {
-		next();
+	raw->actionRequests(
+	) | rpl::start_with_next([=](Import::Action action) {
+		switch (action) {
+		case Import::Action::Submit: next(); return;
+		case Import::Action::NoWords: showImportFail(); return;
+		}
+		Unexpected("Action in Manager::showImport.");
 	}, raw->lifetime());
 
 	showStep(std::move(step), Direction::Forward, [=] {
@@ -272,6 +276,10 @@ void Manager::showImport() {
 	}, [=] {
 		showIntro();
 	});
+}
+
+void Manager::showImportFail() {
+	_actionRequests.fire(Action::ShowImportFail);
 }
 
 void Manager::acceptWordsDelayByModifiers(Qt::KeyboardModifiers modifiers) {

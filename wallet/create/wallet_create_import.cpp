@@ -8,6 +8,7 @@
 
 #include "wallet/wallet_phrases.h"
 #include "ui/text/text_utilities.h"
+#include "ui/widgets/buttons.h"
 #include "ui/rp_widget.h"
 #include "ui/lottie_widget.h"
 #include "ui/ton_word_input.h"
@@ -34,8 +35,8 @@ std::vector<QString> Import::words() const {
 	return _words();
 }
 
-rpl::producer<> Import::submitRequests() const {
-	return _submitRequests.events();
+rpl::producer<Import::Action> Import::actionRequests() const {
+	return _actionRequests.events();
 }
 
 void Import::setFocus() {
@@ -121,12 +122,12 @@ void Import::initControls(Fn<std::vector<QString>(QString)> wordsByPrefix) {
 		word.submitted(
 		) | rpl::start_with_next([=] {
 			if ((*inputs)[index]->word() == TonWordInput::kSkipPassword) {
-				_submitRequests.fire({});
+				_actionRequests.fire(Action::Submit);
 			} else if (!showError(index)) {
 				if (const auto word = next()) {
 					word->setFocus();
 				} else {
-					_submitRequests.fire({});
+					_actionRequests.fire(Action::Submit);
 				}
 			}
 		}, lifetime());
@@ -140,8 +141,19 @@ void Import::initControls(Fn<std::vector<QString>(QString)> wordsByPrefix) {
 		init(*inputs->back(), i);
 	}
 
+	const auto noWords = Ui::CreateChild<Ui::LinkButton>(
+		inner().get(),
+		ph::lng_wallet_import_dont_have(ph::now),
+		st::defaultLinkButton);
+	noWords->setClickedCallback([=] {
+		_actionRequests.fire(Action::NoWords);
+	});
+
 	inner()->sizeValue(
 	) | rpl::start_with_next([=](QSize size) {
+		noWords->move(
+			(size.width() - noWords->width()) / 2,
+			st::walletImportNoWordsTop);
 		const auto half = size.width() / 2;
 		const auto left = half - st::walletWordSkipLeft;
 		const auto right = half + st::walletWordSkipRight;

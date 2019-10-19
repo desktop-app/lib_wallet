@@ -36,10 +36,10 @@ public:
 	enum class Action {
 		NewKey,
 		CreateKey,
-		ImportKey,
 		ShowAccount,
 		ShowCheckTooSoon,
 		ShowCheckIncorrect,
+		ShowImportFail,
 	};
 
 	[[nodiscard]] rpl::producer<Action> actionRequests() const;
@@ -71,6 +71,7 @@ private:
 	[[nodiscard]] std::vector<QString> wordsByPrefix(
 		const QString &word) const;
 	void initButtons();
+	void showImportFail();
 	void acceptWordsDelayByModifiers(Qt::KeyboardModifiers modifiers);
 
 	const std::unique_ptr<Ui::RpWidget> _content;

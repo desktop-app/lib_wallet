@@ -14,11 +14,16 @@ class Import final : public Step {
 public:
 	Import(Fn<std::vector<QString>(QString)> wordsByPrefix);
 
+	enum class Action {
+		Submit,
+		NoWords,
+	};
+
 	int desiredHeight() const override;
 	bool allowEscapeBack() const override;
 
 	[[nodiscard]] std::vector<QString> words() const;
-	[[nodiscard]] rpl::producer<> submitRequests() const;
+	[[nodiscard]] rpl::producer<Action> actionRequests() const;
 
 	void setFocus() override;
 	bool checkAll();
@@ -31,7 +36,7 @@ private:
 	Fn<void()> _setFocus;
 	Fn<bool()> _checkAll;
 
-	rpl::event_stream<> _submitRequests;
+	rpl::event_stream<Action> _actionRequests;
 
 };
 
