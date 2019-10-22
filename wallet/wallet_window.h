@@ -25,6 +25,7 @@ namespace Ui {
 class Window;
 class LayerManager;
 class GenericBox;
+class RpWidget;
 } // namespace Ui
 
 namespace Wallet {
@@ -41,8 +42,8 @@ public:
 	explicit Window(not_null<Ton::Wallet*> wallet);
 	~Window();
 
-	void show();
-	void setFocus();
+	void showAndActivate();
+	[[nodiscard]] not_null<Ui::RpWidget*> widget() const;
 
 private:
 	void init();

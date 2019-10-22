@@ -21,6 +21,7 @@
 #include "wallet/create/wallet_create_manager.h"
 #include "ton/ton_wallet.h"
 #include "ton/ton_account_viewer.h"
+#include "base/platform/base_platform_process.h"
 #include "ui/address_label.h"
 #include "ui/widgets/window.h"
 #include "ui/widgets/labels.h"
@@ -32,7 +33,6 @@
 #include "styles/style_wallet.h"
 #include "styles/palette.h"
 
-#include <QtCore/QStandardPaths>
 #include <QtCore/QDir>
 #include <QtGui/QtEvents>
 #include <QtGui/QClipboard>
@@ -347,12 +347,15 @@ void Window::showAccount(const QByteArray &publicKey) {
 	}, _info->lifetime());
 }
 
-void Window::show() {
+void Window::showAndActivate() {
 	_window->show();
+	base::Platform::ActivateThisProcessWindow(_window->winId());
+	_window->activateWindow();
+	_window->setFocus();
 }
 
-void Window::setFocus() {
-	_window->setFocus();
+not_null<Ui::RpWidget*> Window::widget() const {
+	return _window.get();
 }
 
 void Window::sendGrams(const QString &invoice) {
