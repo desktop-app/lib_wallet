@@ -52,7 +52,7 @@ public:
 	void backByEscape();
 	void setFocus();
 
-	void showIntro();
+	void showIntro(Direction direction = Direction::Forward);
 	void showImport();
 	void showCreated(std::vector<QString> &&words);
 	void showWords(Direction direction);

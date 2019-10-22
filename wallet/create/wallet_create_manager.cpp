@@ -133,8 +133,8 @@ void Manager::setFocus() {
 	_step->setFocus();
 }
 
-void Manager::showIntro() {
-	showStep(std::make_unique<Intro>(), Direction::Forward, [=] {
+void Manager::showIntro(Direction direction) {
+	showStep(std::make_unique<Intro>(), direction, [=] {
 		_actionRequests.fire(Action::CreateKey);
 	});
 }
@@ -274,7 +274,7 @@ void Manager::showImport() {
 			_importRequests.fire(raw->words());
 		}
 	}, [=] {
-		showIntro();
+		showIntro(Direction::Backward);
 	});
 }
 
