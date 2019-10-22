@@ -358,6 +358,13 @@ not_null<Ui::RpWidget*> Window::widget() const {
 	return _window.get();
 }
 
+bool Window::handleLinkOpen(const QString &link) {
+	if (_viewer) {
+		sendGrams(link);
+	}
+	return true;
+}
+
 void Window::sendGrams(const QString &invoice) {
 	const auto checking = std::make_shared<bool>();
 	const auto send = [=](

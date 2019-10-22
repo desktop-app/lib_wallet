@@ -44,6 +44,7 @@ public:
 
 	void showAndActivate();
 	[[nodiscard]] not_null<Ui::RpWidget*> widget() const;
+	bool handleLinkOpen(const QString &link);
 
 private:
 	void init();
