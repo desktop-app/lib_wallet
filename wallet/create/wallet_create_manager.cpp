@@ -7,7 +7,7 @@
 #include "wallet/create/wallet_create_manager.h"
 
 #include "wallet/create/wallet_create_intro.h"
-#include "wallet/create/wallet_creatE_import.h"
+#include "wallet/create/wallet_create_import.h"
 #include "wallet/create/wallet_create_created.h"
 #include "wallet/create/wallet_create_view.h"
 #include "wallet/create/wallet_create_check.h"
