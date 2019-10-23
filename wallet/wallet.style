@@ -161,19 +161,21 @@ walletTopLabel: FlatLabel(defaultFlatLabel) {
 
 walletCoverHeight: 100px;
 walletCoverBalanceTop: 3px;
+walletCoverBalanceLarge: FlatLabel(defaultFlatLabel) {
+	textFg: walletBalanceFg;
+	style: TextStyle(defaultTextStyle) {
+		font: font(35px semibold);
+	}
+}
+walletCoverBalanceSmall: FlatLabel(defaultFlatLabel) {
+	textFg: walletBalanceFg;
+	style: TextStyle(defaultTextStyle) {
+		font: font(25px semibold);
+	}
+}
 walletCoverBalance: WalletAmountLabel {
-	large: FlatLabel(defaultFlatLabel) {
-		textFg: walletBalanceFg;
-		style: TextStyle(defaultTextStyle) {
-			font: font(35px semibold);
-		}
-	}
-	small: FlatLabel(defaultFlatLabel) {
-		textFg: walletBalanceFg;
-		style: TextStyle(defaultTextStyle) {
-			font: font(25px semibold);
-		}
-	}
+	large: walletCoverBalanceLarge;
+	small: walletCoverBalanceSmall;
 	diamond: 38px;
 	diamondPosition: point(6px, 4px);
 }
@@ -235,7 +237,7 @@ walletSubsectionTitle: FlatLabel(defaultFlatLabel) {
 	textFg: windowActiveTextFg;
 	minWidth: 240px;
 }
-walletSubsectionTitlePadding: margins(22px, 7px, 10px, 9px);
+walletSubsectionTitlePadding: margins(22px, 7px, 10px, 6px);
 
 walletBox: Box(defaultBox) {
 	buttonPadding: margins(16px, 16px, 16px, 16px);
@@ -264,18 +266,38 @@ walletReceiveAddressLabel: FlatLabel(defaultFlatLabel) {
 	align: align(top);
 }
 
-walletTransactionSummaryHeight: 60px;
+walletTransactionSummaryHeight: 62px;
 walletTransactionValue: WalletAmountLabel(walletCoverBalance) {
+	large: FlatLabel(walletCoverBalanceLarge) {
+		textFg: windowBoldFg;
+		style: TextStyle(defaultTextStyle) {
+			font: font(28px semibold);
+		}
+	}
+	small: FlatLabel(walletCoverBalanceSmall) {
+		textFg: windowBoldFg;
+		style: TextStyle(defaultTextStyle) {
+			font: font(20px semibold);
+		}
+	}
+	diamond: 33px;
+	diamondPosition: point(6px, 5px);
 }
-walletTransactionValueTop: 20px;
+walletTransactionValueTop: 5px;
 walletTransactionFee: FlatLabel(defaultFlatLabel) {
 	textFg: windowSubTextFg;
 }
 walletTransactionFeeSkip: 4px;
-walletTransactionSkip: 16px;
+walletTransactionSecondFeeSkip: 0px;
+walletTransactionAddress: FlatLabel(walletEmptyHistoryAddress) {
+	align: align(topleft);
+}
+walletTransactionDateTop: 6px;
+walletTransactionCommentTop: 11px;
+walletTransactionBottomSkip: 16px;
 
 walletConfirmationAddressLabel: walletReceiveAddressLabel;
-walletConfirmationSkip: walletTransactionSkip;
+walletConfirmationSkip: walletTransactionBottomSkip;
 walletConfirmationFee: walletTransactionFee;
 walletConfirmationFeeSkip: 8px;
 

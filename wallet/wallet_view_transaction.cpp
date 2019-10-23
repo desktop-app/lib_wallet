@@ -27,9 +27,13 @@ object_ptr<Ui::RpWidget> CreateSummary(
 		not_null<Ui::RpWidget*> parent,
 		const Ton::Transaction &data) {
 	const auto feeSkip = st::walletTransactionFeeSkip;
+	const auto secondFeeSkip = st::walletTransactionSecondFeeSkip;
 	const auto height = st::walletTransactionSummaryHeight
 		+ (data.otherFee ? (st::normalFont->height + feeSkip) : 0)
-		+ (data.storageFee ? (st::normalFont->height + feeSkip) : 0);
+		+ (data.storageFee
+			? (st::normalFont->height
+				+ (data.otherFee ? secondFeeSkip : feeSkip))
+			: 0);
 	auto result = object_ptr<Ui::FixedHeightWidget>(
 		parent,
 		height);
@@ -67,7 +71,7 @@ object_ptr<Ui::RpWidget> CreateSummary(
 		top += balance->height() + feeSkip;
 		if (otherFee) {
 			otherFee->move((width - otherFee->width()) / 2, top);
-			top += otherFee->height() + feeSkip;
+			top += otherFee->height() + secondFeeSkip;
 		}
 		if (storageFee) {
 			storageFee->move((width - storageFee->width()) / 2, top);
@@ -97,32 +101,46 @@ void ViewTransactionBox(
 	AddBoxSubtitle(box, incoming
 		? ph::lng_wallet_view_sender()
 		: ph::lng_wallet_view_recipient());
-	box->addRow(
+	box->addRow(	
 		object_ptr<Ui::RpWidget>::fromRaw(Ui::CreateAddressLabel(
 			box,
 			address,
-			st::walletLabel)));
+			st::walletTransactionAddress)),
+		{
+			st::boxRowPadding.left(),
+			st::boxRowPadding.top(),
+			st::boxRowPadding.right(),
+			st::walletTransactionDateTop,
+		});
 
 	AddBoxSubtitle(box, ph::lng_wallet_view_date());
-	box->addRow(object_ptr<Ui::FlatLabel>(
-		box,
-		base::unixtime::parse(
-			data.time
-		).toString(Qt::DefaultLocaleLongDate),
-		st::walletLabel));
+	box->addRow(
+		object_ptr<Ui::FlatLabel>(
+			box,
+			base::unixtime::parse(
+				data.time
+			).toString(Qt::DefaultLocaleLongDate),
+			st::walletLabel),
+		{
+			st::boxRowPadding.left(),
+			st::boxRowPadding.top(),
+			st::boxRowPadding.right(),
+			(message.isEmpty()
+				? st::boxRowPadding.bottom()
+				: st::walletTransactionCommentTop),
+		});
 
 	if (!message.isEmpty()) {
 		AddBoxSubtitle(box, ph::lng_wallet_view_comment());
 		box->addRow(object_ptr<Ui::FlatLabel>(
 			box,
 			message,
-			st::walletLabel)
-		)->setSelectable(true);
+			st::walletLabel))->setSelectable(true);
 	}
 
 	box->addRow(object_ptr<Ui::FixedHeightWidget>(
 		box,
-		st::walletTransactionSkip));
+		st::walletTransactionBottomSkip));
 
 	auto text = incoming
 		? ph::lng_wallet_view_send_to_address()
