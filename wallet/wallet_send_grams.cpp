@@ -138,6 +138,8 @@ void SendGramsBox(
 		Ui::InputField::Mode::NoNewlines,
 		ph::lng_wallet_send_address(),
 		prepared.address));
+	address->rawTextEdit()->setWordWrapMode(QTextOption::WrapAnywhere);
+
 	const auto about = box->addRow(
 		object_ptr<Ui::FlatLabel>(
 			box,
