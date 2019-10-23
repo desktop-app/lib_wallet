@@ -14,9 +14,13 @@ class Intro final : public Step {
 public:
 	Intro();
 
+	rpl::producer<> importClicks() const override;
+
 private:
 	void initControls();
 	void showFinishedHook() override;
+
+	rpl::producer<> _importClicks;
 
 };
 

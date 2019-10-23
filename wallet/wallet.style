@@ -38,12 +38,8 @@ walletBoldCenteredLabel: FlatLabel(walletCenteredLabel) {
 walletGrayCenteredLabel: FlatLabel(walletCenteredLabel) {
 	textFg: introDescriptionFg;
 }
-walletStepIntroTerms: FlatLabel(walletGrayCenteredLabel) {
-	palette: TextPalette(defaultTextPalette) {
-		linkFg: introDescriptionFg;
-	}
-}
-walletStepIntroTermsSkip: 22px;
+walletStepIntroImportLink: defaultLinkButton;
+walletStepIntroImportSkip: 22px;
 walletStepBackButton: IconButton(backButton) {
 	width: 56px;
 	height: 56px;

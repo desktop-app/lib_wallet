@@ -144,10 +144,7 @@ rpl::producer<Qt::KeyboardModifiers> Step::nextClicks() const {
 }
 
 rpl::producer<> Step::importClicks() const {
-	return !_importButton
-		? rpl::producer<>()
-		: _importButton->clicks(
-		) | rpl::map([=] { return rpl::empty_value(); });
+	return rpl::producer<>();
 }
 
 int Step::desiredHeight() const {
@@ -266,22 +263,6 @@ void Step::showAnimated(not_null<Step*> previous, Direction direction) {
 
 void Step::showFast() {
 	showFinished();
-}
-
-void Step::showImportButton() {
-	_importButton.emplace(
-		inner(),
-		ph::lng_wallet_intro_import(),
-		st::defaultBoxButton);
-	rpl::combine(
-		inner()->widthValue(),
-		_importButton->widthValue()
-	) | rpl::start_with_next([=](int width, int importWidth) {
-		_importButton->moveToRight(
-			st::walletImportButtonPosition.x(),
-			st::walletImportButtonPosition.y(),
-			width);
-	}, _importButton->lifetime());
 }
 
 void Step::showNextButton(rpl::producer<QString> text) {

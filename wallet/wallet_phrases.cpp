@@ -21,8 +21,6 @@ phrase lng_wallet_save = "Save";
 phrase lng_wallet_intro_title = "Gram Wallet";
 phrase lng_wallet_intro_description = "Gram wallet allows you to make fast and\nsecure blockchain-based payments\nwithout intermediaries.";
 phrase lng_wallet_intro_create = "Create My Wallet";
-phrase lng_wallet_intro_accept_text = "By creating the wallet you accept\n{terms_link}.";
-phrase lng_wallet_intro_accept_terms = "Terms and Conditions";
 phrase lng_wallet_intro_import = "Import existing wallet";
 
 phrase lng_wallet_import_title = "24 Secret Words";

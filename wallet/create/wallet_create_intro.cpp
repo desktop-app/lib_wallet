@@ -11,6 +11,7 @@
 #include "ui/lottie_widget.h"
 #include "ui/basic_click_handlers.h"
 #include "ui/wrap/padding_wrap.h"
+#include "ui/widgets/buttons.h"
 #include "ui/text/text_utilities.h"
 #include "ui/text/text_entity.h"
 #include "styles/style_wallet.h"
@@ -28,32 +29,28 @@ Intro::Intro() : Step(Type::Default) {
 	initControls();
 }
 
+rpl::producer<> Intro::importClicks() const {
+	return rpl::duplicate(_importClicks);
+}
+
 void Intro::initControls() {
 	wallet_InitResource();
-
-	auto termsText = rpl::combine(
-		ph::lng_wallet_intro_accept_text(),
-		ph::lng_wallet_intro_accept_terms()
-	) | rpl::map([](QString text, const QString &link) {
-		const auto full = text.replace(
-			"{terms_link}",
-			textcmdLink("https://telegram.org/tos/wallet", link));
-		return TextUtilities::ParseEntities(full, TextParseRichText);
-	});
 
 	showLottie(
 		"intro",
 		st::walletStepIntroLottieTop,
 		st::walletStepIntroLottieSize);
 	showNextButton(ph::lng_wallet_intro_create());
-	showBelowNextButton(object_ptr<Ui::PaddingWrap<Ui::FlatLabel>>(
+	auto importButton = object_ptr<Ui::PaddingWrap<Ui::LinkButton>>(
 		inner().get(),
-		object_ptr<Ui::FlatLabel>(
+		object_ptr<Ui::LinkButton>(
 			inner().get(),
-			std::move(termsText),
-			st::walletStepIntroTerms),
-		QMargins{ 0, st::walletStepIntroTermsSkip, 0, 0 }));
-	showImportButton();
+			ph::lng_wallet_intro_import(ph::now),
+			st::walletStepIntroImportLink),
+		QMargins{ 0, st::walletStepIntroImportSkip, 0, 0 });
+	_importClicks = importButton->entity()->clicks(
+	) | rpl::map([] { return rpl::empty_value(); });
+	showBelowNextButton(std::move(importButton));
 }
 
 void Intro::showFinishedHook() {

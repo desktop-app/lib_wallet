@@ -47,7 +47,7 @@ public:
 	[[nodiscard]] virtual bool allowEscapeBack() const;
 	[[nodiscard]] not_null<Ui::RpWidget*> widget() const;
 	[[nodiscard]] rpl::producer<Qt::KeyboardModifiers> nextClicks() const;
-	[[nodiscard]] rpl::producer<> importClicks() const;
+	[[nodiscard]] virtual rpl::producer<> importClicks() const;
 
 	void showAnimated(not_null<Step*> previous, Direction direction);
 	void showFast();
@@ -69,7 +69,6 @@ protected:
 
 	void showNextButton(rpl::producer<QString> text);
 	void showBelowNextButton(object_ptr<Ui::RpWidget> widget);
-	void showImportButton();
 
 	[[nodiscard]] virtual QImage grabForAnimation(QRect rect) const;
 	virtual void showFinishedHook();
