@@ -123,6 +123,7 @@ void SendGramsBox(
 	const auto funds = std::make_shared<int64>();
 
 	box->setTitle(ph::lng_wallet_send_title());
+	box->setStyle(st::walletBox);
 
 	box->addTopButton(st::boxTitleClose, [=] { box->closeBox(); });
 

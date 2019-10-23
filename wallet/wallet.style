@@ -6,6 +6,7 @@
 //
 using "ui/basic.style";
 using "ui/widgets/widgets.style";
+using "ui/layers/layers.style";
 
 WalletAmountLabel {
 	large: FlatLabel;
@@ -234,12 +235,19 @@ walletSubsectionTitle: FlatLabel(defaultFlatLabel) {
 }
 walletSubsectionTitlePadding: margins(22px, 7px, 10px, 9px);
 
-walletBottomButton: RoundButton(defaultActiveButton) {
-	width: 304px;
+walletBox: Box(defaultBox) {
+	buttonPadding: margins(16px, 16px, 16px, 16px);
+	buttonHeight: 39px;
 }
-
+walletBottomButton: RoundButton(defaultActiveButton) {
+	width: 288px;
+	height: 39px;
+	textTop: 11px;
+}
 walletWideBottomButton: RoundButton(defaultActiveButton) {
-	width: 348px;
+	width: 332px;
+	height: 39px;
+	textTop: 11px;
 }
 
 walletLabel: FlatLabel(defaultFlatLabel) {
@@ -247,6 +255,10 @@ walletLabel: FlatLabel(defaultFlatLabel) {
 	align: align(topleft);
 }
 walletReceiveAddressLabel: FlatLabel(defaultFlatLabel) {
+	style: TextStyle(defaultTextStyle) {
+		font: font(15px);
+		lineHeight: 18px;
+	}
 	align: align(top);
 }
 

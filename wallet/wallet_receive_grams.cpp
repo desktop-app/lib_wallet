@@ -20,6 +20,7 @@ void ReceiveGramsBox(
 		const QString &address,
 		Fn<void(QString)> share) {
 	box->setTitle(ph::lng_wallet_receive_title());
+	box->setStyle(st::walletBox);
 
 	box->addTopButton(st::boxTitleClose, [=] { box->closeBox(); });
 

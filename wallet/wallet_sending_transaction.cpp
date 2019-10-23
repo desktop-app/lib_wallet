@@ -21,7 +21,7 @@ namespace {
 constexpr auto kShowCloseDelay = 10 * crl::time(1000);
 
 [[nodiscard]] int AskPasswordBoxHeight() {
-	return st::boxLayerTitleHeight
+	return st::boxTitleHeight
 		- st::boxTopMargin
 		+ st::walletPasscodeHeight;
 }

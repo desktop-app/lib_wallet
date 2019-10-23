@@ -84,6 +84,7 @@ void ViewTransactionBox(
 		Ton::Transaction &&data,
 		Fn<void(QString)> send) {
 	box->setTitle(ph::lng_wallet_view_title());
+	box->setStyle(st::walletBox);
 
 	const auto address = ExtractAddress(data);
 	const auto incoming = data.outgoing.empty();

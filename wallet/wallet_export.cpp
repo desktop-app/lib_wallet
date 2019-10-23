@@ -18,6 +18,7 @@ void ExportedBox(
 		not_null<Ui::GenericBox*> box,
 		const std::vector<QString> &words) {
 	box->setWidth(st::boxWideWidth);
+	box->setStyle(st::walletBox);
 	box->setNoContentMargin(true);
 
 	const auto view = box->lifetime().make_state<Create::View>(
