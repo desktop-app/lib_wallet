@@ -46,8 +46,8 @@ rpl::lifetime &Cover::lifetime() {
 void Cover::setupControls(rpl::producer<CoverState> &&state) {
 	auto amount = rpl::duplicate(
 		state
-	) | rpl::map([](const CoverState &state) { AssertIsDebug();
-		return ParseAmount(std::max(/*state.balance + */0LL, 0LL));
+	) | rpl::map([](const CoverState &state) {
+		return ParseAmount(std::max(state.balance, 0LL));
 	});
 
 	const auto balance = _widget.lifetime().make_state<Ui::AmountLabel>(

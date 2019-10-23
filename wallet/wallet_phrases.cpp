@@ -35,10 +35,10 @@ phrase lng_wallet_too_bad_description = "Without the secret words, you can't\nre
 phrase lng_wallet_too_bad_enter_words = "Enter words";
 
 phrase lng_wallet_created_title = "Congratulations";
-phrase lng_wallet_created_description = "Your Gram wallet has just been created.\nOnly you control it.\n\nTo be able to always have access to it,\nplease set up a secure passcode and write\ndown secret words.";
+phrase lng_wallet_created_description = "Your Gram wallet has just been created.\nOnly you control it.\n\nTo be able to always have access to it,\nplease set up a secure password and write\ndown secret words.";
 
 phrase lng_wallet_words_title = "24 secret words";
-phrase lng_wallet_words_description = "Write down these 24 words in the correct\norder and store them in a secret place.\n\nUse these secret words to restore access to\nyour wallet if you lose your passcode or\naccess to this device.";
+phrase lng_wallet_words_description = "Write down these 24 words in the correct\norder and store them in a secret place.\n\nUse these secret words to restore access to\nyour wallet if you lose your password or\naccess to this device.";
 phrase lng_wallet_words_sure_title = "Sure done?";
 phrase lng_wallet_words_sure_text = "You didn't have enough time to write these words down.";
 phrase lng_wallet_words_sure_ok = "OK, Sorry";
@@ -50,16 +50,16 @@ phrase lng_wallet_check_incorrect_text = "The secret words you have entered do n
 phrase lng_wallet_check_incorrect_view = "See words";
 phrase lng_wallet_check_incorrect_retry = "Try again";
 
-phrase lng_wallet_set_passcode_title = "Secure Passcode";
-phrase lng_wallet_set_passcode_description = "Please choose a secure passcode\nfor your payments confirmation.";
-phrase lng_wallet_set_passcode_enter = "Enter your passcode";
-phrase lng_wallet_set_passcode_repeat = "Repeat your passcode";
+phrase lng_wallet_set_passcode_title = "Secure Password";
+phrase lng_wallet_set_passcode_description = "Please choose a secure password\nfor your payments confirmation.";
+phrase lng_wallet_set_passcode_enter = "Enter your password";
+phrase lng_wallet_set_passcode_repeat = "Repeat your password";
 
-phrase lng_wallet_change_passcode_title = "Change Passcode";
-phrase lng_wallet_change_passcode_old = "Enter your old passcode";
-phrase lng_wallet_change_passcode_new = "Enter a new passcode";
-phrase lng_wallet_change_passcode_repeat = "Repeat the new passcode";
-phrase lng_wallet_change_passcode_done = "Passcode changed successfully.";
+phrase lng_wallet_change_passcode_title = "Change Password";
+phrase lng_wallet_change_passcode_old = "Enter your old password";
+phrase lng_wallet_change_passcode_new = "Enter a new password";
+phrase lng_wallet_change_passcode_repeat = "Repeat the new password";
+phrase lng_wallet_change_passcode_done = "Password changed successfully.";
 
 phrase lng_wallet_ready_title = "Ready to go!";
 phrase lng_wallet_ready_description = "You're all set. Now you have a wallet that\nonly you control \xe2\x80\x93 directly, without\nmiddlemen or bankers.";
@@ -98,7 +98,7 @@ phrase lng_wallet_receive_description = "Share this address with other Gram wall
 phrase lng_wallet_receive_share = "Share Wallet Address";
 phrase lng_wallet_receive_copied = "Transfer link copied to clipboard.";
 
-phrase lng_wallet_menu_change_passcode = "Change passcode";
+phrase lng_wallet_menu_change_passcode = "Change password";
 phrase lng_wallet_menu_export = "Export wallet";
 phrase lng_wallet_menu_delete = "Delete wallet";
 
@@ -124,8 +124,8 @@ phrase lng_wallet_confirm_text = "Do you want to send **{amount} Grams** to:";
 phrase lng_wallet_confirm_fee = "Fee: ~{amount} Grams";
 phrase lng_wallet_confirm_send = "Send Grams";
 
-phrase lng_wallet_passcode_title = "Passcode";
-phrase lng_wallet_passcode_enter = "Enter your passcode";
+phrase lng_wallet_passcode_title = "Password";
+phrase lng_wallet_passcode_enter = "Enter your password";
 phrase lng_wallet_passcode_next = "Next";
 phrase lng_wallet_passcode_incorrect = "This is a wrong password.";
 
