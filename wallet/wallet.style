@@ -214,9 +214,15 @@ walletEmptyHistoryAddress: FlatLabel(walletAddressLabel) {
 
 walletRowsSkip: 8px;
 walletRowDateHeight: 32px;
-walletRowDateTop: 14px;
-walletRowPadding: margins(20px, 12px, 20px, 12px);
-walletRowAddressTop: 2px;
+walletRowDateTop: 13px;
+walletRowPadding: margins(20px, 8px, 20px, 11px);
+walletRowGramsStyle: TextStyle(defaultTextStyle) {
+	font: font(16px semibold);
+}
+walletRowNanoStyle: TextStyle(defaultTextStyle) {
+	font: font(14px semibold);
+}
+walletRowAddressTop: 5px;
 walletRowCommentTop: 4px;
 walletRowFeesTop: 4px;
 
@@ -275,7 +281,7 @@ walletConfirmationFeeSkip: 8px;
 
 walletInput: InputField(defaultInputField) {
 	textBg: transparent;
-	textMargins: margins(0px, 7px, 0px, 7px);
+	textMargins: margins(0px, 7px, 0px, 4px);
 
 	placeholderFg: placeholderFg;
 	placeholderFgActive: placeholderFgActive;

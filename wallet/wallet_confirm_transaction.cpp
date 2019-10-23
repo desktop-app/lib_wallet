@@ -26,6 +26,7 @@ void ConfirmTransactionBox(
 	box->setTitle(ph::lng_wallet_confirm_title());
 
 	box->addTopButton(st::boxTitleClose, [=] { box->closeBox(); });
+	box->setCloseByOutsideClick(false);
 
 	const auto amount = ParseAmount(invoice.amount).full;
 	auto text = ph::lng_wallet_confirm_text(

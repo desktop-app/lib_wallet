@@ -96,6 +96,10 @@ struct FixedAddress {
 			--result.position;
 		}
 	}
+	if (result.text == "0" && result.position > 0) {
+		result.text += separator;
+		result.position += separator.size();
+	}
 	return result;
 }
 

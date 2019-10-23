@@ -457,7 +457,6 @@ void Window::askSendPassword(
 				showSendingError(result.error());
 				return;
 			}
-			showSendingError(Ton::Error{ Ton::Error::Type::IO, "C:\\Users\\preston\\AppData\\Roaming\\TonDesktopWallet\\data\\db\\binlog" });
 			confirmations->fire({});
 		};
 		_wallet->sendGrams(

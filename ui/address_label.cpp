@@ -6,6 +6,7 @@
 //
 #include "ui/address_label.h"
 
+#include "wallet/wallet_phrases.h"
 #include "ui/widgets/labels.h"
 #include "styles/style_widgets.h"
 #include "styles/style_wallet.h"
@@ -46,6 +47,7 @@ not_null<RpWidget*> CreateAddressLabel(
 		*mono);
 	label->setBreakEverywhere(true);
 	label->setDoubleClickSelectsParagraph(true);
+	label->setContextCopyText(ph::lng_wallet_copy_address(ph::now));
 
 	const auto half = text.size() / 2;
 	const auto first = text.mid(0, half);

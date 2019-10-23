@@ -27,7 +27,8 @@ struct TransactionLayout {
 	QDateTime dateTime;
 	Ui::Text::String date;
 	Ui::Text::String time;
-	Ui::Text::String amount;
+	Ui::Text::String amountGrams;
+	Ui::Text::String amountNano;
 	Ui::Text::String address;
 	Ui::Text::String comment;
 	Ui::Text::String fees;
@@ -47,9 +48,11 @@ struct TransactionLayout {
 	result.time.setText(
 		st::defaultTextStyle,
 		ph::lng_wallet_short_time(result.dateTime.time())(ph::now));
-	result.amount.setText(
-		st::semiboldTextStyle,
-		ParseAmount(CalculateValue(data), true).full);
+	const auto amount = ParseAmount(CalculateValue(data), true);
+	result.amountGrams.setText(st::walletRowGramsStyle, amount.gramsString);
+	result.amountNano.setText(
+		st::walletRowNanoStyle,
+		amount.separator + amount.nanoString);
 	const auto address = ExtractAddress(data);
 	const auto addressPartWidth = [&](int from, int length = -1) {
 		return AddressStyle().font->width(address.mid(from, length));
@@ -154,7 +157,7 @@ void HistoryRow::resizeToWidth(int width) {
 	if (!_layout.date.isEmpty()) {
 		_height += st::walletRowDateHeight;
 	}
-	_height += padding.top() + _layout.amount.minHeight();
+	_height += padding.top() + _layout.amountGrams.minHeight();
 	_height += st::walletRowAddressTop + _layout.addressHeight;
 	if (!_layout.comment.isEmpty()) {
 		_height += st::walletRowCommentTop
@@ -190,13 +193,23 @@ void HistoryRow::paint(Painter &p, int x, int y) {
 	y += padding.top();
 
 	p.setPen(_layout.incoming ? st::boxTextFgGood : st::boxTextFgError);
-	_layout.amount.draw(p, x, y, avail);
+	_layout.amountGrams.draw(p, x, y, avail);
 
-	const auto diamondLeft = x
-		+ _layout.amount.maxWidth()
+	const auto nanoTop = y
+		+ st::walletRowGramsStyle.font->ascent
+		- st::walletRowNanoStyle.font->ascent;
+	const auto nanoLeft = x + _layout.amountGrams.maxWidth();
+	_layout.amountNano.draw(p, nanoLeft, nanoTop, avail);
+
+	const auto diamondTop = y
+		+ st::walletRowGramsStyle.font->ascent
+		- st::normalFont->ascent;
+	const auto diamondLeft = nanoLeft
+		+ _layout.amountNano.maxWidth()
 		+ st::normalFont->spacew;
-	Ui::PaintInlineDiamond(p, diamondLeft, y, st::normalFont);
+	Ui::PaintInlineDiamond(p, diamondLeft, diamondTop, st::normalFont);
 
+	const auto labelTop = diamondTop;
 	const auto labelLeft = diamondLeft
 		+ st::walletDiamondSize
 		+ st::normalFont->spacew;
@@ -204,14 +217,16 @@ void HistoryRow::paint(Painter &p, int x, int y) {
 	p.setFont(st::normalFont);
 	p.drawText(
 		labelLeft,
-		y + st::normalFont->ascent,
+		labelTop + st::normalFont->ascent,
 		(_layout.incoming
 			? ph::lng_wallet_row_from(ph::now)
 			: ph::lng_wallet_row_to(ph::now)));
 
+	const auto timeTop = labelTop;
+	const auto timeLeft = x + avail - _layout.time.maxWidth();
 	p.setPen(st::windowSubTextFg);
-	_layout.time.draw(p, x + avail - _layout.time.maxWidth(), y, avail);
-	y += _layout.amount.minHeight();
+	_layout.time.draw(p, timeLeft, timeTop, avail);
+	y += _layout.amountGrams.minHeight();
 
 	p.setPen(st::windowFg);
 	y += st::walletRowAddressTop;

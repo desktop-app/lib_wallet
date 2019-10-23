@@ -18,6 +18,8 @@ phrase lng_wallet_continue = "Continue";
 phrase lng_wallet_done = "Done";
 phrase lng_wallet_save = "Save";
 
+phrase lng_wallet_copy_address = "Copy Wallet Address";
+
 phrase lng_wallet_intro_title = "Gram Wallet";
 phrase lng_wallet_intro_description = "Gram wallet allows you to make fast and\nsecure blockchain-based payments\nwithout intermediaries.";
 phrase lng_wallet_intro_create = "Create My Wallet";
