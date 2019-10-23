@@ -52,6 +52,8 @@
       '<@(style_files)',
       '<(src_loc)/ui/address_label.cpp',
       '<(src_loc)/ui/address_label.h',
+      '<(src_loc)/ui/amount_label.cpp',
+      '<(src_loc)/ui/amount_label.h',
       '<(src_loc)/ui/inline_diamond.cpp',
       '<(src_loc)/ui/inline_diamond.h',
       '<(src_loc)/ui/lottie_widget.cpp',

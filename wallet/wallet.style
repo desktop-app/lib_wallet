@@ -7,6 +7,13 @@
 using "ui/basic.style";
 using "ui/widgets/widgets.style";
 
+WalletAmountLabel {
+	large: FlatLabel;
+	small: FlatLabel;
+	diamond: pixels;
+	diamondPosition: point;
+}
+
 walletScrollArea: ScrollArea(defaultScrollArea) {
 	round: 3px;
 	width: 12px;
@@ -156,40 +163,53 @@ walletTopLabel: FlatLabel(defaultFlatLabel) {
 }
 
 walletCoverHeight: 100px;
-walletCoverBalanceTop: 12px;
-walletCoverBalance: FlatLabel(defaultFlatLabel) {
-	textFg: walletBalanceFg;
-	style: TextStyle(defaultTextStyle) {
-		font: font(26px semibold);
+walletCoverBalanceTop: 3px;
+walletCoverBalance: WalletAmountLabel {
+	large: FlatLabel(defaultFlatLabel) {
+		textFg: walletBalanceFg;
+		style: TextStyle(defaultTextStyle) {
+			font: font(35px semibold);
+		}
 	}
+	small: FlatLabel(defaultFlatLabel) {
+		textFg: walletBalanceFg;
+		style: TextStyle(defaultTextStyle) {
+			font: font(25px semibold);
+		}
+	}
+	diamond: 38px;
+	diamondPosition: point(6px, 4px);
 }
-walletCoverLabelTop: 56px;
+walletCoverLabelTop: 53px;
 walletCoverLabel: FlatLabel(defaultFlatLabel) {
 	textFg: walletSubBalanceFg;
 }
 walletCoverButtonWidthFull: 300px;
 walletCoverButtonWidth: 140px;
-walletCoverButtonBottom: 26px;
+walletCoverButtonBottom: 25px;
 walletCoverButton: RoundButton(defaultActiveButton) {
+	height: 39px;
+	textTop: 11px;
 }
 
-walletEmptyHistoryHeight: 212px;
-walletEmptyLottieTop: 12px;
-walletEmptyLottieSize: 88px;
-walletEmptyHistoryTitleTop: 108px;
+walletEmptyHistoryHeight: 230px;
+walletEmptyLottieTop: 0px;
+walletEmptyLottieSize: 100px;
+walletEmptyHistoryTitleTop: 114px;
 walletEmptyHistoryTitle: FlatLabel(defaultFlatLabel) {
 	textFg: windowBoldFg;
 	style: TextStyle(defaultTextStyle) {
-		font: font(16px semibold);
+		font: font(20px semibold);
 	}
 }
-walletEmptyHistoryLabelTop: 146px;
+walletEmptyHistoryLabelTop: 153px;
 walletEmptyHistoryLabel: FlatLabel(defaultFlatLabel) {
 	textFg: windowSubTextFg;
 }
-walletEmptyHistoryAddressTop: 168px;
+walletEmptyHistoryAddressTop: 177px;
 walletEmptyHistoryAddress: FlatLabel(walletAddressLabel) {
 	style: TextStyle(defaultTextStyle) {
+		font: font(15px);
 		lineHeight: 18px;
 	}
 	align: align(center);
@@ -231,8 +251,7 @@ walletReceiveAddressLabel: FlatLabel(defaultFlatLabel) {
 }
 
 walletTransactionSummaryHeight: 60px;
-walletTransactionValue: FlatLabel(walletCoverBalance) {
-	textFg: windowBoldFg;
+walletTransactionValue: WalletAmountLabel(walletCoverBalance) {
 }
 walletTransactionValueTop: 20px;
 walletTransactionFee: FlatLabel(defaultFlatLabel) {

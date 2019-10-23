@@ -65,10 +65,7 @@ ParsedAmount ParseAmount(int64 amount, bool isSigned) {
 		nanos /= 10;
 		++zeros;
 	}
-	const auto &locale = QLocale::system();
-	const auto separator = locale.toString(0.1f
-	).replace('0', QString()
-	).replace('1', QString());
+	const auto separator = QLocale::system().decimalPoint();
 	result.full = result.gramsString = QString::number(result.grams);
 	if (isSigned && amount > 0) {
 		result.full = result.gramsString = '+' + result.gramsString;

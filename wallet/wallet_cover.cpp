@@ -10,6 +10,7 @@
 #include "wallet/wallet_phrases.h"
 #include "ui/widgets/labels.h"
 #include "ui/widgets/buttons.h"
+#include "ui/amount_label.h"
 #include "ui/lottie_widget.h"
 #include "ton/ton_state.h"
 #include "styles/style_wallet.h"
@@ -45,18 +46,11 @@ rpl::lifetime &Cover::lifetime() {
 void Cover::setupControls(rpl::producer<CoverState> &&state) {
 	auto amount = rpl::duplicate(
 		state
-	) | rpl::map([](const CoverState &state) {
-		return ParseAmount(std::max(state.balance, 0LL)).full;
+	) | rpl::map([](const CoverState &state) { AssertIsDebug();
+		return ParseAmount(std::max(/*state.balance + */0LL, 0LL));
 	});
 
-	const auto diamond = _widget.lifetime().make_state<Ui::LottieAnimation>(
-		&_widget,
-		Ui::LottieFromResource("diamond"));
-	diamond->start();
-	const auto diamondSize = st::walletCoverBalance.style.font->height;
-	const auto diamondSkip = st::walletCoverBalance.style.font->spacew;
-
-	const auto balance = Ui::CreateChild<Ui::FlatLabel>(
+	const auto balance = _widget.lifetime().make_state<Ui::AmountLabel>(
 		&_widget,
 		std::move(amount),
 		st::walletCoverBalance);
@@ -64,20 +58,11 @@ void Cover::setupControls(rpl::producer<CoverState> &&state) {
 		_widget.sizeValue(),
 		balance->widthValue()
 	) | rpl::start_with_next([=](QSize size, int width) {
-		width += diamondSkip + diamondSize;
 		const auto blockTop = (size.height()
 			+ st::walletTopBarHeight
 			- st::walletCoverHeight) / 2 - st::walletTopBarHeight;
 		const auto balanceTop = blockTop + st::walletCoverBalanceTop;
-		balance->moveToLeft(
-			(size.width() - width) / 2,
-			balanceTop,
-			size.width());
-		diamond->setGeometry({
-			(size.width() - width) / 2 + width - diamondSize,
-			balanceTop + (balance->height() - diamondSize) / 2,
-			diamondSize,
-			diamondSize });
+		balance->move((size.width() - width) / 2, balanceTop);
 	}, balance->lifetime());
 
 	const auto label = Ui::CreateChild<Ui::FlatLabel>(

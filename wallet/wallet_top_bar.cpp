@@ -195,7 +195,9 @@ rpl::producer<TopBarState> MakeTopBarState(
 		rpl::lifetime &alive) {
 	return rpl::combine(
 		std::move(state),
-		std::move(updates)
+		rpl::single(
+			Ton::Update{ Ton::SyncState() }
+		) | rpl::then(std::move(updates))
 	) | rpl::map([=](
 			const Ton::WalletViewerState &state,
 			const Ton::Update &update) -> rpl::producer<TopBarState> {
