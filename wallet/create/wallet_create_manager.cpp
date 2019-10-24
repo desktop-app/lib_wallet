@@ -24,6 +24,8 @@
 #include "base/call_delayed.h"
 #include "styles/style_wallet.h"
 
+#include <QtGui/QtEvents>
+
 #include <random>
 
 namespace Wallet::Create {
@@ -244,6 +246,18 @@ void Manager::showStep(
 	_step->importClicks(
 	) | rpl::start_with_next([=] {
 		showImport();
+	}, _step->lifetime());
+
+	_step->widget()->events(
+	) | rpl::filter([](not_null<QEvent*> e) {
+		return (e->type() == QEvent::KeyPress);
+	}) | rpl::start_with_next([=](not_null<QEvent*> e) {
+		const auto key = static_cast<QKeyEvent*>(e.get())->key();
+		if (key == Qt::Key_Enter || key == Qt::Key_Return) {
+			this->next();
+		} else if (key == Qt::Key_Escape) {
+			this->backByEscape();
+		}
 	}, _step->lifetime());
 
 	if (step) {

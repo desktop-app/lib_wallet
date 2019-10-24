@@ -62,16 +62,7 @@ void EnterPasscodeBox(
 	}, error->lifetime());
 	error->hide(anim::type::instant);
 
-	Ui::Connect(input, &Ui::PasswordInput::changed, [=] {
-		error->hide(anim::type::normal);
-	});
-
-	box->setFocusCallback([=] {
-		base::Platform::SwitchKeyboardLayoutToEnglish();
-		input->setFocusFast();
-	});
-
-	box->addButton(ph::lng_wallet_passcode_next(), [=] {
+	const auto next = [=] {
 		const auto value = input->getLastText().toUtf8();
 		if (value.isEmpty()) {
 			input->showError();
@@ -82,7 +73,19 @@ void EnterPasscodeBox(
 			error->entity()->setText(text);
 			error->show(anim::type::normal);
 		}));
+	};
+
+	Ui::Connect(input, &Ui::PasswordInput::changed, [=] {
+		error->hide(anim::type::normal);
 	});
+	Ui::Connect(input, &Ui::PasswordInput::submitted, next);
+
+	box->setFocusCallback([=] {
+		base::Platform::SwitchKeyboardLayoutToEnglish();
+		input->setFocusFast();
+	});
+
+	box->addButton(ph::lng_wallet_passcode_next(), next);
 	box->addButton(ph::lng_wallet_cancel(), [=] {
 		box->closeBox();
 	});

@@ -80,16 +80,7 @@ void ChangePasscodeBox(
 
 	error->hide(anim::type::instant);
 
-	Ui::Connect(old, &Ui::PasswordInput::changed, [=] {
-		error->hide(anim::type::normal);
-	});
-
-	box->setFocusCallback([=] {
-		base::Platform::SwitchKeyboardLayoutToEnglish();
-		old->setFocusFast();
-	});
-
-	box->addButton(ph::lng_wallet_save(), [=] {
+	const auto save = [=] {
 		const auto oldPassword = old->getLastText().toUtf8();
 		const auto nowPassword = now->getLastText().toUtf8();
 		if (oldPassword.isEmpty()) {
@@ -108,7 +99,34 @@ void ChangePasscodeBox(
 			error->entity()->setText(text);
 			error->show(anim::type::normal);
 		}));
+	};
+
+	Ui::Connect(old, &Ui::PasswordInput::changed, [=] {
+		error->hide(anim::type::normal);
 	});
+
+	Ui::Connect(old, &Ui::PasswordInput::submitted, [=] {
+		if (old->getLastText().isEmpty()) {
+			old->showError();
+		} else {
+			now->setFocus();
+		}
+	});
+	Ui::Connect(now, &Ui::PasswordInput::submitted, [=] {
+		if (now->getLastText().isEmpty()) {
+			now->showError();
+		} else {
+			repeat->setFocus();
+		}
+	});
+	Ui::Connect(repeat, &Ui::PasswordInput::submitted, save);
+
+	box->setFocusCallback([=] {
+		base::Platform::SwitchKeyboardLayoutToEnglish();
+		old->setFocusFast();
+	});
+
+	box->addButton(ph::lng_wallet_save(), save);
 	box->addButton(ph::lng_wallet_cancel(), [=] {
 		box->closeBox();
 	});

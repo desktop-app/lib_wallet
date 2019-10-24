@@ -101,7 +101,7 @@ void ViewTransactionBox(
 	AddBoxSubtitle(box, incoming
 		? ph::lng_wallet_view_sender()
 		: ph::lng_wallet_view_recipient());
-	box->addRow(	
+	box->addRow(
 		object_ptr<Ui::RpWidget>::fromRaw(Ui::CreateAddressLabel(
 			box,
 			address,

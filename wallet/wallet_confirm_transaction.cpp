@@ -17,6 +17,8 @@
 #include "styles/style_wallet.h"
 #include "styles/palette.h"
 
+#include <QtGui/QtEvents>
+
 namespace Wallet {
 
 void ConfirmTransactionBox(
@@ -71,6 +73,16 @@ void ConfirmTransactionBox(
 			0,
 			outerWidth);
 	}, feeLabel->lifetime());
+
+	box->events(
+	) | rpl::start_with_next([=](not_null<QEvent*> e) {
+		if (e->type() == QEvent::KeyPress) {
+			const auto key = static_cast<QKeyEvent*>(e.get())->key();
+			if (key == Qt::Key_Enter || key == Qt::Key_Return) {
+				confirmed();
+			}
+		}
+	}, box->lifetime());
 
 	box->addButton(ph::lng_wallet_confirm_send(), confirmed);
 	box->addButton(ph::lng_wallet_cancel(), [=] { box->closeBox(); });

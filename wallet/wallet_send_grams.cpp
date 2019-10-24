@@ -22,7 +22,7 @@ namespace Wallet {
 namespace {
 
 constexpr auto kMaxCommentLength = 500;
-constexpr auto kMaxAddressLength = 48;
+constexpr auto kAddressLength = 48;
 
 struct FixedAmount {
 	QString text;
@@ -57,7 +57,7 @@ struct FixedAddress {
 	result.address = invoice.mid(0, paramsPosition).replace(
 		QRegularExpression("[^a-zA-Z0-9_\\-]"),
 		QString()
-	).mid(0, kMaxAddressLength);
+	).mid(0, kAddressLength);
 	return result;
 }
 
@@ -238,6 +238,14 @@ void SendGramsBox(
 			if (!fixed.invoice.comment.isEmpty()) {
 				comment->setText(fixed.invoice.comment);
 			}
+			if (fixed.invoice.address.size() == kAddressLength
+				&& address->hasFocus()) {
+				if (amount->getLastText().isEmpty()) {
+					amount->setFocus();
+				} else {
+					comment->setFocus();
+				}
+			}
 		});
 	});
 
@@ -285,6 +293,24 @@ void SendGramsBox(
 		collected.comment = comment->getLastText();
 		done(collected, showError);
 	};
+
+	Ui::Connect(address, &Ui::InputField::submitted, [=] {
+		if (FixAddressInput(address->getLastText(), 0).invoice.address.size()
+			!= kAddressLength) {
+			address->showError();
+		} else {
+			amount->setFocus();
+		}
+	});
+	Ui::Connect(amount, &Ui::InputField::submitted, [=] {
+		if (ParseAmountString(amount->getLastText()) <= 0) {
+			amount->showError();
+		} else {
+			comment->setFocus();
+		}
+	});
+	Ui::Connect(comment, &Ui::InputField::submitted, submit);
+
 	box->addButton(
 		ph::lng_wallet_send_button(),
 		submit,
