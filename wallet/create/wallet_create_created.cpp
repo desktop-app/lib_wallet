@@ -24,8 +24,8 @@ Created::Created() : Step(Type::Default) {
 void Created::initControls() {
 	showLottie(
 		"created",
-		st::walletStepIntroLottieTop,
-		st::walletStepIntroLottieSize);
+		st::walletStepCreatedLottiePosition,
+		st::walletStepCreatedLottieSize);
 	stopLottieOnLoop();
 	showNextButton(ph::lng_wallet_continue());
 }

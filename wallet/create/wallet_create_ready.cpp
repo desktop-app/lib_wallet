@@ -21,11 +21,15 @@ Ready::Ready() : Step(Type::Default) {
 	initControls();
 }
 
+int Ready::desiredHeight() const {
+	return st::walletChecksHeight;
+}
+
 void Ready::initControls() {
 	showLottie(
 		"done",
-		st::walletStepIntroLottieTop,
-		st::walletStepIntroLottieSize);
+		st::walletStepReadyLottiePosition,
+		st::walletStepReadyLottieSize);
 	stopLottieOnLoop();
 
 	showNextButton(ph::lng_wallet_ready_show_account());

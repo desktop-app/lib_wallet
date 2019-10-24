@@ -26,7 +26,9 @@ Check::Check(
 : Step(Type::Default) {
 	Expects(indices.size() == 3);
 
-	setTitle(ph::lng_wallet_check_title(Ui::Text::RichLangValue));
+	setTitle(
+		ph::lng_wallet_check_title(Ui::Text::RichLangValue),
+		st::walletStepCheckTitleTop);
 	setDescription(ph::lng_wallet_check_description(
 	) | rpl::map([=](QString text) {
 		return text.replace(
@@ -71,15 +73,15 @@ void Check::initControls(
 		const std::vector<int> &indices) {
 	showLottie(
 		"test",
-		st::walletStepIntroLottieTop,
-		st::walletStepIntroLottieSize);
+		st::walletStepCheckLottiePosition,
+		st::walletStepCheckLottieSize);
 	stopLottieOnLoop();
 
 	const auto count = indices.size();
 	auto inputs = std::make_shared<std::vector<
 		std::unique_ptr<TonWordInput>>>();
 	const auto wordsTop = st::walletChecksTop;
-	const auto rowsBottom = wordsTop + count * st::walletWordHeight;
+	const auto rowsBottom = wordsTop + count * st::walletCheckHeight;
 	const auto isValid = [=](int index) {
 		Expects(index < count);
 
@@ -154,14 +156,11 @@ void Check::initControls(
 	inner()->sizeValue(
 	) | rpl::start_with_next([=](QSize size) {
 		const auto half = size.width() / 2;
-		const auto left = half - st::walletWordSkipLeft;
-		const auto right = half + st::walletWordSkipRight;
-		auto x = left;
+		const auto x = (size.width() - st::walletCheckInputField.width) / 2;
 		auto y = contentTop() + wordsTop;
-		auto index = 0;
 		for (const auto &input : *inputs) {
 			input->move(x, y);
-			y += st::walletWordHeight;
+			y += st::walletCheckHeight;
 		}
 	}, inner()->lifetime());
 

@@ -45,7 +45,7 @@ QImage AddImageMargins(const QImage &source, QMargins margins) {
 struct Step::SlideAnimationData {
 	Type type = Type();
 	std::unique_ptr<Ui::LottieAnimation> lottie;
-	int lottieTop = 0;
+	QPoint lottiePosition;
 	int lottieSize = 0;
 	QImage content;
 	int contentTop = 0;
@@ -120,7 +120,8 @@ void Step::showFinished() {
 		_lottie->attach(inner());
 		_lottie->setOpacity(1.);
 		_lottie->setGeometry(lottieGeometry(
-			contentTop() + _lottieTop,
+			_lottiePosition,
+			contentTop(),
 			_lottieSize));
 	}
 	_slideAnimation = SlideAnimation();
@@ -165,7 +166,8 @@ Step::SlideAnimationData Step::prepareSlideAnimationData() {
 	if (_lottie) {
 		_lottie->detach();
 		result.lottie = std::move(_lottie);
-		result.lottieTop = contentTop() + _lottieTop - scrollTop;
+		result.lottiePosition = _lottiePosition
+			+ QPoint(0, contentTop() - scrollTop);
 		result.lottieSize = _lottieSize;
 	}
 	result.content = prepareSlideAnimationContent();
@@ -266,7 +268,7 @@ void Step::showFast() {
 }
 
 void Step::showNextButton(rpl::producer<QString> text) {
-	_nextButton.emplace(inner(), std::move(text), st::walletNextButton);
+	_nextButton.emplace(inner(), std::move(text), st::walletStepNextButton);
 	_nextButton->setTextTransform(
 		Ui::RoundButton::TextTransform::NoTransform);
 	inner()->sizeValue(
@@ -332,10 +334,10 @@ void Step::showAnimatedSlide(not_null<Step*> previous, Direction direction) {
 	_slideAnimation.slideTop = was.contentTop;
 	_slideAnimation.slideWidth = was.content.width() / pixelRatio;
 	_slideAnimation.lottieWas = std::move(was.lottie);
-	_slideAnimation.lottieWasTop = was.lottieTop;
+	_slideAnimation.lottieWasPosition = was.lottiePosition;
 	_slideAnimation.lottieWasSize = was.lottieSize;
 	_slideAnimation.lottieNow = std::move(now.lottie);
-	_slideAnimation.lottieNowTop = now.lottieTop;
+	_slideAnimation.lottieNowPosition = now.lottiePosition;
 	_slideAnimation.lottieNowSize = now.lottieSize;
 	_slideAnimation.slide->setSnapshots(
 		Ui::PixmapFromImage(std::move(was.content)),
@@ -372,7 +374,8 @@ void Step::slideAnimationCallback() {
 		const auto delta = (1. - shown) * _slideAnimation.slideWidth;
 		_slideAnimation.lottieWas->setOpacity(scale);
 		_slideAnimation.lottieWas->setGeometry(lottieGeometry(
-			_slideAnimation.lottieWasTop + (1. - scale) * fullHeight / 2.,
+			_slideAnimation.lottieWasPosition,
+			(1. - scale) * fullHeight / 2.,
 			height).translated(forward ? -delta : delta, 0));
 	}
 	if (_slideAnimation.lottieNow) {
@@ -385,7 +388,8 @@ void Step::slideAnimationCallback() {
 		const auto delta = (1. - shown) * _slideAnimation.slideWidth;
 		_slideAnimation.lottieNow->setOpacity(scale);
 		_slideAnimation.lottieNow->setGeometry(lottieGeometry(
-			_slideAnimation.lottieNowTop + (1. - scale) * fullHeight / 2.,
+			_slideAnimation.lottieNowPosition,
+			(1. - scale) * fullHeight / 2.,
 			height).translated(forward ? delta : -delta, 0));
 	}
 	_widget->update();
@@ -406,11 +410,11 @@ void Step::ensureVisible(int top, int height) {
 	_scroll->scrollToY(top, top + height);
 }
 
-void Step::showLottie(const QString &name, int top, int size) {
+void Step::showLottie(const QString &name, QPoint position, int size) {
 	_lottie = std::make_unique<Ui::LottieAnimation>(
 		inner(),
 		Ui::LottieFromResource(name));
-	_lottieTop = top;
+	_lottiePosition = position;
 	_lottieSize = size;
 
 	inner()->sizeValue(
@@ -418,7 +422,8 @@ void Step::showLottie(const QString &name, int top, int size) {
 		return (_lottie->parent() == inner());
 	}) | rpl::start_with_next([=](QSize size) {
 		_lottie->setGeometry(lottieGeometry(
-			contentTop() + _lottieTop,
+			_lottiePosition,
+			contentTop(),
 			_lottieSize));
 	}, inner()->lifetime());
 }
@@ -435,13 +440,13 @@ void Step::stopLottieOnLoop(int loop) {
 	_lottie->stopOnLoop(loop);
 }
 
-QRect Step::lottieGeometry(int top, int size) const {
-	return {
-		(inner()->width() - size) / 2,
-		top,
+QRect Step::lottieGeometry(QPoint position, int top, int size) const {
+	return QRect(
+		position.x() + (inner()->width() - size) / 2,
+		position.y() + top,
 		size,
 		size
-	};
+	);
 }
 
 } // namespace Wallet::Create

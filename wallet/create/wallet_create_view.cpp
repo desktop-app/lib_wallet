@@ -64,8 +64,8 @@ void View::initControls(const std::vector<QString> &words, Layout layout) {
 
 	showLottie(
 		"paper",
-		st::walletStepIntroLottieTop,
-		st::walletStepIntroLottieSize);
+		st::walletStepViewLottiePosition,
+		st::walletStepViewLottieSize);
 	stopLottieOnLoop();
 
 	auto labels = std::make_shared<std::vector<std::pair<Word, Word>>>();

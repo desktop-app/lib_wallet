@@ -21,13 +21,6 @@ walletScrollArea: ScrollArea(defaultScrollArea) {
 	topsh: 0px;
 	bottomsh: 0px;
 }
-walletNextButton: RoundButton(defaultActiveButton) {
-	width: 224px;
-	height: 39px;
-
-	textTop: 10px;
-	font: font(14px semibold);
-}
 
 walletCenteredLabel: FlatLabel(defaultFlatLabel) {
 	align: align(center);
@@ -46,7 +39,14 @@ walletStepBackButton: IconButton(backButton) {
 	rippleAreaPosition: point(8px, 8px);
 }
 walletStepHeight: 400px;
-walletStepNextTop: 342px;
+walletStepNextButton: RoundButton(defaultActiveButton) {
+	width: 192px;
+	height: 39px;
+
+	textTop: 10px;
+	font: font(14px semibold);
+}
+walletStepNextTop: 332px;
 walletStepTitle: FlatLabel(walletBoldCenteredLabel) {
 	style: TextStyle(defaultTextStyle) {
 		font: font(19px semibold);
@@ -54,26 +54,32 @@ walletStepTitle: FlatLabel(walletBoldCenteredLabel) {
 		linkFontOver: font(19px semibold underline);
 	}
 }
-walletStepTitleTop: 136px;
+walletStepTitleTop: 146px;
 walletStepDescription: FlatLabel(walletGrayCenteredLabel) {
 	minWidth: 440px;
 	style: TextStyle(defaultTextStyle) {
 		font: font(14px);
 		linkFont: font(14px);
 		linkFontOver: font(14px underline);
-		lineHeight: 20px;
+		lineHeight: 19px;
 	}
 }
-walletStepDescriptionTop: 36px;
-walletStepScrollTitleTop: 164px;
-walletStepScrollDescriptionTop: 36px;
+walletStepDescriptionTop: 34px;
+walletStepScrollTitleTop: 162px;
+walletStepScrollDescriptionTop: 34px;
 
-walletStepIntroLottieTop: 20px;
-walletStepIntroLottieSize: 100px;
+walletStepIntroLottiePosition: point(0px, 16px);
+walletStepIntroLottieSize: 120px;
 
 walletImportButtonPosition: point(12px, 12px);
 
-walletWordsTop: 332px;
+walletStepCreatedLottiePosition: point(10px, 16px);
+walletStepCreatedLottieSize: 112px;
+
+walletStepViewLottiePosition: point(0px, 33px);
+walletStepViewLottieSize: 114px;
+
+walletWordsTop: 339px;
 walletWordIndexLabel: FlatLabel(defaultFlatLabel) {
 	textFg: introDescriptionFg;
 }
@@ -85,34 +91,43 @@ walletWordLabel: FlatLabel(defaultFlatLabel) {
 	}
 }
 walletWordIndexSkip: 8px;
-walletWordSkipLeft: 117px;
-walletWordSkipRight: 69px;
+walletWordSkipLeft: 86px;
+walletWordSkipRight: 51px;
 walletWordHeight: 32px;
-walletWordsNextSkip: 28px;
-walletWordsNextBottomSkip: 80px;
+walletWordsNextSkip: 19px;
+walletWordsNextBottomSkip: 81px;
 
-walletExportTitleTop: 140px;
-walletExportWordsTop: 308px;
-walletExportBottomSkip: 16px;
+walletExportTitleTop: 160px;
+walletExportWordsTop: 328px;
+walletExportBottomSkip: 4px;
 
-walletChecksHeight: 516px;
-walletChecksTop: 272px;
+walletStepCheckTitleTop: 150px;
+walletStepCheckLottiePosition: point(0px, 26px);
+walletStepCheckLottieSize: 104px;
+
+walletChecksHeight: 496px;
+walletChecksTop: 300px;
+walletCheckHeight: 37px;
 walletCheckInputField: InputField(defaultInputField) {
 	textMargins: margins(0px, 6px, 0px, 4px);
-	width: 224px;
+	width: 190px;
 	heightMin: 32px;
 }
 walletCheckInputSkip: 8px;
 
 walletImportTitleTop: 64px;
-walletImportNoWordsTop: 172px;
-walletImportWordsTop: 202px;
+walletImportSkipLeft: 106px;
+walletImportSkipRight: 31px;
+walletImportNoWordsTop: 176px;
+walletImportWordsTop: 222px;
 walletImportInputField: InputField(walletCheckInputField) {
 	width: 92px;
 }
 
-walletSetPasscodeEnterTop: 242px;
-walletSetPasscodeRepeatTop: 282px;
+walletStepPasscodeLottiePosition: point(10px, 26px);
+walletStepPasscodeLottieSize: 104px;
+walletSetPasscodeEnterTop: 282px;
+walletSetPasscodeRepeatTop: 342px;
 
 walletSuggestionsScroll: defaultSolidScroll;
 walletSuggestionsSkip: 4px;
@@ -122,6 +137,9 @@ walletSuggestionHeight: 28px;
 walletSuggestionShadowWidth: 1px;
 walletSuggestionLeft: 10px;
 walletSuggestionTop: 5px;
+
+walletStepReadyLottiePosition: point(10px, 26px);
+walletStepReadyLottieSize: 104px;
 
 walletMenuPosition: point(2px, 40px);
 walletDiamondSize: 22px;
@@ -227,6 +245,8 @@ walletRowNanoStyle: TextStyle(defaultTextStyle) {
 walletRowAddressTop: 5px;
 walletRowCommentTop: 4px;
 walletRowFeesTop: 4px;
+walletRowPending: icon {{ "wallet_pending", windowSubTextFg }};
+walletRowPendingPosition: point(5px, 0px);
 
 walletSubsectionTitle: FlatLabel(defaultFlatLabel) {
 	style: TextStyle(semiboldTextStyle) {
@@ -358,7 +378,7 @@ walletPasscodeErrorTop: 162px;
 walletChangePasscodeHeight: 280px;
 walletChangePasscodeOldTop: 120px;
 walletChangePasscodeErrorTop: 160px;
-walletChangePasscodeNowTop: 196px;
+walletChangePasscodeNowTop: 188px;
 walletChangePasscodeRepeatTop: 236px;
 
 walletSendingLottieSize: 120px;

@@ -14,6 +14,8 @@ class Ready final : public Step {
 public:
 	Ready();
 
+	int desiredHeight() const override;
+
 private:
 	void initControls();
 	void showFinishedHook() override;

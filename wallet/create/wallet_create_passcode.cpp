@@ -23,6 +23,10 @@ Passcode::Passcode() : Step(Type::Default) {
 	initControls();
 }
 
+int Passcode::desiredHeight() const {
+	return st::walletChecksHeight;
+}
+
 QByteArray Passcode::passcode() const {
 	return _passcode();
 }
@@ -34,8 +38,8 @@ void Passcode::setFocus() {
 void Passcode::initControls() {
 	showLottie(
 		"lock",
-		st::walletStepIntroLottieTop,
-		st::walletStepIntroLottieSize);
+		st::walletStepPasscodeLottiePosition,
+		st::walletStepPasscodeLottieSize);
 	stopLottieOnLoop();
 
 	const auto enter = Ui::CreateChild<Ui::PasswordInput>(

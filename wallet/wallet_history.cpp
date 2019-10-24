@@ -35,6 +35,7 @@ struct TransactionLayout {
 	int addressWidth = 0;
 	int addressHeight = 0;
 	bool incoming = false;
+	bool pending = false;
 };
 
 [[nodiscard]] const style::TextStyle &AddressStyle() {
@@ -78,6 +79,7 @@ struct TransactionLayout {
 			ph::lng_wallet_row_fees(ph::now).replace("{amount}", fee));
 	}
 	result.incoming = data.outgoing.empty();
+	result.pending = (data.id.lt == 0);
 	return result;
 }
 
@@ -127,14 +129,14 @@ QDateTime HistoryRow::date() const {
 void HistoryRow::setShowDate(bool show) {
 	if (!show) {
 		_layout.date.clear();
-	} else if (_id.lt != 0) {
-		_layout.date.setText(
-			st::semiboldTextStyle,
-			ph::lng_wallet_short_date(_layout.dateTime.date())(ph::now));
-	} else {
+	} else if (_layout.pending) {
 		_layout.date.setText(
 			st::semiboldTextStyle,
 			ph::lng_wallet_row_pending_date(ph::now));
+	} else {
+		_layout.date.setText(
+			st::semiboldTextStyle,
+			ph::lng_wallet_short_date(_layout.dateTime.date())(ph::now));
 	}
 }
 
@@ -226,6 +228,15 @@ void HistoryRow::paint(Painter &p, int x, int y) {
 	const auto timeLeft = x + avail - _layout.time.maxWidth();
 	p.setPen(st::windowSubTextFg);
 	_layout.time.draw(p, timeLeft, timeTop, avail);
+	if (_layout.pending) {
+		st::walletRowPending.paint(
+			p,
+			(timeLeft
+				- st::walletRowPendingPosition.x()
+				- st::walletRowPending.width()),
+			timeTop + st::walletRowPendingPosition.y(),
+			avail);
+	}
 	y += _layout.amountGrams.minHeight();
 
 	p.setPen(st::windowFg);

@@ -63,7 +63,7 @@ protected:
 	void setDescription(rpl::producer<TextWithEntities> text, int top = 0);
 	void ensureVisible(int top, int height);
 
-	void showLottie(const QString &name, int top, int size);
+	void showLottie(const QString &name, QPoint position, int size);
 	void startLottie();
 	void stopLottieOnLoop(int loop = 1);
 
@@ -88,9 +88,9 @@ private:
 		Direction direction = Direction();
 		int slideTop = 0;
 		int slideWidth = 0;
-		int lottieWasTop = 0;
+		QPoint lottieWasPosition;
 		int lottieWasSize = 0;
-		int lottieNowTop = 0;
+		QPoint lottieNowPosition;
 		int lottieNowSize = 0;
 	};
 
@@ -115,7 +115,10 @@ private:
 	void slideAnimationCallback();
 	void paintSlideAnimation(QPainter &p, QRect clip);
 
-	[[nodiscard]] QRect lottieGeometry(int top, int size) const;
+	[[nodiscard]] QRect lottieGeometry(
+		QPoint position,
+		int top,
+		int size) const;
 
 	const Type _type = Type();
 	const std::unique_ptr<Ui::RpWidget> _widget;
@@ -123,7 +126,7 @@ private:
 	const not_null<Ui::RpWidget*> _inner;
 
 	std::unique_ptr<Ui::LottieAnimation> _lottie;
-	int _lottieTop = 0;
+	QPoint _lottiePosition;
 	int _lottieSize = 0;
 	base::unique_qptr<Ui::FlatLabel> _title;
 	base::unique_qptr<Ui::FlatLabel> _description;

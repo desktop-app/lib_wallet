@@ -38,7 +38,7 @@ void Intro::initControls() {
 
 	showLottie(
 		"intro",
-		st::walletStepIntroLottieTop,
+		st::walletStepIntroLottiePosition,
 		st::walletStepIntroLottieSize);
 	showNextButton(ph::lng_wallet_intro_create());
 	auto importButton = object_ptr<Ui::PaddingWrap<Ui::LinkButton>>(

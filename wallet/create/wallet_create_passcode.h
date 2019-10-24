@@ -15,6 +15,7 @@ public:
 	Passcode();
 
 	[[nodiscard]] QByteArray passcode() const;
+	int desiredHeight() const override;
 
 	void setFocus() override;
 

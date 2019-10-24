@@ -155,8 +155,8 @@ void Import::initControls(Fn<std::vector<QString>(QString)> wordsByPrefix) {
 			(size.width() - noWords->width()) / 2,
 			st::walletImportNoWordsTop);
 		const auto half = size.width() / 2;
-		const auto left = half - st::walletWordSkipLeft;
-		const auto right = half + st::walletWordSkipRight;
+		const auto left = half - st::walletImportSkipLeft;
+		const auto right = half + st::walletImportSkipRight;
 		auto x = left;
 		auto y = contentTop() + wordsTop;
 		auto index = 0;
