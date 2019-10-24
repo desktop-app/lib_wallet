@@ -355,7 +355,13 @@ void Window::setupRefreshEach() {
 	Expects(_viewer != nullptr);
 	Expects(_info != nullptr);
 
-	rpl::single(
+	const auto basedOnActivity = _viewer->state(
+	) | rpl::map([] {
+		return (base::SinceLastUserInput() > kRefreshEachDelay)
+			? kRefreshInactiveDelay
+			: kRefreshEachDelay;
+	});
+	const auto basedOnWindowActive = rpl::single(
 		rpl::empty_value()
 	) | rpl::then(base::qt_signal_producer(
 		_window->windowHandle(),
@@ -364,13 +370,23 @@ void Window::setupRefreshEach() {
 		if (!_window->isActiveWindow()) {
 			return rpl::single(kRefreshInactiveDelay);
 		}
-		return _viewer->state(
-		) | rpl::map([] {
-			return (base::SinceLastUserInput() > kRefreshEachDelay)
-				? kRefreshInactiveDelay
-				: kRefreshEachDelay;
-		});
+		return rpl::duplicate(basedOnActivity);
+	}) | rpl::flatten_latest();
+
+	const auto basedOnPending = _viewer->state(
+	) | rpl::map([=](const Ton::WalletViewerState &state) {
+		return !state.wallet.pendingTransactions.empty();
+	}) | rpl::distinct_until_changed(
+	) | rpl::map([=](bool hasPending) -> rpl::producer<crl::time> {
+		if (hasPending) {
+			return rpl::single(kRefreshWhileSendingDelay);
+		}
+		return rpl::duplicate(basedOnWindowActive);
 	}) | rpl::flatten_latest(
+	);
+
+	rpl::duplicate(
+		basedOnPending
 	) | rpl::distinct_until_changed(
 	) | rpl::start_with_next([=](crl::time delay) {
 		_viewer->setRefreshEach(delay);
@@ -537,10 +553,6 @@ void Window::showSendingTransaction(
 	}
 	auto box = Box(SendingTransactionBox, std::move(confirmed));
 	_sendBox = box.data();
-	_viewer->setRefreshEach(kRefreshWhileSendingDelay);
-	_sendBox->lifetime().add(crl::guard(_viewer.get(), [=] {
-		_viewer->setRefreshEach(kRefreshEachDelay);
-	}));
 	_state.value(
 	) | rpl::filter([=](const Ton::WalletState &state) {
 		return ranges::find(state.pendingTransactions, transaction)
