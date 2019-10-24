@@ -535,7 +535,27 @@ void Window::showSendConfirmation(
 		return;
 	}
 	const auto confirmed = [=] {
-		askSendPassword(invoice, showInvoiceError);
+		if (invoice.address == _address) {
+			_layers->showBox(Box([=](not_null<Ui::GenericBox*> box) {
+				box->setTitle(ph::lng_wallet_same_address_title());
+				box->addRow(object_ptr<Ui::FlatLabel>(
+					box,
+					ph::lng_wallet_same_address_text(),
+					st::walletLabel));
+				box->addButton(ph::lng_wallet_same_address_proceed(), [=] {
+					box->closeBox();
+					askSendPassword(invoice, showInvoiceError);
+				});
+				box->addButton(ph::lng_wallet_cancel(), [=] {
+					box->closeBox();
+					if (_sendConfirmBox) {
+						_sendConfirmBox->closeBox();
+					}
+				});
+			}));
+		} else {
+			askSendPassword(invoice, showInvoiceError);
+		}
 	};
 	auto box = Box(
 		ConfirmTransactionBox,

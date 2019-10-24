@@ -126,6 +126,10 @@ phrase lng_wallet_confirm_text = "Do you want to send **{amount} Grams** to:";
 phrase lng_wallet_confirm_fee = "Fee: ~{amount} Grams";
 phrase lng_wallet_confirm_send = "Send Grams";
 
+phrase lng_wallet_same_address_title = "Warning";
+phrase lng_wallet_same_address_text = "Sending Grams from a wallet to the same wallet doesn't make sense, you will simply waste a portion of the value on blockchain fees.";
+phrase lng_wallet_same_address_proceed = "Proceed";
+
 phrase lng_wallet_passcode_title = "Password";
 phrase lng_wallet_passcode_enter = "Enter your password";
 phrase lng_wallet_passcode_next = "Next";
