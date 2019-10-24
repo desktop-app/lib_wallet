@@ -13,6 +13,7 @@
 #include "ui/widgets/buttons.h"
 #include "ui/inline_diamond.h"
 #include "base/algorithm.h"
+#include "base/qt_signal_producer.h"
 #include "base/qthelp_url.h"
 #include "styles/style_wallet.h"
 #include "styles/style_layers.h"
@@ -61,7 +62,10 @@ struct FixedAddress {
 	return result;
 }
 
-[[nodiscard]] FixedAmount FixAmountInput(const QString &text, int position) {
+[[nodiscard]] FixedAmount FixAmountInput(
+		const QString &was,
+		const QString &text,
+		int position) {
 	constexpr auto kMaxDigitsCount = 9;
 	const auto separator = AmountSeparator();
 
@@ -99,8 +103,13 @@ struct FixedAddress {
 		}
 	}
 	if (result.text == "0" && result.position > 0) {
-		result.text += separator;
-		result.position += separator.size();
+		if (was.startsWith('0')) {
+			result.text = QString();
+			result.position = 0;
+		} else {
+			result.text += separator;
+			result.position += separator.size();
+		}
 	}
 	return result;
 }
@@ -249,12 +258,17 @@ void SendGramsBox(
 		});
 	});
 
+	const auto lastAmountValue = std::make_shared<QString>();
 	Ui::Connect(amount, &Ui::InputField::changed, [=] {
 		Ui::PostponeCall(amount, [=] {
 			const auto position = amount->textCursor().position();
 			const auto now = amount->getLastText();
-			const auto fixed = FixAmountInput(now, position);
+			const auto fixed = FixAmountInput(
+				*lastAmountValue,
+				now,
+				position);
 			checkFunds(fixed.text);
+			*lastAmountValue = fixed.text;
 			if (fixed.text == now) {
 				return;
 			}
@@ -295,8 +309,7 @@ void SendGramsBox(
 	};
 
 	Ui::Connect(address, &Ui::InputField::submitted, [=] {
-		if (FixAddressInput(address->getLastText(), 0).invoice.address.size()
-			!= kAddressLength) {
+		if (address->getLastText().size() != kAddressLength) {
 			address->showError();
 		} else {
 			amount->setFocus();
@@ -311,8 +324,27 @@ void SendGramsBox(
 	});
 	Ui::Connect(comment, &Ui::InputField::submitted, submit);
 
+	const auto replaceAmountTag = [](int64 amount) {
+		return rpl::map([=](QString &&value) {
+			return value.replace("{amount}", ParseAmount(amount).full);
+		});
+	};
+
+	auto text = rpl::single(
+		rpl::empty_value()
+	) | rpl::then(base::qt_signal_producer(
+		amount,
+		&Ui::InputField::changed
+	)) | rpl::map([=]() -> rpl::producer<QString> {
+		const auto text = amount->getLastText();
+		const auto value = ParseAmountString(text).value_or(0);
+		return (value > 0)
+			? (ph::lng_wallet_send_button_amount() | replaceAmountTag(value))
+			: ph::lng_wallet_send_button();
+	}) | rpl::flatten_latest();
+
 	box->addButton(
-		ph::lng_wallet_send_button(),
+		std::move(text),
 		submit,
 		st::walletBottomButton
 	)->setTextTransform(Ui::RoundButton::TextTransform::NoTransform);

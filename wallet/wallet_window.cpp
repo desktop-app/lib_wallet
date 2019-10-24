@@ -361,6 +361,7 @@ void Window::setupRefreshEach() {
 			? kRefreshInactiveDelay
 			: kRefreshEachDelay;
 	});
+
 	const auto basedOnWindowActive = rpl::single(
 		rpl::empty_value()
 	) | rpl::then(base::qt_signal_producer(

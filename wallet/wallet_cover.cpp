@@ -17,6 +17,35 @@
 #include "styles/palette.h"
 
 namespace Wallet {
+namespace {
+
+not_null<Ui::RoundButton*> CreateCoverButton(
+		not_null<QWidget*> parent,
+		rpl::producer<QString> text,
+		const style::icon &icon) {
+	const auto result = Ui::CreateChild<Ui::RoundButton>(
+		parent.get(),
+		rpl::single(QString()),
+		st::walletCoverButton);
+	const auto label = Ui::CreateChild<Ui::FlatLabel>(
+		result,
+		std::move(text),
+		st::walletCoverButtonLabel);
+	label->paintRequest(
+	) | rpl::start_with_next([=, &icon](QRect clip) {
+		auto p = QPainter(label);
+		icon.paint(p, st::walletCoverIconPosition, label->width());
+	}, label->lifetime());
+	rpl::combine(
+		result->widthValue(),
+		label->widthValue()
+	) | rpl::start_with_next([=](int outer, int width) {
+		label->move((outer - width) / 2, st::walletCoverButton.textTop);
+	}, label->lifetime());
+	return result;
+}
+
+} // namespace
 
 Cover::Cover(not_null<Ui::RpWidget*> parent, rpl::producer<CoverState> state)
 : _widget(parent) {
@@ -88,18 +117,18 @@ void Cover::setupControls(rpl::producer<CoverState> &&state) {
 		return state.balance > 0;
 	}) | rpl::distinct_until_changed();
 
-	const auto receive = Ui::CreateChild<Ui::RoundButton>(
+	const auto receive = CreateCoverButton(
 		&_widget,
 		rpl::conditional(
 			rpl::duplicate(hasFunds),
 			ph::lng_wallet_cover_receive(),
 			ph::lng_wallet_cover_receive_full()),
-		st::walletCoverButton);
-	receive->setTextTransform(Ui::RoundButton::TextTransform::NoTransform);
-	const auto send = Ui::CreateChild<Ui::RoundButton>(
+		st::walletCoverReceiveIcon);
+
+	const auto send = CreateCoverButton(
 		&_widget,
 		ph::lng_wallet_cover_send(),
-		st::walletCoverButton);
+		st::walletCoverSendIcon);
 	send->setTextTransform(Ui::RoundButton::TextTransform::NoTransform);
 
 	rpl::combine(
