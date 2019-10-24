@@ -15,6 +15,7 @@
 #include "ui/text/text_utilities.h"
 #include "styles/style_layers.h"
 #include "styles/style_wallet.h"
+#include "styles/palette.h"
 
 namespace Wallet {
 
@@ -33,20 +34,20 @@ void ConfirmTransactionBox(
 	) | rpl::map([=](QString &&text) {
 		return Ui::Text::RichLangValue(text.replace("{amount}", amount));
 	});
-	box->addRow(object_ptr<Ui::FlatLabel>(
-		box,
-		std::move(text),
-		st::walletLabel));
-
-	box->addRow(object_ptr<Ui::FixedHeightWidget>(
-		box,
-		st::walletConfirmationSkip));
+	box->addRow(
+		object_ptr<Ui::FlatLabel>(
+			box,
+			std::move(text),
+			st::walletLabel),
+		st::walletConfirmationLabelPadding);
 
 	box->addRow(
 		object_ptr<Ui::RpWidget>::fromRaw(Ui::CreateAddressLabel(
 			box,
 			invoice.address,
-			st::walletConfirmationAddressLabel)));
+			st::walletConfirmationAddressLabel,
+			st::windowBgOver->c)),
+		st::walletConfirmationAddressPadding);
 
 	const auto feeParsed = ParseAmount(fee).full;
 	auto feeText = ph::lng_wallet_confirm_fee(
@@ -55,8 +56,7 @@ void ConfirmTransactionBox(
 	});
 	const auto feeWrap = box->addRow(object_ptr<Ui::FixedHeightWidget>(
 		box,
-		(st::walletConfirmationFeeSkip
-			+ st::walletConfirmationFee.style.font->height
+		(st::walletConfirmationFee.style.font->height
 			+ st::walletConfirmationSkip)));
 	const auto feeLabel = Ui::CreateChild<Ui::FlatLabel>(
 		feeWrap,
@@ -68,13 +68,9 @@ void ConfirmTransactionBox(
 	) | rpl::start_with_next([=](int innerWidth, int outerWidth) {
 		feeLabel->moveToLeft(
 			(outerWidth - innerWidth) / 2,
-			st::walletConfirmationFeeSkip,
+			0,
 			outerWidth);
 	}, feeLabel->lifetime());
-
-	box->addRow(object_ptr<Ui::FixedHeightWidget>(
-		box,
-		st::walletConfirmationSkip));
 
 	box->addButton(ph::lng_wallet_confirm_send(), confirmed);
 	box->addButton(ph::lng_wallet_cancel(), [=] { box->closeBox(); });

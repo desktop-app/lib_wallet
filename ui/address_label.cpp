@@ -35,7 +35,8 @@ style::TextStyle ComputeAddressStyle(const style::TextStyle &parent) {
 not_null<RpWidget*> CreateAddressLabel(
 		not_null<RpWidget*> parent,
 		const QString &text,
-		const style::FlatLabel &st) {
+		const style::FlatLabel &st,
+		std::optional<QColor> bg) {
 	const auto mono = parent->lifetime().make_state<style::FlatLabel>(st);
 	mono->style = ComputeAddressStyle(mono->style);
 	mono->minWidth = 50;
@@ -65,12 +66,26 @@ not_null<RpWidget*> CreateAddressLabel(
 		if (st.align & Qt::AlignHCenter) {
 			label->moveToLeft(
 				(width - label->widthNoMargins()) / 2,
-				0,
+				label->getMargins().top(),
 				width);
 		} else {
-			label->moveToLeft(0, 0, width);
+			label->moveToLeft(0, label->getMargins().top(), width);
 		}
 	}, result->lifetime());
+
+	if (bg) {
+		result->paintRequest(
+		) | rpl::start_with_next([=] {
+			auto p = QPainter(result);
+			auto hq = PainterHighQualityEnabler(p);
+			p.setBrush(*bg);
+			p.setPen(Qt::NoPen);
+			p.drawRoundedRect(
+				result->rect(),
+				st::roundRadiusSmall,
+				st::roundRadiusSmall);
+		}, result->lifetime());
+	}
 
 	return result;
 }

@@ -296,14 +296,21 @@ walletTransactionDateTop: 6px;
 walletTransactionCommentTop: 11px;
 walletTransactionBottomSkip: 16px;
 
-walletConfirmationAddressLabel: walletReceiveAddressLabel;
-walletConfirmationSkip: walletTransactionBottomSkip;
+walletConfirmationLabelPadding: margins(22px, 0px, 22px, 24px);
+walletConfirmationAddressLabel: FlatLabel(walletReceiveAddressLabel) {
+	style: TextStyle(defaultTextStyle) {
+		font: font(15px);
+		lineHeight: 20px;
+	}
+	margin: margins(8px, 8px, 8px, 7px);
+}
+walletConfirmationAddressPadding: margins(42px, 0px, 42px, 7px);
 walletConfirmationFee: walletTransactionFee;
-walletConfirmationFeeSkip: 8px;
+walletConfirmationSkip: 17px;
 
 walletInput: InputField(defaultInputField) {
 	textBg: transparent;
-	textMargins: margins(0px, 7px, 0px, 4px);
+	textMargins: margins(0px, 7px, 0px, 7px);
 
 	placeholderFg: placeholderFg;
 	placeholderFgActive: placeholderFgActive;
@@ -312,39 +319,41 @@ walletInput: InputField(defaultInputField) {
 	placeholderScale: 0.;
 	placeholderFont: boxTextFont;
 
-	heightMin: 32px;
+	heightMin: 34px;
 	heightMax: 100px;
 }
 walletSendInput: InputField(walletInput) {
 	textMargins: margins(0px, 7px, 0px, 0px);
-	heightMin: 52px;
+	heightMin: 55px;
 }
 walletSendAbout: FlatLabel(walletLabel) {
 	textFg: windowSubTextFg;
 }
-walletSendAboutPadding: margins(22px, 8px, 22px, 20px);
+walletSendAboutPadding: margins(22px, 7px, 22px, 16px);
 walletSendBalanceLabel: FlatLabel(defaultFlatLabel) {
 	textFg: windowSubTextFg;
 }
-walletSendAmountPadding: margins(22px, 0px, 22px, 12px);
+walletSendAmountPadding: margins(22px, 4px, 22px, 12px);
+walletSendCommentPadding: margins(22px, 0px, 22px, 18px);
 
 walletPasscodeHeight: 190px;
 walletPasscodeLottieSize: 100px;
 walletPasscodeLottieTop: 8px;
 walletPasscodeInput: InputField(walletInput) {
 	textBg: boxBg;
+	textMargins: margins(4px, 7px, 4px, 7px);
 	width: 206px;
-	heightMin: 34px;
+	heightMin: 38px;
 	font: font(15px);
 	placeholderFont: font(15px);
 	placeholderAlign: align(top);
 }
-walletPasscodeInputTop: 132px;
+walletPasscodeInputTop: 119px;
 walletPasscodeError: FlatLabel(walletLabel) {
 	textFg: boxTextFgError;
 	align: align(top);
 }
-walletPasscodeErrorTop: 172px;
+walletPasscodeErrorTop: 162px;
 
 walletChangePasscodeHeight: 280px;
 walletChangePasscodeOldTop: 120px;
@@ -352,17 +361,18 @@ walletChangePasscodeErrorTop: 160px;
 walletChangePasscodeNowTop: 196px;
 walletChangePasscodeRepeatTop: 236px;
 
-walletSendingLottieSize: 100px;
-walletSendingLottieTop: 64px;
+walletSendingLottieSize: 120px;
+walletSendingLottieTop: 32px;
 walletSendingTitle: walletEmptyHistoryTitle;
-walletSendingTitleTop: 168px;
+walletSendingTitleTop: 165px;
 walletSendingText: FlatLabel(walletSendAbout) {
 	align: align(top);
 }
-walletSendingTextTop: 204px;
+walletSendingTextTop: 201px;
 
-walletSentLottieSize: 100px;
-walletSentLottieTop: 64px;
+walletSentLottieSize: 120px;
+walletSentLottieLeft: 10px;
+walletSentLottieTop: 32px;
 
 walletWindowSize: size(392px, 520px);
 walletWindowSizeMin: size(392px, 520px);

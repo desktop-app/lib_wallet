@@ -25,6 +25,7 @@ class FlatLabel;
 [[nodiscard]] not_null<RpWidget*> CreateAddressLabel(
 	not_null<RpWidget*> parent,
 	const QString &text,
-	const style::FlatLabel &st);
+	const style::FlatLabel &st,
+	std::optional<QColor> bg = std::nullopt);
 
 } // namespace Ui

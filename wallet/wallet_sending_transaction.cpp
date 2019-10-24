@@ -107,8 +107,9 @@ void SendingDoneBox(
 
 	inner->widthValue(
 	) | rpl::start_with_next([=](int width) {
+		const auto left = +st::walletSentLottieLeft;
 		lottie->setGeometry({
-			(width - st::walletSentLottieSize) / 2,
+			(width - st::walletSentLottieSize) / 2 + left,
 			st::walletSentLottieTop,
 			st::walletSentLottieSize,
 			st::walletSentLottieSize });

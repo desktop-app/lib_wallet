@@ -21,7 +21,8 @@
 namespace Wallet {
 namespace {
 
-constexpr auto kMaxCommentSize = 500;
+constexpr auto kMaxCommentLength = 500;
+constexpr auto kMaxAddressLength = 48;
 
 struct FixedAmount {
 	QString text;
@@ -55,7 +56,8 @@ struct FixedAddress {
 	}
 	result.address = invoice.mid(0, paramsPosition).replace(
 		QRegularExpression("[^a-zA-Z0-9_\\-]"),
-		QString());
+		QString()
+	).mid(0, kMaxAddressLength);
 	return result;
 }
 
@@ -202,8 +204,8 @@ void SendGramsBox(
 			Ui::InputField::Mode::MultiLine,
 			ph::lng_wallet_send_comment(),
 			prepared.comment),
-		st::walletSendAmountPadding);
-	comment->setMaxLength(kMaxCommentSize);
+		st::walletSendCommentPadding);
+	comment->setMaxLength(kMaxCommentLength);
 
 	const auto checkFunds = [=](const QString &amount) {
 		if (const auto value = ParseAmountString(amount)) {
