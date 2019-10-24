@@ -22,6 +22,8 @@
 #include "ton/ton_wallet.h"
 #include "ton/ton_account_viewer.h"
 #include "base/platform/base_platform_process.h"
+#include "base/qt_signal_producer.h"
+#include "base/last_user_input.h"
 #include "ui/address_label.h"
 #include "ui/widgets/window.h"
 #include "ui/widgets/labels.h"
@@ -44,6 +46,7 @@ namespace Wallet {
 namespace {
 
 constexpr auto kRefreshEachDelay = 10 * crl::time(1000);
+constexpr auto kRefreshInactiveDelay = 60 * crl::time(1000);
 constexpr auto kRefreshWhileSendingDelay = 3 * crl::time(1000);
 
 } // namespace
@@ -293,7 +296,6 @@ void Window::showAccount(const QByteArray &publicKey) {
 
 	_address = Ton::Wallet::GetAddress(publicKey);
 	_viewer = _wallet->createAccountViewer(_address);
-	_viewer->setRefreshEach(kRefreshEachDelay);
 	_state = _viewer->state() | rpl::map([](Ton::WalletViewerState &&state) {
 		return std::move(state.wallet);
 	});
@@ -305,6 +307,8 @@ void Window::showAccount(const QByteArray &publicKey) {
 	data.updates = _wallet->updates();
 	_info = std::make_unique<Info>(_window->body(), std::move(data));
 	_layers->raise();
+
+	setupRefreshEach();
 
 	_viewer->loaded(
 	) | rpl::filter([](const Ton::Result<Ton::LoadedSlice> &value) {
@@ -344,6 +348,32 @@ void Window::showAccount(const QByteArray &publicKey) {
 			sendGrams(address);
 		};
 		_layers->showBox(Box(ViewTransactionBox, std::move(data), send));
+	}, _info->lifetime());
+}
+
+void Window::setupRefreshEach() {
+	Expects(_viewer != nullptr);
+	Expects(_info != nullptr);
+
+	rpl::single(
+		rpl::empty_value()
+	) | rpl::then(base::qt_signal_producer(
+		_window->windowHandle(),
+		&QWindow::activeChanged
+	)) | rpl::map([=]() -> rpl::producer<crl::time> {
+		if (!_window->isActiveWindow()) {
+			return rpl::single(kRefreshInactiveDelay);
+		}
+		return _viewer->state(
+		) | rpl::map([] {
+			return (base::SinceLastUserInput() > kRefreshEachDelay)
+				? kRefreshInactiveDelay
+				: kRefreshEachDelay;
+		});
+	}) | rpl::flatten_latest(
+	) | rpl::distinct_until_changed(
+	) | rpl::start_with_next([=](crl::time delay) {
+		_viewer->setRefreshEach(delay);
 	}, _info->lifetime());
 }
 

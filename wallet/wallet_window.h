@@ -71,6 +71,7 @@ private:
 		std::shared_ptr<bool> guard);
 
 	void showAccount(const QByteArray &publicKey);
+	void setupRefreshEach();
 	void sendGrams(const QString &invoice = QString());
 	void confirmTransaction(
 		const PreparedInvoice &invoice,
