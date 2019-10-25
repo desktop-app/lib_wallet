@@ -134,14 +134,14 @@ phrase lng_wallet_send_amount = "Amount";
 phrase lng_wallet_send_balance = "Balance: {amount}";
 phrase lng_wallet_send_comment = "Comment (optional)";
 phrase lng_wallet_send_button = "Send Grams";
-phrase lng_wallet_send_button_amount = "Send {amount} Grams";
+phrase lng_wallet_send_button_amount = "Send {grams}";
 
 phrase lng_wallet_send_failed_title = "Send failed";
 phrase lng_wallet_send_failed_text = "Could not perform the transaction. Please check the balance and try again.";
 
 phrase lng_wallet_confirm_title = "Confirmation";
-phrase lng_wallet_confirm_text = "Do you want to send **{amount} Grams** to:";
-phrase lng_wallet_confirm_fee = "Fee: ~{amount} Grams";
+phrase lng_wallet_confirm_text = "Do you want to send **{grams}** to:";
+phrase lng_wallet_confirm_fee = "Fee: ~{grams}";
 phrase lng_wallet_confirm_send = "Send Grams";
 
 phrase lng_wallet_same_address_title = "Warning";
@@ -157,7 +157,6 @@ phrase lng_wallet_sending_title = "Sending Grams";
 phrase lng_wallet_sending_text = "Please wait a few seconds for your\ntransaction to be processed...";
 
 phrase lng_wallet_sent_title = "Done!";
-phrase lng_wallet_sent_text = "{amount} Grams have been sent.";
 phrase lng_wallet_sent_close = "Close";
 
 const auto walletCountValidate = check_phrase_count(Wallet::kPhrasesCount);
@@ -222,6 +221,16 @@ Fn<phrase(QTime)> lng_wallet_short_time = [](QTime time) {
 	return time.toString(Qt::SystemLocaleShortDate);
 };
 
+Fn<phrase(QString)> lng_wallet_grams_count = [](QString text) {
+	return text + ((text == "1") ? " Gram" : " Grams");
+};
+
+Fn<phrase(QString)> lng_wallet_grams_count_sent = [](QString text) {
+	return text + ((text == "1")
+		? " Gram has been sent."
+		: " Grams have been sent.");
+};
+
 } // namespace ph
 
 namespace Wallet {
@@ -230,7 +239,8 @@ void SetPhrases(
 		ph::details::phrase_value_array<kPhrasesCount> data,
 		Fn<rpl::producer<QString>(int)> wallet_refreshed_minutes_ago,
 		Fn<rpl::producer<QString>(QDate)> wallet_short_date,
-		Fn<rpl::producer<QString>(QTime)> wallet_short_time) {
+		Fn<rpl::producer<QString>(QTime)> wallet_short_time,
+		Fn<rpl::producer<QString>(QString)> wallet_grams_count) {
 	ph::details::set_values(std::move(data));
 	ph::lng_wallet_refreshed_minutes_ago = [=](int minutes) {
 		return ph::phrase{ wallet_refreshed_minutes_ago(minutes) };
@@ -240,6 +250,9 @@ void SetPhrases(
 	};
 	ph::lng_wallet_short_time = [=](QTime date) {
 		return ph::phrase{ wallet_short_time(date) };
+	};
+	ph::lng_wallet_grams_count = [=](QString text) {
+		return ph::phrase{ wallet_grams_count(text) };
 	};
 }
 

@@ -157,23 +157,26 @@ extern phrase lng_wallet_sending_title;
 extern phrase lng_wallet_sending_text;
 
 extern phrase lng_wallet_sent_title;
-extern phrase lng_wallet_sent_text;
 extern phrase lng_wallet_sent_close;
 
 extern Fn<phrase(int)> lng_wallet_refreshed_minutes_ago;
 extern Fn<phrase(QDate)> lng_wallet_short_date;
 extern Fn<phrase(QTime)> lng_wallet_short_time;
+extern Fn<phrase(QString)> lng_wallet_grams_count;
+extern Fn<phrase(QString)> lng_wallet_grams_count_sent;
 
 } // namespace ph
 
 namespace Wallet {
 
-inline constexpr auto kPhrasesCount = 120;
+inline constexpr auto kPhrasesCount = 119;
 
 void SetPhrases(
 	ph::details::phrase_value_array<kPhrasesCount> data,
 	Fn<rpl::producer<QString>(int)> wallet_refreshed_minutes_ago,
 	Fn<rpl::producer<QString>(QDate)> wallet_short_date,
-	Fn<rpl::producer<QString>(QTime)> wallet_short_time);
+	Fn<rpl::producer<QString>(QTime)> wallet_short_time,
+	Fn<rpl::producer<QString>(QString)> wallet_grams_count,
+	Fn<rpl::producer<QString>(QString)> wallet_grams_count_sent);
 
 } // namespace Wallet

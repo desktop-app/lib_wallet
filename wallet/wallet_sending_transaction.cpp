@@ -91,18 +91,13 @@ void SendingDoneBox(
 	lottie->stopOnLoop(1);
 
 	const auto amount = ParseAmount(-CalculateValue(result)).full;
-	auto description = ph::lng_wallet_sent_text(
-	) | rpl::map([=](QString &&value) {
-		return value.replace("{amount}", amount);
-	});
-
 	const auto title = Ui::CreateChild<Ui::FlatLabel>(
 		inner,
 		ph::lng_wallet_sent_title(),
 		st::walletSendingTitle);
 	const auto text = Ui::CreateChild<Ui::FlatLabel>(
 		inner,
-		std::move(description),
+		ph::lng_wallet_grams_count_sent(amount)(),
 		st::walletSendingText);
 
 	inner->widthValue(

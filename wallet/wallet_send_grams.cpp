@@ -218,9 +218,9 @@ void SendGramsBox(
 	});
 	Ui::Connect(comment, &Ui::InputField::submitted, submit);
 
-	const auto replaceAmountTag = [](int64 amount) {
-		return rpl::map([=](QString &&value) {
-			return value.replace("{amount}", ParseAmount(amount).full);
+	const auto replaceGramsTag = [] {
+		return rpl::map([=](QString &&text, const QString &grams) {
+			return text.replace("{grams}", grams);
 		});
 	};
 
@@ -233,7 +233,10 @@ void SendGramsBox(
 		const auto text = amount->getLastText();
 		const auto value = ParseAmountString(text).value_or(0);
 		return (value > 0)
-			? (ph::lng_wallet_send_button_amount() | replaceAmountTag(value))
+			? rpl::combine(
+				ph::lng_wallet_send_button_amount(),
+				ph::lng_wallet_grams_count(ParseAmount(value).full)()
+			) | replaceGramsTag()
 			: ph::lng_wallet_send_button();
 	}) | rpl::flatten_latest();
 

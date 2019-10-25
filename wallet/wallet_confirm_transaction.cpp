@@ -32,9 +32,11 @@ void ConfirmTransactionBox(
 	box->setCloseByOutsideClick(false);
 
 	const auto amount = ParseAmount(invoice.amount).full;
-	auto text = ph::lng_wallet_confirm_text(
-	) | rpl::map([=](QString &&text) {
-		return Ui::Text::RichLangValue(text.replace("{amount}", amount));
+	auto text = rpl::combine(
+		ph::lng_wallet_confirm_text(),
+		ph::lng_wallet_grams_count(amount)()
+	) | rpl::map([=](QString &&text, const QString &grams) {
+		return Ui::Text::RichLangValue(text.replace("{grams}", grams));
 	});
 	box->addRow(
 		object_ptr<Ui::FlatLabel>(
@@ -52,9 +54,11 @@ void ConfirmTransactionBox(
 		st::walletConfirmationAddressPadding);
 
 	const auto feeParsed = ParseAmount(fee).full;
-	auto feeText = ph::lng_wallet_confirm_fee(
-	) | rpl::map([=](QString &&text) {
-		return text.replace("{amount}", feeParsed);
+	auto feeText = rpl::combine(
+		ph::lng_wallet_confirm_fee(),
+		ph::lng_wallet_grams_count(feeParsed)()
+	) | rpl::map([=](QString &&text, const QString &grams) {
+		return text.replace("{grams}", grams);
 	});
 	const auto feeWrap = box->addRow(object_ptr<Ui::FixedHeightWidget>(
 		box,
