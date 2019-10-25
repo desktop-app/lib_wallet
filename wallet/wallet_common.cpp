@@ -295,6 +295,37 @@ not_null<Ui::InputField*> CreateCommentInput(
 		std::move(placeholder),
 		value);
 	result->setMaxLength(kMaxCommentLength);
+	Ui::Connect(result, &Ui::InputField::changed, [=] {
+		Ui::PostponeCall(result, [=] {
+			const auto text = result->getLastText();
+			const auto utf = text.toUtf8();
+			if (utf.size() <= kMaxCommentLength) {
+				return;
+			}
+			const auto position = result->textCursor().position();
+			const auto update = [&](const QString &text, int position) {
+				result->setText(text);
+				result->setCursorPosition(position);
+			};
+			const auto after = text.midRef(position).toUtf8();
+			if (after.size() <= kMaxCommentLength) {
+				const auto remove = utf.size() - kMaxCommentLength;
+				const auto inutf = text.midRef(0, position).toUtf8().size();
+				const auto inserted = utf.mid(inutf - remove, remove);
+				auto cut = QString::fromUtf8(inserted).size();
+				auto updated = text.mid(0, position - cut)
+					+ text.midRef(position);
+				while (updated.toUtf8().size() > kMaxCommentLength) {
+					++cut;
+					updated = text.mid(0, position - cut)
+						+ text.midRef(position);
+				}
+				update(updated, position - cut);
+			} else {
+				update(after.mid(after.size() - kMaxCommentLength), 0);
+			}
+		});
+	});
 	return result;
 }
 
