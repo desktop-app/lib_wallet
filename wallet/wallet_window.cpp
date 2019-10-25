@@ -11,6 +11,8 @@
 #include "wallet/wallet_info.h"
 #include "wallet/wallet_view_transaction.h"
 #include "wallet/wallet_receive_grams.h"
+#include "wallet/wallet_create_invoice.h"
+#include "wallet/wallet_invoice_qr.h"
 #include "wallet/wallet_send_grams.h"
 #include "wallet/wallet_enter_passcode.h"
 #include "wallet/wallet_change_passcode.h"
@@ -414,6 +416,12 @@ bool Window::handleLinkOpen(const QString &link) {
 }
 
 void Window::sendGrams(const QString &invoice) {
+	if (_sendConfirmBox) {
+		_sendConfirmBox->closeBox();
+	}
+	if (_sendBox) {
+		_sendBox->closeBox();
+	}
 	const auto checking = std::make_shared<bool>();
 	const auto send = [=](
 			const PreparedInvoice &invoice,
@@ -612,23 +620,50 @@ void Window::showSendingDone(std::optional<Ton::Transaction> result) {
 }
 
 void Window::receiveGrams() {
-	const auto share = [=](const QImage &image, const QString &link) {
+	_layers->showBox(Box(
+		ReceiveGramsBox,
+		_address,
+		TransferLink(_address),
+		[=] { createInvoice(); },
+		shareCallback(
+			ph::lng_wallet_receive_copied(ph::now),
+			ph::lng_wallet_receive_copied_qr(ph::now))));
+}
+
+void Window::createInvoice() {
+	_layers->showBox(Box(
+		CreateInvoiceBox,
+		_address,
+		[=](const QString &link) { showInvoiceQr(link); },
+		shareCallback(
+			ph::lng_wallet_invoice_copied(ph::now),
+			ph::lng_wallet_receive_copied_qr(ph::now))));
+}
+
+void Window::showInvoiceQr(const QString &link) {
+	_layers->showBox(Box(
+		InvoiceQrBox,
+		link,
+		shareCallback(
+			ph::lng_wallet_invoice_copied(ph::now),
+			ph::lng_wallet_receive_copied_qr(ph::now))));
+}
+
+Fn<void(QImage, QString)> Window::shareCallback(
+		const QString &copied,
+		const QString &qr) {
+	return [=](const QImage &image, const QString &link) {
 		if (!image.isNull()) {
 			auto mime = std::make_unique<QMimeData>();
 			mime->setText(link);
 			mime->setImageData(image);
 			QGuiApplication::clipboard()->setMimeData(mime.release());
-			showToast(ph::lng_wallet_receive_copied_qr(ph::now));
+			showToast(qr);
 		} else {
 			QGuiApplication::clipboard()->setText(link);
-			showToast(ph::lng_wallet_receive_copied(ph::now));
+			showToast(copied);
 		}
 	};
-	_layers->showBox(Box(
-		ReceiveGramsBox,
-		_address,
-		TransferLink(_address),
-		share));
 }
 
 void Window::showToast(const QString &text) {

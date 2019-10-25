@@ -70,6 +70,7 @@ void EnterPasscodeBox(
 		}
 		submit(value, crl::guard(box, [=](QString text) {
 			input->showError();
+			input->setSelection(0, input->getLastText().size());
 			error->entity()->setText(text);
 			error->show(anim::type::normal);
 		}));

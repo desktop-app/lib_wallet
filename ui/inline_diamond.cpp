@@ -39,6 +39,8 @@ QString ChooseVariant(int desiredSize) {
 }
 
 QImage CreateImage(int size) {
+	Expects(size > 0);
+
 	const auto variant = ChooseVariant(size);
 	auto result = QImage(":/gui/art/" + variant).scaled(
 		size,
@@ -91,14 +93,20 @@ not_null<RpWidget*> CreateInlineDiamond(
 	return result;
 }
 
-QImage DiamondQr(const Qr::Data &data, int pixel) {
+QImage DiamondQr(const Qr::Data &data, int pixel, int max = 0) {
+	Expects(data.size > 0);
+
+	if (max > 0 && data.size * pixel > max) {
+		pixel = std::max(max / data.size, 1);
+	}
+	pixel *= style::DevicePixelRatio();
 	return Qr::ReplaceCenter(
 		Qr::Generate(data, pixel),
 		Ui::InlineDiamondImage(Qr::ReplaceSize(data, pixel)));
 }
 
-QImage DiamondQr(const QString &text, int pixel) {
-	return DiamondQr(Qr::Encode(text), pixel);
+QImage DiamondQr(const QString &text, int pixel, int max) {
+	return DiamondQr(Qr::Encode(text), pixel, max);
 }
 
 QImage DiamondQrForShare(const QString &text) {

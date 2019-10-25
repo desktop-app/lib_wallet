@@ -10,6 +10,8 @@
 #include "ton/ton_state.h"
 #include "ton/ton_result.h"
 #include "ui/layers/generic_box.h"
+#include "ui/widgets/input_fields.h"
+#include "base/qthelp_url.h"
 #include "styles/style_wallet.h"
 
 #include <QtCore/QLocale>
@@ -19,6 +21,11 @@ namespace {
 
 constexpr auto kOneGram = 1'000'000'000;
 constexpr auto kNanoDigits = 9;
+
+struct FixedAmount {
+	QString text;
+	int position = 0;
+};
 
 std::optional<int64> ParseAmountGrams(const QString &trimmed) {
 	auto ok = false;
@@ -52,6 +59,58 @@ std::optional<int64> ParseAmountNano(QString trimmed) {
 	return (ok && value > 0 && value < kOneGram)
 		? std::make_optional(value)
 		: std::nullopt;
+}
+
+[[nodiscard]] FixedAmount FixAmountInput(
+		const QString &was,
+		const QString &text,
+		int position) {
+	constexpr auto kMaxDigitsCount = 9;
+	const auto separator = ParseAmount(1).separator;
+
+	auto result = FixedAmount{ text, position };
+	if (text.isEmpty()) {
+		return result;
+	} else if (text.startsWith('.')
+		|| text.startsWith(',')
+		|| text.startsWith(separator)) {
+		result.text.prepend('0');
+		++result.position;
+	}
+	auto separatorFound = false;
+	auto digitsCount = 0;
+	for (auto i = 0; i != result.text.size();) {
+		const auto ch = result.text[i];
+		const auto atSeparator = result.text.midRef(i).startsWith(separator);
+		if (ch >= '0' && ch <= '9' && digitsCount < kMaxDigitsCount) {
+			++i;
+			++digitsCount;
+			continue;
+		} else if (!separatorFound
+			&& (atSeparator || ch == '.' || ch == ',')) {
+			separatorFound = true;
+			if (!atSeparator) {
+				result.text.replace(i, 1, separator);
+			}
+			digitsCount = 0;
+			i += separator.size();
+			continue;
+		}
+		result.text.remove(i, 1);
+		if (result.position > i) {
+			--result.position;
+		}
+	}
+	if (result.text == "0" && result.position > 0) {
+		if (was.startsWith('0')) {
+			result.text = QString();
+			result.position = 0;
+		} else {
+			result.text += separator;
+			result.position += separator.size();
+		}
+	}
+	return result;
 }
 
 } // namespace
@@ -120,6 +179,29 @@ std::optional<int64> ParseAmountString(const QString &amount) {
 	return *grams + (*grams < 0 ? (-*nano) : (*nano));
 }
 
+PreparedInvoice ParseInvoice(QString invoice) {
+	const auto prefix = qstr("transfer/");
+	auto result = PreparedInvoice();
+
+	const auto position = invoice.indexOf(prefix, 0, Qt::CaseInsensitive);
+	if (position >= 0) {
+		invoice = invoice.mid(position + prefix.size());
+	}
+	const auto paramsPosition = invoice.indexOf('?');
+	if (paramsPosition >= 0) {
+		const auto params = qthelp::url_parse_params(
+			invoice.mid(paramsPosition + 1),
+			qthelp::UrlParamNameTransform::ToLower);
+		result.amount = params.value("amount").toULongLong();
+		result.comment = params.value("text");
+	}
+	result.address = invoice.mid(0, paramsPosition).replace(
+		QRegularExpression("[^a-zA-Z0-9_\\-]"),
+		QString()
+	).mid(0, kAddressLength);
+	return result;
+}
+
 int64 CalculateValue(const Ton::Transaction &data) {
 	const auto outgoing = ranges::accumulate(
 		data.outgoing,
@@ -143,8 +225,21 @@ QString ExtractMessage(const Ton::Transaction &data) {
 		: data.outgoing.front().message;
 }
 
-QString TransferLink(const QString &address) {
-	return "ton://transfer/" + address;
+QString TransferLink(
+		const QString &address,
+		int64 amount,
+		const QString &comment) {
+	const auto base = "ton://transfer/" + address;
+	auto params = QStringList();
+	if (amount > 0) {
+		params.push_back("amount=" + QString::number(amount));
+	}
+	if (!comment.isEmpty()) {
+		params.push_back("text=" + qthelp::url_encode(comment));
+	}
+	return params.isEmpty()
+		? base
+		: (base + '?' + params.join('&'));
 }
 
 not_null<Ui::FlatLabel*> AddBoxSubtitle(
@@ -156,6 +251,51 @@ not_null<Ui::FlatLabel*> AddBoxSubtitle(
 			std::move(text),
 			st::walletSubsectionTitle),
 		st::walletSubsectionTitlePadding);
+}
+
+not_null<Ui::InputField*> CreateAmountInput(
+		not_null<QWidget*> parent,
+		rpl::producer<QString> placeholder,
+		int64 amount) {
+	const auto result = Ui::CreateChild<Ui::InputField>(
+		parent.get(),
+		st::walletInput,
+		Ui::InputField::Mode::SingleLine,
+		std::move(placeholder),
+		(amount > 0 ? ParseAmount(amount).full : QString()));
+	const auto lastAmountValue = std::make_shared<QString>();
+	Ui::Connect(result, &Ui::InputField::changed, [=] {
+		Ui::PostponeCall(result, [=] {
+			const auto position = result->textCursor().position();
+			const auto now = result->getLastText();
+			const auto fixed = FixAmountInput(
+				*lastAmountValue,
+				now,
+				position);
+			*lastAmountValue = fixed.text;
+			if (fixed.text == now) {
+				return;
+			}
+			result->setText(fixed.text);
+			result->setFocusFast();
+			result->setCursorPosition(fixed.position);
+		});
+	});
+	return result;
+}
+
+not_null<Ui::InputField*> CreateCommentInput(
+		not_null<QWidget*> parent,
+		rpl::producer<QString> placeholder,
+		const QString &value) {
+	const auto result = Ui::CreateChild<Ui::InputField>(
+		parent.get(),
+		st::walletInput,
+		Ui::InputField::Mode::MultiLine,
+		std::move(placeholder),
+		value);
+	result->setMaxLength(kMaxCommentLength);
+	return result;
 }
 
 bool IsIncorrectPasswordError(const Ton::Error &error) {

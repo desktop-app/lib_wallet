@@ -97,9 +97,26 @@ extern phrase lng_wallet_view_send_to_recipient;
 
 extern phrase lng_wallet_receive_title;
 extern phrase lng_wallet_receive_description;
+extern phrase lng_wallet_receive_create_invoice;
 extern phrase lng_wallet_receive_share;
 extern phrase lng_wallet_receive_copied;
 extern phrase lng_wallet_receive_copied_qr;
+
+extern phrase lng_wallet_invoice_title;
+extern phrase lng_wallet_invoice_amount;
+extern phrase lng_wallet_invoice_number;
+extern phrase lng_wallet_invoice_comment;
+extern phrase lng_wallet_invoice_comment_about;
+extern phrase lng_wallet_invoice_url;
+extern phrase lng_wallet_invoice_copy_url;
+extern phrase lng_wallet_invoice_url_about;
+extern phrase lng_wallet_invoice_generate_qr;
+extern phrase lng_wallet_invoice_share;
+extern phrase lng_wallet_invoice_qr_title;
+extern phrase lng_wallet_invoice_qr_amount;
+extern phrase lng_wallet_invoice_qr_comment;
+extern phrase lng_wallet_invoice_qr_share;
+extern phrase lng_wallet_invoice_copied;
 
 extern phrase lng_wallet_menu_change_passcode;
 extern phrase lng_wallet_menu_export;
@@ -151,7 +168,7 @@ extern Fn<phrase(QTime)> lng_wallet_short_time;
 
 namespace Wallet {
 
-inline constexpr auto kPhrasesCount = 104;
+inline constexpr auto kPhrasesCount = 120;
 
 void SetPhrases(
 	ph::details::phrase_value_array<kPhrasesCount> data,

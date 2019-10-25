@@ -89,9 +89,14 @@ private:
 		rpl::producer<> confirmed);
 	void showSendingDone(std::optional<Ton::Transaction> result);
 	void receiveGrams();
+	void createInvoice();
+	void showInvoiceQr(const QString &link);
 	void changePassword();
 	void askExportPassword();
 	void showExported(const std::vector<QString> &words);
+	Fn<void(QImage, QString)> shareCallback(
+		const QString &copied,
+		const QString &qr);
 	void logout();
 
 	const not_null<Ton::Wallet*> _wallet;

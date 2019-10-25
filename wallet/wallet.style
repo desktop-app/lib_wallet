@@ -298,6 +298,12 @@ walletReceiveAddressLabel: FlatLabel(defaultFlatLabel) {
 	}
 	align: align(top);
 }
+walletReceiveLinkPadding: margins(22px, 10px, 22px, 8px);
+
+walletInvoiceLinkLabel: FlatLabel(defaultFlatLabel) {
+	minWidth: 104px;
+}
+walletInvoiceQrSkip: 30px;
 
 walletTransactionSummaryHeight: 62px;
 walletTransactionValue: WalletAmountLabel(walletCoverBalance) {

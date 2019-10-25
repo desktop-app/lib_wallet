@@ -97,9 +97,26 @@ phrase lng_wallet_view_send_to_recipient = "Send Grams to this Recipient";
 
 phrase lng_wallet_receive_title = "Receive Grams";
 phrase lng_wallet_receive_description = "Share this address with other Gram wallet owners to receive Grams from them:";
+phrase lng_wallet_receive_create_invoice = "Create Invoice";
 phrase lng_wallet_receive_share = "Share Wallet Address";
 phrase lng_wallet_receive_copied = "Transfer link copied to clipboard.";
-phrase lng_wallet_receive_copied_qr = "QR code copied to clipboard.";
+phrase lng_wallet_receive_copied_qr = "QR Code copied to clipboard.";
+
+phrase lng_wallet_invoice_title = "Create Invoice";
+phrase lng_wallet_invoice_amount = "Amount";
+phrase lng_wallet_invoice_number = "Number of grams you expect to receive";
+phrase lng_wallet_invoice_comment = "Comment (optional)";
+phrase lng_wallet_invoice_comment_about = "You can specify the amount and purpose of the payment to save the sender some time.";
+phrase lng_wallet_invoice_url = "Invoice URL";
+phrase lng_wallet_invoice_copy_url = "Copy Invoice URL";
+phrase lng_wallet_invoice_url_about = "Share this address with other Gram wallet owners to receive Grams from them.";
+phrase lng_wallet_invoice_generate_qr = "Generate QR Code";
+phrase lng_wallet_invoice_share = "Share Invoice URL";
+phrase lng_wallet_invoice_qr_title = "Invoice QR";
+phrase lng_wallet_invoice_qr_amount = "Expected amount";
+phrase lng_wallet_invoice_qr_comment = "Comment";
+phrase lng_wallet_invoice_qr_share = "Share QR Code";
+phrase lng_wallet_invoice_copied = "Invoice link copied to clipboard.";
 
 phrase lng_wallet_menu_change_passcode = "Change password";
 phrase lng_wallet_menu_export = "Export wallet";

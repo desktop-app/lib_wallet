@@ -96,6 +96,7 @@ void ChangePasscodeBox(
 
 		submit(oldPassword, nowPassword, crl::guard(box, [=](QString text) {
 			old->showError();
+			old->setSelection(0, old->getLastText().size());
 			error->entity()->setText(text);
 			error->show(anim::type::normal);
 		}));

@@ -15,12 +15,16 @@ struct TransactionToSend;
 namespace Ui {
 class GenericBox;
 class FlatLabel;
+class InputField;
 } // namespace Ui
 
 namespace Wallet {
 
 struct PreparedInvoice;
 enum class InvoiceField;
+
+inline constexpr auto kMaxCommentLength = 500;
+inline constexpr auto kAddressLength = 48;
 
 struct ParsedAmount {
 	int64 grams = 0;
@@ -29,6 +33,12 @@ struct ParsedAmount {
 	QString separator;
 	QString nanoString;
 	QString full;
+};
+
+struct PreparedInvoice {
+	QString address;
+	int64 amount;
+	QString comment;
 };
 
 enum class Action {
@@ -42,15 +52,28 @@ enum class Action {
 
 [[nodiscard]] ParsedAmount ParseAmount(int64 amount, bool isSigned = false);
 [[nodiscard]] std::optional<int64> ParseAmountString(const QString &amount);
+[[nodiscard]] PreparedInvoice ParseInvoice(QString invoice);
 [[nodiscard]] int64 CalculateValue(const Ton::Transaction &data);
 [[nodiscard]] QString ExtractAddress(const Ton::Transaction &data);
 [[nodiscard]] QString ExtractMessage(const Ton::Transaction &data);
 
-[[nodiscard]] QString TransferLink(const QString &address);
+[[nodiscard]] QString TransferLink(
+	const QString &address,
+	int64 amount = 0,
+	const QString &comment = QString());
 
 not_null<Ui::FlatLabel*> AddBoxSubtitle(
 	not_null<Ui::GenericBox*> box,
 	rpl::producer<QString> text);
+
+[[nodiscard]] not_null<Ui::InputField*> CreateAmountInput(
+	not_null<QWidget*> parent,
+	rpl::producer<QString> placeholder,
+	int64 amount = 0);
+[[nodiscard]] not_null<Ui::InputField*> CreateCommentInput(
+	not_null<QWidget*> parent,
+	rpl::producer<QString> placeholder,
+	const QString &value = QString());
 
 [[nodiscard]] bool IsIncorrectPasswordError(const Ton::Error &error);
 [[nodiscard]] bool IsIncorrectMnemonicError(const Ton::Error &error);

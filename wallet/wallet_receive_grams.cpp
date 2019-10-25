@@ -21,6 +21,7 @@ void ReceiveGramsBox(
 		not_null<Ui::GenericBox*> box,
 		const QString &address,
 		const QString &link,
+		Fn<void()> createInvoice,
 		Fn<void(QImage, QString)> share) {
 	box->setTitle(ph::lng_wallet_receive_title());
 	box->setStyle(st::walletBox);
@@ -34,9 +35,7 @@ void ReceiveGramsBox(
 			st::walletLabel),
 		st::walletReceiveLabelPadding);
 
-	const auto qr = Ui::DiamondQr(
-		link,
-		st::walletReceiveQrPixel * style::DevicePixelRatio());
+	const auto qr = Ui::DiamondQr(link, st::walletReceiveQrPixel);
 	const auto size = qr.width() / style::DevicePixelRatio();
 	const auto container = box->addRow(object_ptr<Ui::AbstractButton>(box));
 	container->resize(size, size);
@@ -56,6 +55,24 @@ void ReceiveGramsBox(
 			address,
 			st::walletReceiveAddressLabel)),
 		st::walletReceiveAddressPadding);
+
+	const auto createLinkWrap = box->addRow(
+		object_ptr<Ui::FixedHeightWidget>(
+			box,
+			st::boxLinkButton.font->height),
+		st::walletReceiveLinkPadding);
+	const auto createLink = Ui::CreateChild<Ui::LinkButton>(
+		createLinkWrap,
+		ph::lng_wallet_receive_create_invoice(ph::now),
+		st::boxLinkButton);
+	createLinkWrap->widthValue(
+	) | rpl::start_with_next([=](int width) {
+		createLink->move((width - createLink->width()) / 2, 0);
+	}, createLink->lifetime());
+	createLink->setClickedCallback([=] {
+		box->closeBox();
+		createInvoice();
+	});
 
 	box->addButton(
 		ph::lng_wallet_receive_share(),

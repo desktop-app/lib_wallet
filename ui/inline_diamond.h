@@ -24,7 +24,7 @@ not_null<RpWidget*> CreateInlineDiamond(
 	int y,
 	const style::font &font);
 
-[[nodiscard]] QImage DiamondQr(const QString &text, int pixel);
+[[nodiscard]] QImage DiamondQr(const QString &text, int pixel, int max = 0);
 [[nodiscard]] QImage DiamondQrForShare(const QString &text);
 
 } // namespace Ui

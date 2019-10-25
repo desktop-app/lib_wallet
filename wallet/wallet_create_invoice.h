@@ -10,18 +10,10 @@
 
 namespace Wallet {
 
-struct PreparedInvoice;
-
-enum class InvoiceField {
-	Address,
-	Amount,
-	Comment,
-};
-
-void SendGramsBox(
+void CreateInvoiceBox(
 	not_null<Ui::GenericBox*> box,
-	const QString &invoice,
-	rpl::producer<int64> balance,
-	Fn<void(PreparedInvoice, Fn<void(InvoiceField)> error)> done);
+	const QString &address,
+	Fn<void(QString)> generateQr,
+	Fn<void(QImage, QString)> share);
 
 } // namespace Wallet

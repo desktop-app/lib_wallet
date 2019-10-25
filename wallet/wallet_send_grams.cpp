@@ -14,21 +14,12 @@
 #include "ui/inline_diamond.h"
 #include "base/algorithm.h"
 #include "base/qt_signal_producer.h"
-#include "base/qthelp_url.h"
 #include "styles/style_wallet.h"
 #include "styles/style_layers.h"
 #include "styles/palette.h"
 
 namespace Wallet {
 namespace {
-
-constexpr auto kMaxCommentLength = 500;
-constexpr auto kAddressLength = 48;
-
-struct FixedAmount {
-	QString text;
-	int position = 0;
-};
 
 struct FixedAddress {
 	PreparedInvoice invoice;
@@ -37,81 +28,6 @@ struct FixedAddress {
 
 [[nodiscard]] QString AmountSeparator() {
 	return ParseAmount(1).separator;
-}
-
-[[nodiscard]] PreparedInvoice ParseInvoice(QString invoice) {
-	const auto prefix = qstr("transfer/");
-	auto result = PreparedInvoice();
-
-	const auto position = invoice.indexOf(prefix, 0, Qt::CaseInsensitive);
-	if (position >= 0) {
-		invoice = invoice.mid(position + prefix.size());
-	}
-	const auto paramsPosition = invoice.indexOf('?');
-	if (paramsPosition >= 0) {
-		const auto params = qthelp::url_parse_params(
-			invoice.mid(paramsPosition + 1),
-			qthelp::UrlParamNameTransform::ToLower);
-		result.amount = params.value("amount").toULongLong();
-		result.comment = params.value("text");
-	}
-	result.address = invoice.mid(0, paramsPosition).replace(
-		QRegularExpression("[^a-zA-Z0-9_\\-]"),
-		QString()
-	).mid(0, kAddressLength);
-	return result;
-}
-
-[[nodiscard]] FixedAmount FixAmountInput(
-		const QString &was,
-		const QString &text,
-		int position) {
-	constexpr auto kMaxDigitsCount = 9;
-	const auto separator = AmountSeparator();
-
-	auto result = FixedAmount{ text, position };
-	if (text.isEmpty()) {
-		return result;
-	} else if (text.startsWith('.')
-		|| text.startsWith(',')
-		|| text.startsWith(separator)) {
-		result.text.prepend('0');
-		++result.position;
-	}
-	auto separatorFound = false;
-	auto digitsCount = 0;
-	for (auto i = 0; i != result.text.size();) {
-		const auto ch = result.text[i];
-		const auto atSeparator = result.text.midRef(i).startsWith(separator);
-		if (ch >= '0' && ch <= '9' && digitsCount < kMaxDigitsCount) {
-			++i;
-			++digitsCount;
-			continue;
-		} else if (!separatorFound
-			&& (atSeparator || ch == '.' || ch == ',')) {
-			separatorFound = true;
-			if (!atSeparator) {
-				result.text.replace(i, 1, separator);
-			}
-			digitsCount = 0;
-			i += separator.size();
-			continue;
-		}
-		result.text.remove(i, 1);
-		if (result.position > i) {
-			--result.position;
-		}
-	}
-	if (result.text == "0" && result.position > 0) {
-		if (was.startsWith('0')) {
-			result.text = QString();
-			result.position = 0;
-		} else {
-			result.text += separator;
-			result.position += separator.size();
-		}
-	}
-	return result;
 }
 
 [[nodiscard]] FixedAddress FixAddressInput(
@@ -160,14 +76,10 @@ void SendGramsBox(
 
 	const auto subtitle = AddBoxSubtitle(box, ph::lng_wallet_send_amount());
 	const auto amount = box->addRow(
-		object_ptr<Ui::InputField>(
+		object_ptr<Ui::InputField>::fromRaw(CreateAmountInput(
 			box,
-			st::walletInput,
-			Ui::InputField::Mode::SingleLine,
 			rpl::single("0" + AmountSeparator() + "0"),
-			(prepared.amount > 0
-				? ParseAmount(prepared.amount).full
-				: QString())),
+			prepared.amount)),
 		st::walletSendAmountPadding);
 
 	auto balanceText = rpl::combine(
@@ -207,14 +119,11 @@ void SendGramsBox(
 	}, balanceLabel->lifetime());
 
 	const auto comment = box->addRow(
-		object_ptr<Ui::InputField>(
+		object_ptr<Ui::InputField>::fromRaw(CreateCommentInput(
 			box,
-			st::walletInput,
-			Ui::InputField::Mode::MultiLine,
 			ph::lng_wallet_send_comment(),
-			prepared.comment),
+			prepared.comment)),
 		st::walletSendCommentPadding);
-	comment->setMaxLength(kMaxCommentLength);
 
 	const auto checkFunds = [=](const QString &amount) {
 		if (const auto value = ParseAmountString(amount)) {
@@ -231,6 +140,11 @@ void SendGramsBox(
 		checkFunds(amount->getLastText());
 	}, amount->lifetime());
 
+	Ui::Connect(amount, &Ui::InputField::changed, [=] {
+		Ui::PostponeCall(amount, [=] {
+			checkFunds(amount->getLastText());
+		});
+	});
 	Ui::Connect(address, &Ui::InputField::changed, [=] {
 		Ui::PostponeCall(address, [=] {
 			const auto position = address->textCursor().position();
@@ -255,26 +169,6 @@ void SendGramsBox(
 					comment->setFocus();
 				}
 			}
-		});
-	});
-
-	const auto lastAmountValue = std::make_shared<QString>();
-	Ui::Connect(amount, &Ui::InputField::changed, [=] {
-		Ui::PostponeCall(amount, [=] {
-			const auto position = amount->textCursor().position();
-			const auto now = amount->getLastText();
-			const auto fixed = FixAmountInput(
-				*lastAmountValue,
-				now,
-				position);
-			checkFunds(fixed.text);
-			*lastAmountValue = fixed.text;
-			if (fixed.text == now) {
-				return;
-			}
-			amount->setText(fixed.text);
-			amount->setFocusFast();
-			amount->setCursorPosition(fixed.position);
 		});
 	});
 
@@ -316,7 +210,7 @@ void SendGramsBox(
 		}
 	});
 	Ui::Connect(amount, &Ui::InputField::submitted, [=] {
-		if (ParseAmountString(amount->getLastText()) <= 0) {
+		if (ParseAmountString(amount->getLastText()).value_or(0) <= 0) {
 			amount->showError();
 		} else {
 			comment->setFocus();
