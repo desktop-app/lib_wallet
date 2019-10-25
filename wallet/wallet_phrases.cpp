@@ -99,6 +99,7 @@ phrase lng_wallet_receive_title = "Receive Grams";
 phrase lng_wallet_receive_description = "Share this address with other Gram wallet owners to receive Grams from them:";
 phrase lng_wallet_receive_share = "Share Wallet Address";
 phrase lng_wallet_receive_copied = "Transfer link copied to clipboard.";
+phrase lng_wallet_receive_copied_qr = "QR code copied to clipboard.";
 
 phrase lng_wallet_menu_change_passcode = "Change password";
 phrase lng_wallet_menu_export = "Export wallet";
@@ -151,7 +152,53 @@ Fn<phrase(int)> lng_wallet_refreshed_minutes_ago = [](int minutes) {
 };
 
 Fn<phrase(QDate)> lng_wallet_short_date = [](QDate date) {
-	return date.toString(Qt::SystemLocaleShortDate);
+	const auto month = date.month();
+	const auto result = [&]() -> QString {
+		switch (month) {
+		case 1: return "January";
+		case 2: return "February";
+		case 3: return "March";
+		case 4: return "April";
+		case 5: return "May";
+		case 6: return "June";
+		case 7: return "July";
+		case 8: return "August";
+		case 9: return "September";
+		case 10: return "October";
+		case 11: return "November";
+		case 12: return "December";
+		}
+		return QString();
+	}();
+	if (result.isEmpty()) {
+		return result;
+	}
+	const auto small = result + ' ' + QString::number(date.day());
+	const auto year = date.year();
+	const auto current = QDate::currentDate();
+	const auto currentYear = current.year();
+	const auto currentMonth = current.month();
+	if (year == currentYear) {
+		return small;
+	}
+	const auto yearIsMuchGreater = [](int year, int otherYear) {
+		return (year > otherYear + 1);
+	};
+	const auto monthIsMuchGreater = [](
+			int year,
+			int month,
+			int otherYear,
+			int otherMonth) {
+		return (year == otherYear + 1) && (month + 12 > otherMonth + 3);
+	};
+	if (false
+		|| yearIsMuchGreater(year, currentYear)
+		|| yearIsMuchGreater(currentYear, year)
+		|| monthIsMuchGreater(year, month, currentYear, currentMonth)
+		|| monthIsMuchGreater(currentYear, currentMonth, year, month)) {
+		return small + ", " + QString::number(year);
+	}
+	return small;
 };
 
 Fn<phrase(QTime)> lng_wallet_short_time = [](QTime time) {

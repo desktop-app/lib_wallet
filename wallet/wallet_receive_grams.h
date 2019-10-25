@@ -13,6 +13,7 @@ namespace Wallet {
 void ReceiveGramsBox(
 	not_null<Ui::GenericBox*> box,
 	const QString &address,
-	Fn<void(QString)> share);
+	const QString &link,
+	Fn<void(QImage, QString)> share);
 
 } // namespace Wallet

@@ -288,6 +288,9 @@ walletLabel: FlatLabel(defaultFlatLabel) {
 	minWidth: 274px;
 	align: align(topleft);
 }
+walletReceiveLabelPadding: margins(22px, 0px, 22px, 24px);
+walletReceiveQrPixel: 5px;
+walletReceiveAddressPadding: margins(22px, 15px, 22px, 16px);
 walletReceiveAddressLabel: FlatLabel(defaultFlatLabel) {
 	style: TextStyle(defaultTextStyle) {
 		font: font(15px);

@@ -99,6 +99,7 @@ extern phrase lng_wallet_receive_title;
 extern phrase lng_wallet_receive_description;
 extern phrase lng_wallet_receive_share;
 extern phrase lng_wallet_receive_copied;
+extern phrase lng_wallet_receive_copied_qr;
 
 extern phrase lng_wallet_menu_change_passcode;
 extern phrase lng_wallet_menu_export;
@@ -150,7 +151,7 @@ extern Fn<phrase(QTime)> lng_wallet_short_time;
 
 namespace Wallet {
 
-inline constexpr auto kPhrasesCount = 103;
+inline constexpr auto kPhrasesCount = 104;
 
 void SetPhrases(
 	ph::details::phrase_value_array<kPhrasesCount> data,

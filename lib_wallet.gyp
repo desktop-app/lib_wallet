@@ -41,6 +41,7 @@
       '<(submodules_loc)/lib_ton/lib_ton.gyp:lib_ton',
       '<(submodules_loc)/lib_ui/lib_ui.gyp:lib_ui',
       '<(submodules_loc)/lib_lottie/lib_lottie.gyp:lib_lottie',
+      '<(submodules_loc)/lib_qr/lib_qr.gyp:lib_qr',
     ],
     'export_dependent_settings': [
       '<(submodules_loc)/lib_ton/lib_ton.gyp:lib_ton',

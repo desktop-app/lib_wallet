@@ -31,6 +31,7 @@ not_null<Ui::RoundButton*> CreateCoverButton(
 		result,
 		std::move(text),
 		st::walletCoverButtonLabel);
+	label->setAttribute(Qt::WA_TransparentForMouseEvents);
 	label->paintRequest(
 	) | rpl::start_with_next([=, &icon](QRect clip) {
 		auto p = QPainter(label);

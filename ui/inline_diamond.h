@@ -16,10 +16,15 @@ class RpWidget;
 
 void PaintInlineDiamond(QPainter &p, int x, int y, const style::font &font);
 
+[[nodiscard]] QImage InlineDiamondImage(int size);
+
 not_null<RpWidget*> CreateInlineDiamond(
 	not_null<QWidget*> parent,
 	int x,
 	int y,
 	const style::font &font);
+
+[[nodiscard]] QImage DiamondQr(const QString &text, int pixel);
+[[nodiscard]] QImage DiamondQrForShare(const QString &text);
 
 } // namespace Ui

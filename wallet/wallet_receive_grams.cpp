@@ -8,8 +8,10 @@
 
 #include "wallet/wallet_phrases.h"
 #include "ui/address_label.h"
+#include "ui/inline_diamond.h"
 #include "ui/widgets/labels.h"
 #include "ui/widgets/buttons.h"
+#include "qr/qr_generate.h"
 #include "styles/style_layers.h"
 #include "styles/style_wallet.h"
 
@@ -18,34 +20,46 @@ namespace Wallet {
 void ReceiveGramsBox(
 		not_null<Ui::GenericBox*> box,
 		const QString &address,
-		Fn<void(QString)> share) {
+		const QString &link,
+		Fn<void(QImage, QString)> share) {
 	box->setTitle(ph::lng_wallet_receive_title());
 	box->setStyle(st::walletBox);
 
 	box->addTopButton(st::boxTitleClose, [=] { box->closeBox(); });
 
-	box->addRow(object_ptr<Ui::FlatLabel>(
-		box,
-		ph::lng_wallet_receive_description(),
-		st::walletLabel));
+	box->addRow(
+		object_ptr<Ui::FlatLabel>(
+			box,
+			ph::lng_wallet_receive_description(),
+			st::walletLabel),
+		st::walletReceiveLabelPadding);
 
-	box->addRow(object_ptr<Ui::FixedHeightWidget>(
-		box,
-		st::walletTransactionBottomSkip));
+	const auto qr = Ui::DiamondQr(
+		link,
+		st::walletReceiveQrPixel * style::DevicePixelRatio());
+	const auto size = qr.width() / style::DevicePixelRatio();
+	const auto container = box->addRow(object_ptr<Ui::AbstractButton>(box));
+	container->resize(size, size);
+	container->paintRequest(
+	) | rpl::start_with_next([=] {
+		QPainter(container).drawImage(
+			QRect((container->width() - size) / 2, 0, size, size),
+			qr);
+	}, container->lifetime());
+	container->setClickedCallback([=] {
+		share(Ui::DiamondQrForShare(link), link);
+	});
 
 	box->addRow(
 		object_ptr<Ui::RpWidget>::fromRaw(Ui::CreateAddressLabel(
 			box,
 			address,
-			st::walletReceiveAddressLabel)));
-
-	box->addRow(object_ptr<Ui::FixedHeightWidget>(
-		box,
-		st::walletTransactionBottomSkip));
+			st::walletReceiveAddressLabel)),
+		st::walletReceiveAddressPadding);
 
 	box->addButton(
 		ph::lng_wallet_receive_share(),
-		[=] { share(address); },
+		[=] { share(QImage(), link); },
 		st::walletBottomButton
 	)->setTextTransform(Ui::RoundButton::TextTransform::NoTransform);
 }

@@ -35,6 +35,7 @@
 #include "styles/style_wallet.h"
 #include "styles/palette.h"
 
+#include <QtCore/QMimeData>
 #include <QtCore/QDir>
 #include <QtGui/QtEvents>
 #include <QtGui/QClipboard>
@@ -611,11 +612,23 @@ void Window::showSendingDone(std::optional<Ton::Transaction> result) {
 }
 
 void Window::receiveGrams() {
-	const auto share = [=](const QString &address) {
-		QGuiApplication::clipboard()->setText(TransferLink(address));
-		showToast(ph::lng_wallet_receive_copied(ph::now));
+	const auto share = [=](const QImage &image, const QString &link) {
+		if (!image.isNull()) {
+			auto mime = std::make_unique<QMimeData>();
+			mime->setText(link);
+			mime->setImageData(image);
+			QGuiApplication::clipboard()->setMimeData(mime.release());
+			showToast(ph::lng_wallet_receive_copied_qr(ph::now));
+		} else {
+			QGuiApplication::clipboard()->setText(link);
+			showToast(ph::lng_wallet_receive_copied(ph::now));
+		}
 	};
-	_layers->showBox(Box(ReceiveGramsBox, _address, share));
+	_layers->showBox(Box(
+		ReceiveGramsBox,
+		_address,
+		TransferLink(_address),
+		share));
 }
 
 void Window::showToast(const QString &text) {

@@ -7,12 +7,16 @@
 #include "ui/inline_diamond.h"
 
 #include "ui/rp_widget.h"
+#include "qr/qr_generate.h"
 #include "styles/style_wallet.h"
 
 #include <QtGui/QPainter>
 
 namespace Ui {
 namespace {
+
+constexpr auto kShareQrSize = 768;
+constexpr auto kShareQrPadding = 16;
 
 const std::vector<std::pair<int, QString>> &Variants() {
 	static const auto result = std::vector<std::pair<int, QString>>{
@@ -35,16 +39,20 @@ QString ChooseVariant(int desiredSize) {
 }
 
 QImage CreateImage(int size) {
-	size *= style::DevicePixelRatio();
 	const auto variant = ChooseVariant(size);
-	auto result = QImage(":/gui/art/" + variant).scaled(size, size);
+	auto result = QImage(":/gui/art/" + variant).scaled(
+		size,
+		size,
+		Qt::IgnoreAspectRatio,
+		Qt::SmoothTransformation);
 
 	Ensures(!result.isNull());
 	return result;
 }
 
 QImage Image() {
-	static const auto result = CreateImage(st::walletDiamondSize);
+	static const auto result = CreateImage(
+		st::walletDiamondSize * style::DevicePixelRatio());
 	return result;
 }
 
@@ -58,6 +66,10 @@ void Paint(QPainter &p, int x, int y) {
 
 void PaintInlineDiamond(QPainter &p, int x, int y, const style::font &font) {
 	Paint(p, x, y + font->ascent - st::walletDiamondAscent);
+}
+
+QImage InlineDiamondImage(int size) {
+	return CreateImage(size);
 }
 
 not_null<RpWidget*> CreateInlineDiamond(
@@ -76,6 +88,38 @@ not_null<RpWidget*> CreateInlineDiamond(
 		auto p = QPainter(result);
 		Paint(p, 0, 0);
 	}, result->lifetime());
+	return result;
+}
+
+QImage DiamondQr(const Qr::Data &data, int pixel) {
+	return Qr::ReplaceCenter(
+		Qr::Generate(data, pixel),
+		Ui::InlineDiamondImage(Qr::ReplaceSize(data, pixel)));
+}
+
+QImage DiamondQr(const QString &text, int pixel) {
+	return DiamondQr(Qr::Encode(text), pixel);
+}
+
+QImage DiamondQrForShare(const QString &text) {
+	const auto data = Qr::Encode(text);
+	auto result = QImage(
+		kShareQrSize,
+		kShareQrSize,
+		QImage::Format_ARGB32_Premultiplied);
+	result.fill(Qt::white);
+	{
+		auto p = QPainter(&result);
+		const auto size = (kShareQrSize - 2 * kShareQrPadding);
+		p.drawImage(kShareQrPadding, kShareQrPadding, DiamondQr(
+			data,
+			2 * (size / data.size)
+		).scaled(
+			size,
+			size,
+			Qt::IgnoreAspectRatio,
+			Qt::SmoothTransformation));
+	}
 	return result;
 }
 
