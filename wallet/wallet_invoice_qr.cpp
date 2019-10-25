@@ -26,13 +26,13 @@ void InvoiceQrBox(
 
 	const auto qr = Ui::DiamondQr(
 		link,
-		st::walletReceiveQrPixel,
+		st::walletInvoiceQrPixel,
 		st::boxWidth - st::boxRowPadding.left() - st::boxRowPadding.right());
 	const auto size = qr.width() / style::DevicePixelRatio();
 	const auto height = st::walletInvoiceQrSkip * 2 + size;
 	const auto container = box->addRow(
 		object_ptr<Ui::BoxContentDivider>(box, height),
-		QMargins());
+		st::walletInvoiceQrMargin);
 	const auto button = Ui::CreateChild<Ui::AbstractButton>(container);
 	button->resize(size, size);
 	button->paintRequest(
@@ -44,7 +44,7 @@ void InvoiceQrBox(
 		button->move((width - size) / 2, st::walletInvoiceQrSkip);
 	}, button->lifetime());
 	button->setClickedCallback([=] {
-		share(Ui::DiamondQrForShare(link), link);
+		share(Ui::DiamondQrForShare(link), QString());
 	});
 
 	const auto prepared = ParseInvoice(link);
@@ -56,7 +56,7 @@ void InvoiceQrBox(
 			box,
 			ParseAmount(prepared.amount).full,
 			st::walletLabel),
-		st::walletSendAboutPadding);
+		st::walletInvoiceQrValuePadding);
 
 	if (!prepared.comment.isEmpty()) {
 		AddBoxSubtitle(box, ph::lng_wallet_invoice_qr_comment());
@@ -66,12 +66,12 @@ void InvoiceQrBox(
 				box,
 				prepared.comment,
 				st::walletLabel),
-			st::walletSendAboutPadding);
+			st::walletInvoiceQrValuePadding);
 	}
 
 	box->addButton(
 		ph::lng_wallet_invoice_qr_share(),
-		[=] { share(QImage(), link); },
+		[=] { share(Ui::DiamondQrForShare(link), QString()); },
 		st::walletBottomButton
 	)->setTextTransform(Ui::RoundButton::TextTransform::NoTransform);
 }

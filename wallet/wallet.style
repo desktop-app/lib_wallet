@@ -298,12 +298,23 @@ walletReceiveAddressLabel: FlatLabel(defaultFlatLabel) {
 	}
 	align: align(top);
 }
-walletReceiveLinkPadding: margins(22px, 10px, 22px, 8px);
+walletReceiveLinkPadding: margins(22px, 18px, 22px, 2px);
 
+walletInvoiceBox: Box(defaultBox) {
+	buttonPadding: margins(16px, 52px, 16px, 16px);
+	buttonHeight: 39px;
+}
 walletInvoiceLinkLabel: FlatLabel(defaultFlatLabel) {
 	minWidth: 104px;
+	maxHeight: 56px;
 }
-walletInvoiceQrSkip: 30px;
+walletInvoiceAboutCommentPadding: margins(22px, 7px, 22px, 16px);
+walletInvoiceLinkPadding: margins(22px, 8px, 22px, 0px);
+walletGenerateQrLinkTop: 38px;
+walletInvoiceQrPixel: 4px;
+walletInvoiceQrSkip: 24px;
+walletInvoiceQrMargin: margins(0px, 0px, 0px, 13px);
+walletInvoiceQrValuePadding: margins(22px, 0px, 22px, 12px);
 
 walletTransactionSummaryHeight: 62px;
 walletTransactionValue: WalletAmountLabel(walletCoverBalance) {

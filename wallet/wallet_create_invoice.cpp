@@ -11,6 +11,7 @@
 #include "ui/widgets/input_fields.h"
 #include "ui/widgets/buttons.h"
 #include "ui/widgets/labels.h"
+#include "ui/text/text_utilities.h"
 #include "base/qt_signal_producer.h"
 #include "styles/style_wallet.h"
 #include "styles/style_layers.h"
@@ -23,7 +24,7 @@ void CreateInvoiceBox(
 		Fn<void(QString)> generateQr,
 		Fn<void(QImage, QString)> share) {
 	box->setTitle(ph::lng_wallet_invoice_title());
-	box->setStyle(st::walletBox);
+	box->setStyle(st::walletInvoiceBox);
 
 	box->addTopButton(st::boxTitleClose, [=] { box->closeBox(); });
 
@@ -35,15 +36,32 @@ void CreateInvoiceBox(
 
 	const auto comment = box->addRow(
 		object_ptr<Ui::InputField>::fromRaw(
-			CreateCommentInput(box, ph::lng_wallet_invoice_comment())),
-		st::walletSendCommentPadding);
+			CreateCommentInput(box, ph::lng_wallet_invoice_comment())));
 
 	box->addRow(
 		object_ptr<Ui::FlatLabel>(
 			box,
 			ph::lng_wallet_invoice_comment_about(),
 			st::walletSendAbout),
-		st::walletSendAboutPadding);
+		st::walletInvoiceAboutCommentPadding);
+
+	const auto collectLink = [=]() -> std::optional<QString> {
+		const auto parsed = ParseAmountString(amount->getLastText());
+		const auto text = comment->getLastText();
+		if (parsed.value_or(0) <= 0) {
+			amount->showError();
+			return std::nullopt;
+		} else if (text.toUtf8().size() > kMaxCommentLength) {
+			comment->showError();
+			return std::nullopt;
+		}
+		return TransferLink(address, *parsed, text);
+	};
+	const auto submit = [=] {
+		if (const auto link = collectLink()) {
+			share(QImage(), *link);
+		}
+	};
 
 	AddBoxSubtitle(box, ph::lng_wallet_invoice_url());
 
@@ -67,18 +85,26 @@ void CreateInvoiceBox(
 		std::move(amountValue),
 		std::move(commentValue)
 	) | rpl::map([=](int64 amount, const QString &comment) {
-		return TransferLink(address, amount, comment);
+		const auto link = TransferLink(address, amount, comment);
+		return (amount > 0)
+			? Ui::Text::Link(link, link)
+			: TextWithEntities{ link };
 	});
 	const auto url = box->addRow(
 		object_ptr<Ui::FlatLabel>(
 			box,
 			std::move(linkText),
 			st::walletInvoiceLinkLabel),
-		st::walletSendAboutPadding);
+		st::walletInvoiceLinkPadding);
 	url->setBreakEverywhere(true);
 	url->setSelectable(true);
 	url->setDoubleClickSelectsParagraph(true);
 	url->setContextCopyText(ph::lng_wallet_invoice_copy_url(ph::now));
+	url->setClickHandlerFilter([=](const ClickHandlerPtr&, Qt::MouseButton) {
+		submit();
+		return false;
+	});
+	url->setMinimumHeight(st::walletInvoiceLinkLabel.maxHeight);
 
 	box->addRow(
 		object_ptr<Ui::FlatLabel>(
@@ -91,24 +117,6 @@ void CreateInvoiceBox(
 		amount->setFocusFast();
 	});
 
-	const auto collectLink = [=]() -> std::optional<QString> {
-		const auto parsed = ParseAmountString(amount->getLastText());
-		const auto text = comment->getLastText();
-		if (parsed.value_or(0) <= 0) {
-			amount->showError();
-			return std::nullopt;
-		} else if (text.toUtf8().size() > kMaxCommentLength) {
-			comment->showError();
-			return std::nullopt;
-		}
-		return TransferLink(address, *parsed, text);
-	};
-	const auto submit = [=] {
-		if (const auto link = collectLink()) {
-			share(QImage(), *link);
-		}
-	};
-
 	Ui::Connect(amount, &Ui::InputField::submitted, [=] {
 		if (ParseAmountString(amount->getLastText()).value_or(0) <= 0) {
 			amount->showError();
@@ -118,24 +126,24 @@ void CreateInvoiceBox(
 	});
 	Ui::Connect(comment, &Ui::InputField::submitted, submit);
 
-	box->addButton(
+	const auto button = box->addButton(
 		ph::lng_wallet_invoice_share(),
 		submit,
-		st::walletBottomButton
-	)->setTextTransform(Ui::RoundButton::TextTransform::NoTransform);
+		st::walletBottomButton);
+	button->setTextTransform(Ui::RoundButton::TextTransform::NoTransform);
 
-	const auto generateLinkWrap = box->addRow(
-		object_ptr<Ui::FixedHeightWidget>(
-			box,
-			st::boxLinkButton.font->height),
-		st::walletReceiveLinkPadding);
+	const auto parent = button->parentWidget();
 	const auto generateLink = Ui::CreateChild<Ui::LinkButton>(
-		generateLinkWrap,
+		parent,
 		ph::lng_wallet_invoice_generate_qr(ph::now),
 		st::boxLinkButton);
-	generateLinkWrap->widthValue(
-	) | rpl::start_with_next([=](int width) {
-		generateLink->move((width - generateLink->width()) / 2, 0);
+	rpl::combine(
+		button->geometryValue(),
+		generateLink->widthValue()
+	) | rpl::start_with_next([=](QRect button, int width) {
+		generateLink->move(
+			(parent->width() - width) / 2,
+			button.top() - st::walletGenerateQrLinkTop);
 	}, generateLink->lifetime());
 	generateLink->setClickedCallback([=] {
 		if (const auto link = collectLink()) {

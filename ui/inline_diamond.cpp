@@ -47,6 +47,7 @@ QImage CreateImage(int size) {
 		size,
 		Qt::IgnoreAspectRatio,
 		Qt::SmoothTransformation);
+	result.setDevicePixelRatio(1.);
 
 	Ensures(!result.isNull());
 	return result;
@@ -93,16 +94,19 @@ not_null<RpWidget*> CreateInlineDiamond(
 	return result;
 }
 
+QImage DiamondQrExact(const Qr::Data &data, int pixel) {
+	return Qr::ReplaceCenter(
+		Qr::Generate(data, pixel),
+		Ui::InlineDiamondImage(Qr::ReplaceSize(data, pixel)));
+}
+
 QImage DiamondQr(const Qr::Data &data, int pixel, int max = 0) {
 	Expects(data.size > 0);
 
 	if (max > 0 && data.size * pixel > max) {
 		pixel = std::max(max / data.size, 1);
 	}
-	pixel *= style::DevicePixelRatio();
-	return Qr::ReplaceCenter(
-		Qr::Generate(data, pixel),
-		Ui::InlineDiamondImage(Qr::ReplaceSize(data, pixel)));
+	return DiamondQrExact(data, pixel * style::DevicePixelRatio());
 }
 
 QImage DiamondQr(const QString &text, int pixel, int max) {
@@ -111,22 +115,16 @@ QImage DiamondQr(const QString &text, int pixel, int max) {
 
 QImage DiamondQrForShare(const QString &text) {
 	const auto data = Qr::Encode(text);
+	const auto size = (kShareQrSize - 2 * kShareQrPadding);
+	const auto image = DiamondQrExact(data, size / data.size);
 	auto result = QImage(
-		kShareQrSize,
-		kShareQrSize,
+		kShareQrPadding * 2 + image.width(),
+		kShareQrPadding * 2 + image.height(),
 		QImage::Format_ARGB32_Premultiplied);
 	result.fill(Qt::white);
 	{
 		auto p = QPainter(&result);
-		const auto size = (kShareQrSize - 2 * kShareQrPadding);
-		p.drawImage(kShareQrPadding, kShareQrPadding, DiamondQr(
-			data,
-			2 * (size / data.size)
-		).scaled(
-			size,
-			size,
-			Qt::IgnoreAspectRatio,
-			Qt::SmoothTransformation));
+		p.drawImage(kShareQrPadding, kShareQrPadding, image);
 	}
 	return result;
 }

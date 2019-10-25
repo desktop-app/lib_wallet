@@ -655,7 +655,9 @@ Fn<void(QImage, QString)> Window::shareCallback(
 	return [=](const QImage &image, const QString &link) {
 		if (!image.isNull()) {
 			auto mime = std::make_unique<QMimeData>();
-			mime->setText(link);
+			if (!link.isEmpty()) {
+				mime->setText(link);
+			}
 			mime->setImageData(image);
 			QGuiApplication::clipboard()->setMimeData(mime.release());
 			showToast(qr);

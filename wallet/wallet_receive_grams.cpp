@@ -46,7 +46,7 @@ void ReceiveGramsBox(
 			qr);
 	}, container->lifetime());
 	container->setClickedCallback([=] {
-		share(Ui::DiamondQrForShare(link), link);
+		share(Ui::DiamondQrForShare(link), QString());
 	});
 
 	box->addRow(
