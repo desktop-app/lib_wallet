@@ -331,7 +331,7 @@ walletTransactionValue: WalletAmountLabel(walletCoverBalance) {
 		}
 	}
 	diamond: 33px;
-	diamondPosition: point(6px, 5px);
+	diamondPosition: point(6px, 2px);
 }
 walletTransactionValueTop: 5px;
 walletTransactionFee: FlatLabel(defaultFlatLabel) {
