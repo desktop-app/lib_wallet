@@ -201,7 +201,8 @@ rpl::producer<TopBarState> MakeTopBarState(
 	) | rpl::map([=](
 			const Ton::WalletViewerState &state,
 			const Ton::Update &update) -> rpl::producer<TopBarState> {
-		return update.data.match([&](const Ton::SyncState &data) {
+		return update.data.match([&](const Ton::SyncState &data)
+		-> rpl::producer<TopBarState> {
 			if (!data.valid() || data.current == data.to) {
 				return MakeNonSyncTopBarState(state);
 			} else if (data.current == data.from) {
@@ -218,7 +219,7 @@ rpl::producer<TopBarState> MakeTopBarState(
 					};
 				});
 			}
-		}, [&](const Ton::LiteServerQuery &) {
+		}, [&](const Ton::LiteServerQuery &)  -> rpl::producer<TopBarState> {
 			return MakeNonSyncTopBarState(state);
 		});
 	}) | rpl::flatten_latest() | rpl::start_spawning(alive);
