@@ -17,7 +17,7 @@
 #include "styles/style_wallet.h"
 
 void wallet_InitResource() {
-        Q_INIT_RESOURCE(wallet);
+	Q_INIT_RESOURCE(wallet);
 }
 
 namespace Wallet::Create {

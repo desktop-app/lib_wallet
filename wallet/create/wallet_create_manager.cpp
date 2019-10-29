@@ -196,11 +196,6 @@ void Manager::showPasscode() {
 
 	const auto raw = passcode.get();
 
-	//raw->submitRequests( // #TODO keyboard
-	//) | rpl::start_with_next([=] {
-	//	next();
-	//}, raw->lifetime());
-
 	showStep(std::move(passcode), Direction::Forward, [=] {
 		if (auto passcode = raw->passcode(); !passcode.isEmpty()) {
 			_passcodeChosen.fire(std::move(passcode));

@@ -401,7 +401,11 @@ void Window::showAndActivate() {
 	_window->show();
 	base::Platform::ActivateThisProcessWindow(_window->winId());
 	_window->activateWindow();
-	_window->setFocus();
+	if (_createManager) {
+		_createManager->setFocus();
+	} else {
+		_window->setFocus();
+	}
 }
 
 not_null<Ui::RpWidget*> Window::widget() const {
