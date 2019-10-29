@@ -424,6 +424,20 @@ walletSentLottieSize: 120px;
 walletSentLottieLeft: 10px;
 walletSentLottieTop: 32px;
 
+walletSettingsUpdateToggle: SettingsButton(defaultSettingsButton) {
+	height: 40px;
+	padding: margins(22px, 8px, 22px, 8px);
+}
+walletSettingsUpdateState: FlatLabel(defaultFlatLabel) {
+	textFg: windowSubTextFg;
+}
+walletSettingsUpdate: SettingsButton(defaultSettingsButton) {
+	textFg: lightButtonFg;
+	textFgOver: lightButtonFgOver;
+	font: semiboldFont;
+}
+walletSettingsUpdateStatePosition: point(22px, 29px);
+
 walletWindowSize: size(392px, 520px);
 walletWindowSizeMin: size(392px, 520px);
 walletWindowTitle: WindowTitle(defaultWindowTitle) {

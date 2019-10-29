@@ -47,6 +47,7 @@ enum class Action {
 	Send,
 	Receive,
 	ChangePassword,
+	ShowSettings,
 	LogOut,
 };
 

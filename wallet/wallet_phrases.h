@@ -118,6 +118,7 @@ extern phrase lng_wallet_invoice_qr_comment;
 extern phrase lng_wallet_invoice_qr_share;
 extern phrase lng_wallet_invoice_copied;
 
+extern phrase lng_wallet_menu_settings;
 extern phrase lng_wallet_menu_change_passcode;
 extern phrase lng_wallet_menu_export;
 extern phrase lng_wallet_menu_delete;
@@ -159,6 +160,20 @@ extern phrase lng_wallet_sending_text;
 extern phrase lng_wallet_sent_title;
 extern phrase lng_wallet_sent_close;
 
+extern phrase lng_wallet_settings_title;
+extern phrase lng_wallet_settings_version_title;
+extern phrase lng_wallet_settings_autoupdate;
+extern phrase lng_wallet_settings_version;
+extern phrase lng_wallet_settings_checking;
+extern phrase lng_wallet_settings_latest;
+extern phrase lng_wallet_settings_check;
+extern phrase lng_wallet_settings_downloading;
+extern phrase lng_wallet_settings_ready;
+extern phrase lng_wallet_settings_fail;
+extern phrase lng_wallet_settings_update;
+
+extern phrase lng_wallet_downloaded;
+
 extern Fn<phrase(int)> lng_wallet_refreshed_minutes_ago;
 extern Fn<phrase(QDate)> lng_wallet_short_date;
 extern Fn<phrase(QTime)> lng_wallet_short_time;
@@ -169,7 +184,7 @@ extern Fn<phrase(QString)> lng_wallet_grams_count_sent;
 
 namespace Wallet {
 
-inline constexpr auto kPhrasesCount = 119;
+inline constexpr auto kPhrasesCount = 132;
 
 void SetPhrases(
 	ph::details::phrase_value_array<kPhrasesCount> data,

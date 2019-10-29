@@ -20,6 +20,8 @@
 #include "wallet/wallet_sending_transaction.h"
 #include "wallet/wallet_delete.h"
 #include "wallet/wallet_export.h"
+#include "wallet/wallet_update_info.h"
+#include "wallet/wallet_settings.h"
 #include "wallet/create/wallet_create_manager.h"
 #include "ton/ton_wallet.h"
 #include "ton/ton_account_viewer.h"
@@ -54,10 +56,13 @@ constexpr auto kRefreshWhileSendingDelay = 3 * crl::time(1000);
 
 } // namespace
 
-Window::Window(not_null<Ton::Wallet*> wallet)
+Window::Window(
+	not_null<Ton::Wallet*> wallet,
+	UpdateInfo *updateInfo)
 : _wallet(wallet)
 , _window(std::make_unique<Ui::Window>())
-, _layers(std::make_unique<Ui::LayerManager>(_window->body())) {
+, _layers(std::make_unique<Ui::LayerManager>(_window->body()))
+, _updateInfo(updateInfo) {
 	init();
 	if (_wallet->publicKeys().empty()) {
 		showCreate();
@@ -335,6 +340,7 @@ void Window::showAccount(const QByteArray &publicKey) {
 		case Action::Send: sendGrams(); return;
 		case Action::Receive: receiveGrams(); return;
 		case Action::ChangePassword: changePassword(); return;
+		case Action::ShowSettings: showSettings(); return;
 		case Action::LogOut: logout(); return;
 		}
 		Unexpected("Action in Info::actionRequests().");
@@ -707,6 +713,20 @@ void Window::changePassword() {
 	});
 	*weakBox = box.data();
 	_layers->showBox(std::move(box));
+}
+
+void Window::showSettings() {
+	const auto callback = [=](Settings::Action action) {
+		using namespace Settings;
+		action.match([&](ToggleUpdates data) {
+			_updateInfo->toggle(data.enabled);
+		}, [&](InstallUpdate) {
+			_updateInfo->install();
+		}, [&](AllowTestUpdates) {
+			_updateInfo->test();
+		});
+	};
+	_layers->showBox(Box(Settings::CreateBox, _updateInfo, callback));
 }
 
 void Window::askExportPassword() {

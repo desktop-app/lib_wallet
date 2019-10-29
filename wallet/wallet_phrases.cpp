@@ -118,6 +118,7 @@ phrase lng_wallet_invoice_qr_comment = "Comment";
 phrase lng_wallet_invoice_qr_share = "Share QR Code";
 phrase lng_wallet_invoice_copied = "Invoice link copied to clipboard.";
 
+phrase lng_wallet_menu_settings = "Settings";
 phrase lng_wallet_menu_change_passcode = "Change password";
 phrase lng_wallet_menu_export = "Export wallet";
 phrase lng_wallet_menu_delete = "Delete wallet";
@@ -158,6 +159,20 @@ phrase lng_wallet_sending_text = "Please wait a few seconds for your\ntransactio
 
 phrase lng_wallet_sent_title = "Done!";
 phrase lng_wallet_sent_close = "Close";
+
+phrase lng_wallet_settings_title = "Settings";
+phrase lng_wallet_settings_version_title = "Version and updates";
+phrase lng_wallet_settings_autoupdate = "Update automatically";
+phrase lng_wallet_settings_version = "Version {version}";
+phrase lng_wallet_settings_checking = "Checking for updates...";
+phrase lng_wallet_settings_latest = "Latest version is installed";
+phrase lng_wallet_settings_check = "Check for updates";
+phrase lng_wallet_settings_downloading = "Downloading update {progress}...";
+phrase lng_wallet_settings_ready = "New version is ready";
+phrase lng_wallet_settings_fail = "Update check failed :(";
+phrase lng_wallet_settings_update = "Update Wallet";
+
+phrase lng_wallet_downloaded = "{ready} / {total} {mb}";
 
 const auto walletCountValidate = check_phrase_count(Wallet::kPhrasesCount);
 

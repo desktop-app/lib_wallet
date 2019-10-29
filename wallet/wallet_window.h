@@ -36,10 +36,11 @@ class Manager;
 class Info;
 struct PreparedInvoice;
 enum class InvoiceField;
+class UpdateInfo;
 
 class Window final : public base::has_weak_ptr {
 public:
-	explicit Window(not_null<Ton::Wallet*> wallet);
+	Window(not_null<Ton::Wallet*> wallet, UpdateInfo *updateInfo = nullptr);
 	~Window();
 
 	void showAndActivate();
@@ -94,6 +95,7 @@ private:
 	void changePassword();
 	void askExportPassword();
 	void showExported(const std::vector<QString> &words);
+	void showSettings();
 	Fn<void(QImage, QString)> shareCallback(
 		const QString &copied,
 		const QString &qr);
@@ -102,6 +104,7 @@ private:
 	const not_null<Ton::Wallet*> _wallet;
 	const std::unique_ptr<Ui::Window> _window;
 	const std::unique_ptr<Ui::LayerManager> _layers;
+	UpdateInfo * const _updateInfo = nullptr;
 
 	std::unique_ptr<Create::Manager> _createManager;
 	bool _importing = false;
