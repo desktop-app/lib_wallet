@@ -196,35 +196,37 @@ rpl::producer<TopBarState> MakeTopBarState(
 		rpl::producer<Ton::WalletViewerState> &&state,
 		rpl::producer<Ton::Update> &&updates,
 		rpl::lifetime &alive) {
+	auto syncs = rpl::single(
+		Ton::SyncState()
+	) | rpl::then(std::move(
+		updates
+	) | rpl::filter([](const Ton::Update &update) {
+		return update.data.is<Ton::SyncState>();
+	}) | rpl::map([](const Ton::Update &update) {
+		return update.data.get<Ton::SyncState>();
+	}));
 	return rpl::combine(
 		std::move(state),
-		rpl::single(
-			Ton::Update{ Ton::SyncState() }
-		) | rpl::then(std::move(updates))
+		std::move(syncs)
 	) | rpl::map([=](
 			const Ton::WalletViewerState &state,
-			const Ton::Update &update) -> rpl::producer<TopBarState> {
-		return update.data.match([&](const Ton::SyncState &data)
-		-> rpl::producer<TopBarState> {
-			if (!data.valid() || data.current == data.to) {
-				return MakeNonSyncTopBarState(state);
-			} else if (data.current == data.from) {
-				return ph::lng_wallet_sync() | ToTopBarState();
-			} else {
-				const auto percent = QString::number(
-					(100 * (data.current - data.from)
-						/ (data.to - data.from)));
-				return ph::lng_wallet_sync_percent(
-				) | rpl::map([=](QString &&text) {
-					return TopBarState{
-						text.replace("{percent}", percent),
-						false
-					};
-				});
-			}
-		}, [&](const Ton::LiteServerQuery &)  -> rpl::producer<TopBarState> {
+			const Ton::SyncState &sync) -> rpl::producer<TopBarState> {
+		if (!sync.valid() || sync.current == sync.to) {
 			return MakeNonSyncTopBarState(state);
-		});
+		} else if (sync.current == sync.from) {
+			return ph::lng_wallet_sync() | ToTopBarState();
+		} else {
+			const auto percent = QString::number(
+				(100 * (sync.current - sync.from)
+					/ (sync.to - sync.from)));
+			return ph::lng_wallet_sync_percent(
+			) | rpl::map([=](QString &&text) {
+				return TopBarState{
+					text.replace("{percent}", percent),
+					false
+				};
+			});
+		}
 	}) | rpl::flatten_latest() | rpl::start_spawning(alive);
 }
 

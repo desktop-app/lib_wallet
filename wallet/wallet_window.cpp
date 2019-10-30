@@ -328,6 +328,15 @@ void Window::showAccount(const QByteArray &publicKey, bool justCreated) {
 	_state = _viewer->state() | rpl::map([](Ton::WalletViewerState &&state) {
 		return std::move(state.wallet);
 	});
+	_syncing = false;
+	_syncing = _wallet->updates() | rpl::map([](const Ton::Update &update) {
+		return update.data.match([&](const Ton::SyncState &data) {
+			return data.valid() && (data.current != data.to);
+		}, [&](const Ton::LiteServerQuery &) {
+			return false;
+		});
+
+	});
 
 	_window->setTitleStyle(st::walletWindowTitle);
 	auto data = Info::Data();
@@ -453,6 +462,19 @@ void Window::sendGrams(const QString &invoice) {
 	}
 	if (_sendBox) {
 		_sendBox->closeBox();
+	}
+	if (!_state.current().pendingTransactions.empty()) {
+		showSimpleError(
+			ph::lng_wallet_warning(),
+			ph::lng_wallet_wait_pending(),
+			ph::lng_wallet_ok());
+		return;
+	} else if (_syncing.current()) {
+		showSimpleError(
+			ph::lng_wallet_warning(),
+			ph::lng_wallet_wait_syncing(),
+			ph::lng_wallet_ok());
+		return;
 	}
 	const auto checking = std::make_shared<bool>();
 	const auto send = [=](

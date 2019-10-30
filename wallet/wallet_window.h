@@ -122,6 +122,7 @@ private:
 	QString _address;
 	std::unique_ptr<Ton::AccountViewer> _viewer;
 	rpl::variable<Ton::WalletState> _state;
+	rpl::variable<bool> _syncing;
 	std::unique_ptr<Info> _info;
 	QPointer<Ui::GenericBox> _sendBox;
 	QPointer<Ui::GenericBox> _sendConfirmBox;
