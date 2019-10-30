@@ -716,17 +716,72 @@ void Window::changePassword() {
 }
 
 void Window::showSettings() {
-	const auto callback = [=](Settings::Action action) {
-		using namespace Settings;
-		action.match([&](ToggleUpdates data) {
-			_updateInfo->toggle(data.enabled);
-		}, [&](InstallUpdate) {
-			_updateInfo->install();
-		}, [&](AllowTestUpdates) {
-			_updateInfo->test();
-		});
+	auto box = Box(
+		SettingsBox,
+		_wallet->settings(),
+		_updateInfo,
+		[=](const Ton::Settings &settings) { saveSettings(settings); });
+	_settingsBox = box.data();
+	_layers->showBox(std::move(box));
+}
+
+void Window::saveSettings(const Ton::Settings &settings, bool sure) {
+	const auto &current = _wallet->settings();
+	//if (!sure
+	//	&& !settings.useCustomConfig
+	//	&& (settings.configUrl != current.configUrl)) {
+	//}
+	const auto logout = (settings.blockchainName != current.blockchainName);
+	if (!sure && logout) {
+		showBlockchainNameWarning(settings);
+		return;
+	}
+	const auto showError = [=](Ton::Error error) {
+		if (_saveConfirmBox) {
+			_saveConfirmBox->closeBox();
+		}
+		showGenericError(error);
 	};
-	_layers->showBox(Box(Settings::CreateBox, _updateInfo, callback));
+	_wallet->updateSettings(settings, [=](Ton::Result<> result) {
+		if (!result) {
+			showError(result.error());
+			return;
+		} else if (!logout) {
+			if (_settingsBox) {
+				_settingsBox->closeBox();
+			}
+			return;
+		}
+		_wallet->deleteAllKeys(crl::guard(this, [=](Ton::Result<> result) {
+			if (!result) {
+				showError(result.error());
+				return;
+			}
+			showCreate();
+		}));
+	});
+}
+
+void Window::showBlockchainNameWarning(const Ton::Settings &settings) {
+	const auto saving = std::make_shared<bool>();
+	auto box = Box([=](not_null<Ui::GenericBox*> box) {
+		box->setTitle(ph::lng_wallet_warning());
+		box->addRow(object_ptr<Ui::FlatLabel>(
+			box,
+			ph::lng_wallet_warning_blockchain_name(),
+			st::walletLabel));
+		box->addButton(ph::lng_wallet_continue(), [=] {
+			if (std::exchange(*saving, true)) {
+				return;
+			}
+			saveSettings(settings, true);
+		}, st::attentionBoxButton);
+		box->addButton(ph::lng_wallet_cancel(), [=] {
+			box->closeBox();
+		});
+	});
+	_saveConfirmBox = box.data();
+	_layers->showBox(std::move(box));
 }
 
 void Window::askExportPassword() {

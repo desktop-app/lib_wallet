@@ -19,6 +19,7 @@ struct PendingTransaction;
 struct Transaction;
 struct WalletState;
 struct Error;
+struct Settings;
 } // namespace Ton
 
 namespace Ui {
@@ -96,6 +97,8 @@ private:
 	void askExportPassword();
 	void showExported(const std::vector<QString> &words);
 	void showSettings();
+	void saveSettings(const Ton::Settings &settings, bool sure = false);
+	void showBlockchainNameWarning(const Ton::Settings &settings);
 	Fn<void(QImage, QString)> shareCallback(
 		const QString &copied,
 		const QString &qr);
@@ -116,6 +119,8 @@ private:
 	QPointer<Ui::GenericBox> _sendBox;
 	QPointer<Ui::GenericBox> _sendConfirmBox;
 	QPointer<Ui::GenericBox> _simpleErrorBox;
+	QPointer<Ui::GenericBox> _settingsBox;
+	QPointer<Ui::GenericBox> _saveConfirmBox;
 
 };
 

@@ -438,6 +438,9 @@ walletSettingsUpdate: SettingsButton(defaultSettingsButton) {
 }
 walletSettingsUpdateStatePosition: point(22px, 29px);
 
+walletSettingsDividerMargin: margins(0px, 12px, 0px, 12px);
+walletSettingsBlockchainNameSkip: 12px;
+
 walletWindowSize: size(392px, 520px);
 walletWindowSizeMin: size(392px, 520px);
 walletWindowTitle: WindowTitle(defaultWindowTitle) {

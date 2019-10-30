@@ -17,6 +17,7 @@ phrase lng_wallet_cancel = "Cancel";
 phrase lng_wallet_continue = "Continue";
 phrase lng_wallet_done = "Done";
 phrase lng_wallet_save = "Save";
+phrase lng_wallet_warning = "Warning";
 
 phrase lng_wallet_copy_address = "Copy Wallet Address";
 
@@ -120,7 +121,7 @@ phrase lng_wallet_invoice_copied = "Invoice link copied to clipboard.";
 
 phrase lng_wallet_menu_settings = "Settings";
 phrase lng_wallet_menu_change_passcode = "Change password";
-phrase lng_wallet_menu_export = "Export wallet";
+phrase lng_wallet_menu_export = "Backup wallet";
 phrase lng_wallet_menu_delete = "Delete wallet";
 
 phrase lng_wallet_delete_title = "Delete Wallet";
@@ -171,6 +172,14 @@ phrase lng_wallet_settings_downloading = "Downloading update {progress}...";
 phrase lng_wallet_settings_ready = "New version is ready";
 phrase lng_wallet_settings_fail = "Update check failed :(";
 phrase lng_wallet_settings_update = "Update Wallet";
+phrase lng_wallet_settings_configuration = "Configuration";
+phrase lng_wallet_settings_update_config = "Update config automatically";
+phrase lng_wallet_settings_config_url = "Config update URL";
+phrase lng_wallet_settings_config_from_file = "Load from file";
+phrase lng_wallet_settings_blockchain_name = "Blockchain name";
+
+phrase lng_wallet_warning_blockchain_name = "Are you sure you want to change the blockchain name? You don't need to change it unless you test your own TON network.\n\nIf you proceed you will be logged out.";
+phrase lng_wallet_bad_config = "Sorry, this config is invalid.";
 
 phrase lng_wallet_downloaded = "{ready} / {total} {mb}";
 

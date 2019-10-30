@@ -7,31 +7,20 @@
 #pragma once
 
 #include "ui/layers/generic_box.h"
+#include "ton/ton_settings.h"
+
+namespace Ton {
+struct Settings;
+} // namespace ton
 
 namespace Wallet {
+
 class UpdateInfo;
-} // namespace Wallet
 
-namespace Wallet::Settings {
-
-struct ToggleUpdates {
-	bool enabled = false;
-};
-struct AllowTestUpdates {};
-struct InstallUpdate {};
-
-using ActionEnum = base::variant<
-	ToggleUpdates,
-	AllowTestUpdates,
-	InstallUpdate>;
-
-struct Action : ActionEnum {
-	using ActionEnum::ActionEnum;
-};
-
-void CreateBox(
+void SettingsBox(
 	not_null<Ui::GenericBox*> box,
+	const Ton::Settings &settings,
 	UpdateInfo *updateInfo,
-	Fn<void(Action)> callback);
+	Fn<void(Ton::Settings)> save);
 
-} // namespace Wallet::Settings
+} // namespace Wallet

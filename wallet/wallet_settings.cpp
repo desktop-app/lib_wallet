@@ -8,7 +8,11 @@
 
 #include "wallet/wallet_phrases.h"
 #include "wallet/wallet_update_info.h"
+#include "wallet/wallet_common.h"
+#include "ton/ton_settings.h"
 #include "ui/widgets/buttons.h"
+#include "ui/widgets/box_content_divider.h"
+#include "ui/widgets/input_fields.h"
 #include "ui/wrap/slide_wrap.h"
 #include "ui/wrap/vertical_layout.h"
 #include "ui/text/text_utilities.h"
@@ -16,7 +20,7 @@
 #include "styles/style_layers.h"
 #include "styles/style_widgets.h"
 
-namespace Wallet::Settings {
+namespace Wallet {
 namespace {
 
 [[nodiscard]] QString FormatVersion(int version) {
@@ -53,6 +57,8 @@ namespace {
 }
 
 void SetupUpdate(not_null<Ui::GenericBox*> box, not_null<UpdateInfo*> info) {
+	AddBoxSubtitle(box, ph::lng_wallet_settings_version_title());
+
 	const auto texts = Ui::CreateChild<rpl::event_stream<QString>>(
 		box.get());
 	const auto downloading = Ui::CreateChild<rpl::event_stream<bool>>(
@@ -129,9 +135,7 @@ void SetupUpdate(not_null<Ui::GenericBox*> box, not_null<UpdateInfo*> info) {
 
 	toggle->toggleOn(rpl::single(info->toggled()));
 	toggle->toggledValue(
-	) | rpl::filter([=](bool toggled) {
-		return (toggled != info->toggled());
-	}) | rpl::start_with_next([=](bool toggled) {
+	) | rpl::start_with_next([=](bool toggled) {
 		info->toggle(toggled);
 		if (!toggled) {
 			setDefaultStatus();
@@ -185,17 +189,78 @@ void SetupUpdate(not_null<Ui::GenericBox*> box, not_null<UpdateInfo*> info) {
 
 } // namespace
 
-void CreateBox(
+void SettingsBox(
 		not_null<Ui::GenericBox*> box,
+		const Ton::Settings &settings,
 		UpdateInfo *updateInfo,
-		Fn<void(Action)> callback) {
+		Fn<void(Ton::Settings)> save) {
+	using namespace rpl::mappers;
+
 	box->setTitle(ph::lng_wallet_settings_title());
 
 	if (updateInfo) {
 		SetupUpdate(box, updateInfo);
+		box->addRow(
+			object_ptr<Ui::BoxContentDivider>(box),
+			st::walletSettingsDividerMargin);
 	}
 
-	box->addButton(ph::lng_wallet_done(), [=] { box->closeBox(); });
+	AddBoxSubtitle(box, ph::lng_wallet_settings_configuration());
+	const auto download = box->addRow(
+		object_ptr<Ui::SettingsButton>(
+			box,
+			ph::lng_wallet_settings_update_config(),
+			st::defaultSettingsButton),
+		QMargins()
+	)->toggleOn(rpl::single(!settings.useCustomConfig));
+
+	const auto custom = box->addRow(
+		object_ptr<Ui::SlideWrap<Ui::SettingsButton>>(
+			box,
+			object_ptr<Ui::SettingsButton>(
+				box,
+				ph::lng_wallet_settings_config_from_file(),
+				st::defaultSettingsButton)),
+		QMargins()
+	)->toggleOn(download->toggledValue() | rpl::map(!_1))->setDuration(0);
+
+	// Make field the same height as the button.
+	const auto heightDelta = st::defaultSettingsButton.padding.top()
+		+ st::defaultSettingsButton.height
+		+ st::defaultSettingsButton.padding.bottom()
+		- st::walletInput.heightMin;
+	const auto url = box->addRow(
+		object_ptr<Ui::SlideWrap<Ui::InputField>>(
+			box,
+			object_ptr<Ui::InputField>(
+				box,
+				st::walletInput,
+				ph::lng_wallet_settings_config_url(),
+				settings.configUrl),
+			QMargins(0, 0, 0, heightDelta)),
+		(st::boxRowPadding
+			+ QMargins(0, 0, 0, st::walletSettingsBlockchainNameSkip))
+	)->toggleOn(download->toggledValue())->setDuration(0)->entity();
+
+	AddBoxSubtitle(box, ph::lng_wallet_settings_blockchain_name());
+	const auto name = box->addRow(object_ptr<Ui::InputField>(
+		box,
+		st::walletInput,
+		rpl::single(QString()),
+		settings.blockchainName));
+
+	const auto collectSettings = [=] {
+		auto result = settings;
+		result.blockchainName = name->getLastText();
+		result.useCustomConfig = custom->toggled();
+		if (!result.useCustomConfig) {
+			result.configUrl = url->getLastText();
+		}
+		return result;
+	};
+
+	box->addButton(ph::lng_wallet_save(), [=] { save(collectSettings()); });
+	box->addButton(ph::lng_wallet_cancel(), [=] { box->closeBox(); });
 }
 
-} // namespace Wallet::Settings
+} // namespace Wallet
