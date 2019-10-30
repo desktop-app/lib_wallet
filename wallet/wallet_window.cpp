@@ -97,10 +97,14 @@ void Window::loadWebConfig() {
 		return;
 	}
 	const auto loaded = [=](Ton::Result<QByteArray> result) {
-		auto settings = _wallet->settings();
-		if (result && *result != settings.config) {
-			settings.config = *result;
-			_wallet->updateSettings(settings, nullptr);
+		auto copy = _wallet->settings();
+		if (result && *result != copy.config) {
+			copy.config = *result;
+			saveSettingsSure(copy, [=] {
+				if (_viewer) {
+					refreshNow();
+				}
+			});
 		}
 	};
 	_wallet->loadWebResource(settings.configUrl, std::move(loaded));
