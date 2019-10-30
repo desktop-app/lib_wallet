@@ -73,7 +73,7 @@ private:
 		const QByteArray &passcode,
 		std::shared_ptr<bool> guard);
 
-	void showAccount(const QByteArray &publicKey);
+	void showAccount(const QByteArray &publicKey, bool justCreated = false);
 	void setupRefreshEach();
 	void sendGrams(const QString &invoice = QString());
 	void confirmTransaction(

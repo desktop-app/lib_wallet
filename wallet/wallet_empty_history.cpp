@@ -41,9 +41,17 @@ void EmptyHistory::setupControls(rpl::producer<EmptyHistoryState> &&state) {
 	lottie->stopOnLoop(1);
 	lottie->start();
 
+	auto justCreated = rpl::duplicate(
+		state
+	) | rpl::map([](const EmptyHistoryState &state) {
+		return state.justCreated;
+	});
 	const auto title = Ui::CreateChild<Ui::FlatLabel>(
 		&_widget,
-		ph::lng_wallet_empty_history_title(),
+		rpl::conditional(
+			std::move(justCreated),
+			ph::lng_wallet_empty_history_title(),
+			ph::lng_wallet_empty_history_welcome()),
 		st::walletEmptyHistoryTitle);
 	rpl::combine(
 		_widget.sizeValue(),
@@ -104,11 +112,12 @@ void EmptyHistory::setupControls(rpl::producer<EmptyHistoryState> &&state) {
 }
 
 rpl::producer<EmptyHistoryState> MakeEmptyHistoryState(
-		rpl::producer<Ton::WalletViewerState> state) {
+		rpl::producer<Ton::WalletViewerState> state,
+		bool justCreated) {
 	return std::move(
 		state
-	) | rpl::map([](const Ton::WalletViewerState &state) {
-		return EmptyHistoryState{ state.wallet.address };
+	) | rpl::map([=](const Ton::WalletViewerState &state) {
+		return EmptyHistoryState{ state.wallet.address, justCreated };
 	});
 }
 } // namespace Wallet

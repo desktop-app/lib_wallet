@@ -35,6 +35,8 @@ LottieAnimation::LottieAnimation(
 	}) | rpl::start_with_next([=] {
 		paintFrame();
 	}, _widget->lifetime());
+
+	_widget->show();
 }
 
 LottieAnimation::~LottieAnimation() = default;

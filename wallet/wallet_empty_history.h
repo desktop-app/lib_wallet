@@ -16,6 +16,7 @@ namespace Wallet {
 
 struct EmptyHistoryState {
 	QString address;
+	bool justCreated = false;
 };
 
 class EmptyHistory final {
@@ -37,6 +38,7 @@ private:
 };
 
 [[nodiscard]] rpl::producer<EmptyHistoryState> MakeEmptyHistoryState(
-	rpl::producer<Ton::WalletViewerState> state);
+	rpl::producer<Ton::WalletViewerState> state,
+	bool justCreated);
 
 } // namespace Wallet

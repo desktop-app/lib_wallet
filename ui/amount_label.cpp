@@ -48,6 +48,8 @@ AmountLabel::AmountLabel(
 	if (_diamond) {
 		_diamond->start();
 	}
+	_large.show();
+	_small.show();
 }
 
 AmountLabel::~AmountLabel() = default;

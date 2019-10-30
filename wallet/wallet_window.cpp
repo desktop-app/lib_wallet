@@ -119,6 +119,7 @@ void Window::showCreate() {
 	_viewer = nullptr;
 
 	_window->setTitleStyle(st::defaultWindowTitle);
+	_importing = false;
 	_createManager = std::make_unique<Create::Manager>(_window->body());
 	_layers->raise();
 
@@ -149,7 +150,7 @@ void Window::showCreate() {
 			createShowImportFail();
 			return;
 		case Create::Manager::Action::ShowAccount:
-			showAccount(_createManager->publicKey());
+			showAccount(_createManager->publicKey(), !_importing);
 			return;
 		}
 		Unexpected("Action in Create::Manager::actionRequests().");
@@ -172,12 +173,13 @@ void Window::createImportKey(const std::vector<QString> &words) {
 		return;
 	}
 	_wallet->importKey(words, crl::guard(this, [=](Ton::Result<> result) {
-		_importing = false;
 		if (result) {
 			_createManager->showPasscode();
 		} else if (IsIncorrectMnemonicError(result.error())) {
+			_importing = false;
 			createShowIncorrectImport();
 		} else {
+			_importing = false;
 			showGenericError(result.error());
 		}
 	}));
@@ -316,8 +318,9 @@ void Window::createSavePasscode(
 	_wallet->saveKey(passcode, crl::guard(this, done));
 }
 
-void Window::showAccount(const QByteArray &publicKey) {
+void Window::showAccount(const QByteArray &publicKey, bool justCreated) {
 	_layers->hideAll();
+	_importing = false;
 	_createManager = nullptr;
 
 	_address = Ton::Wallet::GetAddress(publicKey);
@@ -328,6 +331,7 @@ void Window::showAccount(const QByteArray &publicKey) {
 
 	_window->setTitleStyle(st::walletWindowTitle);
 	auto data = Info::Data();
+	data.justCreated = justCreated;
 	data.state = _viewer->state();
 	data.loaded = _viewer->loaded();
 	data.updates = _wallet->updates();

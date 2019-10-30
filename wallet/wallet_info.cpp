@@ -63,7 +63,7 @@ void Info::setupControls(Data &&data) {
 
 	const auto cover = _widget->lifetime().make_state<Cover>(
 		_inner.get(),
-		MakeCoverState(rpl::duplicate(state)));
+		MakeCoverState(rpl::duplicate(state), data.justCreated));
 	rpl::merge(
 		cover->sendRequests() | rpl::map([] { return Action::Send; }),
 		cover->receiveRequests() | rpl::map([] { return Action::Receive; })
@@ -82,7 +82,7 @@ void Info::setupControls(Data &&data) {
 		std::move(loaded));
 	const auto emptyHistory = _widget->lifetime().make_state<EmptyHistory>(
 		_inner.get(),
-		MakeEmptyHistoryState(rpl::duplicate(state)));
+		MakeEmptyHistoryState(rpl::duplicate(state), data.justCreated));
 
 	_widget->sizeValue(
 	) | rpl::start_with_next([=](QSize size) {

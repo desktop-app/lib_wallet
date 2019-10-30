@@ -81,6 +81,7 @@ phrase lng_wallet_cover_receive = "Receive";
 phrase lng_wallet_cover_send = "Send";
 
 phrase lng_wallet_empty_history_title = "Wallet Created";
+phrase lng_wallet_empty_history_welcome = "Welcome";
 phrase lng_wallet_empty_history_address = "Your wallet address";
 
 phrase lng_wallet_row_from = "from:";

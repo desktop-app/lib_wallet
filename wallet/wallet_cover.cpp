@@ -49,8 +49,9 @@ not_null<Ui::RoundButton*> CreateCoverButton(
 } // namespace
 
 Cover::Cover(not_null<Ui::RpWidget*> parent, rpl::producer<CoverState> state)
-: _widget(parent) {
-	setupControls(std::move(state));
+: _widget(parent)
+, _state(std::move(state)) {
+	setupControls();
 }
 
 void Cover::setGeometry(QRect geometry) {
@@ -73,9 +74,8 @@ rpl::lifetime &Cover::lifetime() {
 	return _widget.lifetime();
 }
 
-void Cover::setupControls(rpl::producer<CoverState> &&state) {
-	auto amount = rpl::duplicate(
-		state
+void Cover::setupBalance() {
+	auto amount = _state.value(
 	) | rpl::map([](const CoverState &state) {
 		return ParseAmount(std::max(state.balance, 0LL));
 	});
@@ -111,9 +111,35 @@ void Cover::setupControls(rpl::producer<CoverState> &&state) {
 			blockTop + st::walletCoverLabelTop,
 			size.width());
 	}, label->lifetime());
+}
 
-	auto hasFunds = rpl::duplicate(
-		state
+void Cover::setupControls() {
+	const auto syncLifetime = _widget.lifetime().make_state<rpl::lifetime>();
+	const auto sync = syncLifetime->make_state<Ui::LottieAnimation>(
+		&_widget,
+		Ui::LottieFromResource("intro"));
+	sync->start();
+
+	_widget.sizeValue(
+	) | rpl::start_with_next([=](QSize size) {
+		const auto diamond = st::walletCoverBalance.diamond;
+		const auto blockTop = (size.height()
+			+ st::walletTopBarHeight
+			- st::walletCoverHeight) / 2 - st::walletTopBarHeight;
+		const auto balanceTop = blockTop + st::walletCoverBalanceTop;
+		sync->setGeometry(
+			{ (size.width() - diamond) / 2, balanceTop, diamond, diamond });
+	}, *syncLifetime);
+
+	_state.value(
+	) | rpl::filter([](const CoverState &state) {
+		return state.justCreated || (state.balance != Ton::kUnknownBalance);
+	}) | rpl::take(1) | rpl::start_with_next([=] {
+		syncLifetime->destroy();
+		setupBalance();
+	}, *syncLifetime);
+
+	auto hasFunds = _state.value(
 	) | rpl::map([](const CoverState &state) {
 		return state.balance > 0;
 	}) | rpl::distinct_until_changed();
@@ -172,11 +198,12 @@ void Cover::setupControls(rpl::producer<CoverState> &&state) {
 }
 
 rpl::producer<CoverState> MakeCoverState(
-		rpl::producer<Ton::WalletViewerState> state) {
+		rpl::producer<Ton::WalletViewerState> state,
+		bool justCreated) {
 	return std::move(
 		state
-	) | rpl::map([](const Ton::WalletViewerState &data) {
-		return CoverState{ data.wallet.account.balance };
+	) | rpl::map([=](const Ton::WalletViewerState &data) {
+		return CoverState{ data.wallet.account.balance, justCreated };
 	});
 }
 

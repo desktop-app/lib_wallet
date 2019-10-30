@@ -16,6 +16,7 @@ namespace Wallet {
 
 struct CoverState {
 	int64 balance = 0;
+	bool justCreated = false;
 };
 
 class Cover final {
@@ -31,16 +32,19 @@ public:
 	[[nodiscard]] rpl::lifetime &lifetime();
 
 private:
-	void setupControls(rpl::producer<CoverState> &&state);
+	void setupControls();
+	void setupBalance();
 
 	Ui::RpWidget _widget;
 
+	rpl::variable<CoverState> _state;
 	rpl::event_stream<> _sendRequests;
 	rpl::event_stream<> _receiveRequests;
 
 };
 
 [[nodiscard]] rpl::producer<CoverState> MakeCoverState(
-	rpl::producer<Ton::WalletViewerState> state);
+	rpl::producer<Ton::WalletViewerState> state,
+	bool justCreated);
 
 } // namespace Wallet
