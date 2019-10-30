@@ -87,6 +87,23 @@ void Window::init() {
 	) | rpl::start_with_next([=] {
 		updatePalette();
 	}, _window->lifetime());
+
+	loadWebConfig();
+}
+
+void Window::loadWebConfig() {
+	const auto &settings = _wallet->settings();
+	if (settings.useCustomConfig) {
+		return;
+	}
+	const auto loaded = [=](Ton::Result<QByteArray> result) {
+		auto settings = _wallet->settings();
+		if (result && *result != settings.config) {
+			settings.config = *result;
+			_wallet->updateSettings(settings, nullptr);
+		}
+	};
+	_wallet->loadWebResource(settings.configUrl, std::move(loaded));
 }
 
 void Window::updatePalette() {
@@ -261,20 +278,21 @@ void Window::showGenericError(
 		case Ton::Error::Type::IO: return "Disk Error";
 		case Ton::Error::Type::TonLib: return "Library Error";
 		case Ton::Error::Type::WrongPassword: return "Encryption Error";
+		case Ton::Error::Type::Web: return "Request Error";
 		}
 		Unexpected("Error type in Window::showGenericError.");
 	}();
 	showSimpleError(
 		rpl::single(QString(title)),
 		rpl::single((error.details + "\n\n" + additional).trimmed()),
-		rpl::single(QString("OK")));
+		ph::lng_wallet_ok());
 }
 
 void Window::showSendingError(const Ton::Error &error) {
 	const auto additional = ""
-		"Your transaction may or may not be processed successfully, "
-		"so please wait till it disappears from the 'Pending' block "
-		"and see if it appears in the recent transactions list.";
+		"Possible error, please wait. If your transaction disappears "
+		"from the \"Pending\" list and does not appear "
+		"in the list of recent transactions, try again.";
 	showGenericError(error, additional);
 	if (_sendBox) {
 		_sendBox->closeBox();
@@ -727,12 +745,15 @@ void Window::showSettings() {
 }
 
 QByteArray Window::checkConfigFromFile(const QString &path) {
-	const auto content = [&] {
+	return checkConfigFromContent([&] {
 		auto file = QFile(path);
 		file.open(QIODevice::ReadOnly);
 		return file.readAll();
-	}();
-	const auto result = Ton::Wallet::CheckConfig(content);
+	}());
+}
+
+QByteArray Window::checkConfigFromContent(const QByteArray &data) {
+	const auto result = Ton::Wallet::CheckConfig(data);
 	if (!result) {
 		showSimpleError(
 			ph::lng_wallet_error(),
@@ -740,20 +761,58 @@ QByteArray Window::checkConfigFromFile(const QString &path) {
 			ph::lng_wallet_ok());
 		return QByteArray();
 	}
-	return content;
+	return data;
 }
 
-void Window::saveSettings(const Ton::Settings &settings, bool sure) {
+void Window::saveSettings(const Ton::Settings &settings) {
+	if (settings.useCustomConfig) {
+		saveSettingsWithLoaded(settings);
+		return;
+	}
+	const auto loaded = [=](Ton::Result<QByteArray> result) {
+		if (!result) {
+			if (result.error().type == Ton::Error::Type::Web) {
+				using namespace rpl::mappers;
+				showSimpleError(
+					ph::lng_wallet_error(),
+					ph::lng_wallet_bad_config_url(
+					) | rpl::map(_1 + "\n\n" + result.error().details),
+					ph::lng_wallet_ok());
+			} else {
+				showGenericError(result.error());
+			}
+			return;
+		}
+		const auto config = checkConfigFromContent(*result);
+		if (!config.isEmpty()) {
+			auto copy = settings;
+			copy.config = config;
+			saveSettingsWithLoaded(copy);
+		}
+	};
+	_wallet->loadWebResource(settings.configUrl, loaded);
+}
+
+void Window::saveSettingsWithLoaded(const Ton::Settings &settings) {
 	const auto &current = _wallet->settings();
-	//if (!sure
-	//	&& !settings.useCustomConfig
-	//	&& (settings.configUrl != current.configUrl)) {
-	//}
 	const auto detach = (settings.blockchainName != current.blockchainName);
-	if (!sure && detach) {
+	if (detach) {
 		showBlockchainNameWarning(settings);
 		return;
 	}
+	saveSettingsSure(settings, [=] {
+		if (_settingsBox) {
+			_settingsBox->closeBox();
+		}
+		if (_viewer) {
+			refreshNow();
+		}
+	});
+}
+
+void Window::saveSettingsSure(
+		const Ton::Settings &settings,
+		Fn<void()> done) {
 	const auto showError = [=](Ton::Error error) {
 		if (_saveConfirmBox) {
 			_saveConfirmBox->closeBox();
@@ -763,16 +822,8 @@ void Window::saveSettings(const Ton::Settings &settings, bool sure) {
 	_wallet->updateSettings(settings, [=](Ton::Result<> result) {
 		if (!result) {
 			showError(result.error());
-			return;
-		} else if (detach) {
-			logout();
 		} else {
-			if (_settingsBox) {
-				_settingsBox->closeBox();
-			}
-			if (_viewer) {
-				refreshNow();
-			}
+			done();
 		}
 	});
 }
@@ -797,7 +848,9 @@ void Window::showBlockchainNameWarning(const Ton::Settings &settings) {
 			if (std::exchange(*saving, true)) {
 				return;
 			}
-			saveSettings(settings, true);
+			saveSettingsSure(settings, [=] {
+				logout();
+			});
 		}, st::attentionBoxButton);
 		box->addButton(ph::lng_wallet_cancel(), [=] {
 			box->closeBox();

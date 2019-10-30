@@ -60,6 +60,7 @@ private:
 		const QString &additional = QString());
 	void showSendingError(const Ton::Error &error);
 	void showToast(const QString &text);
+	void loadWebConfig();
 
 	void showCreate();
 	void createImportKey(const std::vector<QString> &words);
@@ -99,7 +100,10 @@ private:
 	void showExported(const std::vector<QString> &words);
 	void showSettings();
 	[[nodiscard]] QByteArray checkConfigFromFile(const QString &path);
-	void saveSettings(const Ton::Settings &settings, bool sure = false);
+	[[nodiscard]] QByteArray checkConfigFromContent(const QByteArray &data);
+	void saveSettings(const Ton::Settings &settings);
+	void saveSettingsWithLoaded(const Ton::Settings &settings);
+	void saveSettingsSure(const Ton::Settings &settings, Fn<void()> done);
 	void showBlockchainNameWarning(const Ton::Settings &settings);
 	Fn<void(QImage, QString)> shareCallback(
 		const QString &copied,

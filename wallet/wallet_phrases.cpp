@@ -182,6 +182,7 @@ phrase lng_wallet_settings_blockchain_name = "Blockchain name";
 
 phrase lng_wallet_warning_blockchain_name = "Are you sure you want to change the blockchain name? You don't need to change it unless you test your own TON network.\n\nIf you proceed you will be logged out.";
 phrase lng_wallet_bad_config = "Sorry, this config is invalid.";
+phrase lng_wallet_bad_config_url = "Could not load config from URL.";
 
 phrase lng_wallet_downloaded = "{ready} / {total} {mb}";
 
