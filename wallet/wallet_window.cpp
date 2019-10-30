@@ -335,13 +335,13 @@ void Window::showAccount(const QByteArray &publicKey) {
 	_info->actionRequests(
 	) | rpl::start_with_next([=](Action action) {
 		switch (action) {
-		case Action::Refresh: _viewer->refreshNow(nullptr); return;
+		case Action::Refresh: refreshNow(); return;
 		case Action::Export: askExportPassword(); return;
 		case Action::Send: sendGrams(); return;
 		case Action::Receive: receiveGrams(); return;
 		case Action::ChangePassword: changePassword(); return;
 		case Action::ShowSettings: showSettings(); return;
-		case Action::LogOut: logout(); return;
+		case Action::LogOut: logoutWithConfirmation(); return;
 		}
 		Unexpected("Action in Info::actionRequests().");
 	}, _info->lifetime());
@@ -720,9 +720,27 @@ void Window::showSettings() {
 		SettingsBox,
 		_wallet->settings(),
 		_updateInfo,
+		[=](const QString &path) { return checkConfigFromFile(path); },
 		[=](const Ton::Settings &settings) { saveSettings(settings); });
 	_settingsBox = box.data();
 	_layers->showBox(std::move(box));
+}
+
+QByteArray Window::checkConfigFromFile(const QString &path) {
+	const auto content = [&] {
+		auto file = QFile(path);
+		file.open(QIODevice::ReadOnly);
+		return file.readAll();
+	}();
+	const auto result = Ton::Wallet::CheckConfig(content);
+	if (!result) {
+		showSimpleError(
+			ph::lng_wallet_error(),
+			ph::lng_wallet_bad_config(),
+			ph::lng_wallet_ok());
+		return QByteArray();
+	}
+	return content;
 }
 
 void Window::saveSettings(const Ton::Settings &settings, bool sure) {
@@ -731,8 +749,8 @@ void Window::saveSettings(const Ton::Settings &settings, bool sure) {
 	//	&& !settings.useCustomConfig
 	//	&& (settings.configUrl != current.configUrl)) {
 	//}
-	const auto logout = (settings.blockchainName != current.blockchainName);
-	if (!sure && logout) {
+	const auto detach = (settings.blockchainName != current.blockchainName);
+	if (!sure && detach) {
 		showBlockchainNameWarning(settings);
 		return;
 	}
@@ -746,19 +764,24 @@ void Window::saveSettings(const Ton::Settings &settings, bool sure) {
 		if (!result) {
 			showError(result.error());
 			return;
-		} else if (!logout) {
+		} else if (detach) {
+			logout();
+		} else {
 			if (_settingsBox) {
 				_settingsBox->closeBox();
 			}
-			return;
-		}
-		_wallet->deleteAllKeys(crl::guard(this, [=](Ton::Result<> result) {
-			if (!result) {
-				showError(result.error());
-				return;
+			if (_viewer) {
+				refreshNow();
 			}
-			showCreate();
-		}));
+		}
+	});
+}
+
+void Window::refreshNow() {
+	_viewer->refreshNow([=](Ton::Result<> result) {
+		if (!result) {
+			showGenericError(result.error());
+		}
 	});
 }
 
@@ -827,15 +850,17 @@ void Window::showExported(const std::vector<QString> &words) {
 	_layers->showBox(Box(ExportedBox, words));
 }
 
+void Window::logoutWithConfirmation() {
+	_layers->showBox(Box(DeleteWalletBox, [=] { logout(); }));
+}
+
 void Window::logout() {
-	_layers->showBox(Box(DeleteWalletBox, [=] {
-		_wallet->deleteAllKeys(crl::guard(this, [=](Ton::Result<> result) {
-			if (!result) {
-				showGenericError(result.error());
-				return;
-			}
-			showCreate();
-		}));
+	_wallet->deleteAllKeys(crl::guard(this, [=](Ton::Result<> result) {
+		if (!result) {
+			showGenericError(result.error());
+			return;
+		}
+		showCreate();
 	}));
 }
 

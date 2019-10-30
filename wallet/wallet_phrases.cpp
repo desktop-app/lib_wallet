@@ -18,6 +18,8 @@ phrase lng_wallet_continue = "Continue";
 phrase lng_wallet_done = "Done";
 phrase lng_wallet_save = "Save";
 phrase lng_wallet_warning = "Warning";
+phrase lng_wallet_error = "Error";
+phrase lng_wallet_ok = "OK";
 
 phrase lng_wallet_copy_address = "Copy Wallet Address";
 

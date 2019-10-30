@@ -16,9 +16,13 @@
 #include "ui/wrap/slide_wrap.h"
 #include "ui/wrap/vertical_layout.h"
 #include "ui/text/text_utilities.h"
+#include "base/call_delayed.h"
+#include "base/platform/base_platform_info.h"
 #include "styles/style_wallet.h"
 #include "styles/style_layers.h"
 #include "styles/style_widgets.h"
+
+#include <QtWidgets/QFileDialog>
 
 namespace Wallet {
 namespace {
@@ -193,6 +197,7 @@ void SettingsBox(
 		not_null<Ui::GenericBox*> box,
 		const Ton::Settings &settings,
 		UpdateInfo *updateInfo,
+		Fn<QByteArray(QString)> checkConfig,
 		Fn<void(Ton::Settings)> save) {
 	using namespace rpl::mappers;
 
@@ -214,15 +219,50 @@ void SettingsBox(
 		QMargins()
 	)->toggleOn(rpl::single(!settings.useCustomConfig));
 
+	const auto filenames = box->lifetime().make_state<
+		rpl::event_stream<QString>>();
+	auto text = rpl::combine(
+		ph::lng_wallet_settings_config_from_file(),
+		filenames->events_starting_with(QString())
+	) | rpl::map([](const QString &phrase, const QString &name) {
+		return name.isEmpty() ? phrase : name;
+	});
 	const auto custom = box->addRow(
 		object_ptr<Ui::SlideWrap<Ui::SettingsButton>>(
 			box,
 			object_ptr<Ui::SettingsButton>(
 				box,
-				ph::lng_wallet_settings_config_from_file(),
+				std::move(text),
 				st::defaultSettingsButton)),
 		QMargins()
-	)->toggleOn(download->toggledValue() | rpl::map(!_1))->setDuration(0);
+	)->setDuration(0);
+
+	const auto modified = std::make_shared<QByteArray>(settings.config);
+	const auto chooseFromFile = [=] {
+		const auto all = Platform::IsWindows() ? "(*.*)" : "(*)";
+		const auto filter = QString("JSON Files (*.json);;All Files ") + all;
+		const auto path = QFileDialog::getOpenFileName(
+			box->window(),
+			QString(),
+			QString(),
+			filter);
+		if (!path.isEmpty()) {
+			if (const auto config = checkConfig(path); !config.isEmpty()) {
+				*modified = config;
+				filenames->fire(QFileInfo(path).fileName());
+			}
+		}
+	};
+	const auto choosing = std::make_shared<bool>();
+	custom->entity()->setClickedCallback([=] {
+		if (std::exchange(*choosing, true)) {
+			return;
+		}
+		base::call_delayed(
+			st::defaultSettingsButton.ripple.hideDuration,
+			custom,
+			[=] { *choosing = false; chooseFromFile(); });
+	});
 
 	// Make field the same height as the button.
 	const auto heightDelta = st::defaultSettingsButton.padding.top()
@@ -238,9 +278,19 @@ void SettingsBox(
 				ph::lng_wallet_settings_config_url(),
 				settings.configUrl),
 			QMargins(0, 0, 0, heightDelta)),
-		(st::boxRowPadding
-			+ QMargins(0, 0, 0, st::walletSettingsBlockchainNameSkip))
-	)->toggleOn(download->toggledValue())->setDuration(0)->entity();
+			(st::boxRowPadding
+				+ QMargins(0, 0, 0, st::walletSettingsBlockchainNameSkip)));
+
+	download->toggledValue(
+	) | rpl::start_with_next([=](bool toggled) {
+		if (toggled) {
+			custom->hide(anim::type::instant);
+			url->show(anim::type::instant);
+		} else {
+			url->hide(anim::type::instant);
+			custom->show(anim::type::instant);
+		}
+	}, download->lifetime());
 
 	AddBoxSubtitle(box, ph::lng_wallet_settings_blockchain_name());
 	const auto name = box->addRow(object_ptr<Ui::InputField>(
@@ -253,8 +303,10 @@ void SettingsBox(
 		auto result = settings;
 		result.blockchainName = name->getLastText();
 		result.useCustomConfig = custom->toggled();
-		if (!result.useCustomConfig) {
-			result.configUrl = url->getLastText();
+		if (result.useCustomConfig) {
+			result.config = *modified;
+		} else {
+			result.configUrl = url->entity()->getLastText();
 		}
 		return result;
 	};

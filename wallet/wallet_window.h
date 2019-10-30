@@ -90,6 +90,7 @@ private:
 		const Ton::PendingTransaction &transaction,
 		rpl::producer<> confirmed);
 	void showSendingDone(std::optional<Ton::Transaction> result);
+	void refreshNow();
 	void receiveGrams();
 	void createInvoice();
 	void showInvoiceQr(const QString &link);
@@ -97,11 +98,13 @@ private:
 	void askExportPassword();
 	void showExported(const std::vector<QString> &words);
 	void showSettings();
+	[[nodiscard]] QByteArray checkConfigFromFile(const QString &path);
 	void saveSettings(const Ton::Settings &settings, bool sure = false);
 	void showBlockchainNameWarning(const Ton::Settings &settings);
 	Fn<void(QImage, QString)> shareCallback(
 		const QString &copied,
 		const QString &qr);
+	void logoutWithConfirmation();
 	void logout();
 
 	const not_null<Ton::Wallet*> _wallet;
