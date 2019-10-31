@@ -127,6 +127,7 @@ QDateTime HistoryRow::date() const {
 }
 
 void HistoryRow::setShowDate(bool show) {
+	_width = 0;
 	if (!show) {
 		_layout.date.clear();
 	} else if (_layout.pending) {

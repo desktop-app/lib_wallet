@@ -8,6 +8,7 @@
 
 #include "ton/ton_state.h"
 #include "base/weak_ptr.h"
+#include "base/object_ptr.h"
 
 #include <QtCore/QPointer>
 
@@ -27,6 +28,7 @@ class Window;
 class LayerManager;
 class GenericBox;
 class RpWidget;
+class FlatButton;
 } // namespace Ui
 
 namespace Wallet {
@@ -74,6 +76,7 @@ private:
 		std::shared_ptr<bool> guard);
 
 	void showAccount(const QByteArray &publicKey, bool justCreated = false);
+	void setupUpdateWithInfo();
 	void setupRefreshEach();
 	void sendGrams(const QString &invoice = QString());
 	void confirmTransaction(
@@ -124,6 +127,9 @@ private:
 	rpl::variable<Ton::WalletState> _state;
 	rpl::variable<bool> _syncing;
 	std::unique_ptr<Info> _info;
+	object_ptr<Ui::FlatButton> _updateButton = { nullptr };
+	rpl::event_stream<rpl::producer<int>> _updateButtonHeight;
+
 	QPointer<Ui::GenericBox> _sendBox;
 	QPointer<Ui::GenericBox> _sendConfirmBox;
 	QPointer<Ui::GenericBox> _simpleErrorBox;

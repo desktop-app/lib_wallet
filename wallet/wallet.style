@@ -219,6 +219,25 @@ walletCoverIconPosition: point(0px, 3px);
 walletCoverReceiveIcon: icon {{ "wallet_receive", activeButtonFg }};
 walletCoverSendIcon: icon {{ "wallet_send", activeButtonFg }};
 
+walletUpdateButton: FlatButton {
+	color: activeButtonFg;
+	overColor: activeButtonFgOver;
+
+	bgColor: activeButtonBg;
+	overBgColor: activeButtonBgOver;
+
+	width: -34px;
+	height: 46px;
+
+	textTop: 14px;
+
+	font: semiboldFont;
+	overFont: semiboldFont;
+
+	ripple: RippleAnimation(defaultRippleAnimation) {
+		color: activeButtonBgRipple;
+	}
+}
 walletEmptyHistoryHeight: 230px;
 walletEmptyLottieTop: 0px;
 walletEmptyLottieSize: 100px;

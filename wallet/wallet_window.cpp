@@ -32,6 +32,7 @@
 #include "ui/widgets/window.h"
 #include "ui/widgets/labels.h"
 #include "ui/widgets/input_fields.h"
+#include "ui/widgets/buttons.h"
 #include "ui/layers/layer_manager.h"
 #include "ui/layers/generic_box.h"
 #include "ui/toast/toast.h"
@@ -345,7 +346,6 @@ void Window::showAccount(const QByteArray &publicKey, bool justCreated) {
 		}, [&](const Ton::LiteServerQuery &) {
 			return false;
 		});
-
 	});
 
 	_window->setTitleStyle(st::walletWindowTitle);
@@ -368,10 +368,7 @@ void Window::showAccount(const QByteArray &publicKey, bool justCreated) {
 		showGenericError(error);
 	}, _info->lifetime());
 
-	_window->body()->sizeValue(
-	) | rpl::start_with_next([=](QSize size) {
-		_info->setGeometry({ QPoint(), size });
-	}, _info->lifetime());
+	setupUpdateWithInfo();
 
 	_info->actionRequests(
 	) | rpl::start_with_next([=](Action action) {
@@ -399,6 +396,50 @@ void Window::showAccount(const QByteArray &publicKey, bool justCreated) {
 		};
 		_layers->showBox(Box(ViewTransactionBox, std::move(data), send));
 	}, _info->lifetime());
+}
+
+void Window::setupUpdateWithInfo() {
+	rpl::combine(
+		_window->body()->sizeValue(),
+		_updateButtonHeight.events() | rpl::flatten_latest()
+	) | rpl::start_with_next([=](QSize size, int height) {
+		_info->setGeometry({ 0, 0, size.width(), size.height() - height });
+		if (height > 0) {
+			_updateButton->setGeometry(
+				0,
+				size.height() - height,
+				size.width(),
+				height);
+		}
+	}, _window->lifetime());
+
+	rpl::merge(
+		rpl::single(rpl::empty_value()),
+		_updateInfo->isLatest(),
+		_updateInfo->failed(),
+		_updateInfo->ready()
+	) | rpl::start_with_next([=] {
+		if (_updateInfo->state() == UpdateState::Ready) {
+			if (_updateButton) {
+				return;
+			}
+			_updateButton.create(
+				_window->body(),
+				ph::lng_wallet_update(ph::now).toUpper(),
+				st::walletUpdateButton);
+			_updateButton->show();
+			_updateButton->setClickedCallback([=] {
+				_updateInfo->install();
+			});
+			_updateButtonHeight.fire(_updateButton->heightValue());
+		} else {
+			_updateButtonHeight.fire(rpl::single(0));
+			if (!_updateButton) {
+				return;
+			}
+			_updateButton.destroy();
+		}
+	}, _window->lifetime());
 }
 
 void Window::setupRefreshEach() {
