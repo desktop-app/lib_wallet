@@ -12,11 +12,26 @@
 #include "ui/widgets/buttons.h"
 #include "ui/widgets/labels.h"
 #include "ui/text/text_utilities.h"
+#include "ui/basic_click_handlers.h"
 #include "base/qt_signal_producer.h"
 #include "styles/style_wallet.h"
 #include "styles/style_layers.h"
 
 namespace Wallet {
+namespace {
+
+class InvoiceHandler final : public UrlClickHandler {
+public:
+	explicit InvoiceHandler(const QString &url) : UrlClickHandler(url) {
+	}
+
+	QString copyToClipboardContextItemText() const override {
+		return QString();
+	}
+
+};
+
+} // namespace
 
 void CreateInvoiceBox(
 		not_null<Ui::GenericBox*> box,
@@ -81,19 +96,10 @@ void CreateInvoiceBox(
 	)) | rpl::map([=] {
 		return comment->getLastText();
 	});
-	auto linkText = rpl::combine(
-		std::move(amountValue),
-		std::move(commentValue)
-	) | rpl::map([=](int64 amount, const QString &comment) {
-		const auto link = TransferLink(address, amount, comment);
-		return (amount > 0)
-			? Ui::Text::Link(link, link)
-			: TextWithEntities{ link };
-	});
 	const auto url = box->addRow(
 		object_ptr<Ui::FlatLabel>(
 			box,
-			std::move(linkText),
+			QString(),
 			st::walletInvoiceLinkLabel),
 		st::walletInvoiceLinkPadding);
 	url->setBreakEverywhere(true);
@@ -105,6 +111,19 @@ void CreateInvoiceBox(
 		return false;
 	});
 	url->setMinimumHeight(st::walletInvoiceLinkLabel.maxHeight);
+
+	rpl::combine(
+		std::move(amountValue),
+		std::move(commentValue)
+	) | rpl::map([=](int64 amount, const QString &comment) {
+		const auto link = TransferLink(address, amount, comment);
+		return (amount > 0)
+			? Ui::Text::Link(link)
+			: TextWithEntities{ link };
+	}) | rpl::start_with_next([=](TextWithEntities &&text) {
+		url->setMarkedText(std::move(text));
+		url->setLink(1, std::make_shared<InvoiceHandler>(text.text));
+	}, url->lifetime());
 
 	box->addRow(
 		object_ptr<Ui::FlatLabel>(
