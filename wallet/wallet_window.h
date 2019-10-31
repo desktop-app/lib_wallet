@@ -60,7 +60,7 @@ private:
 		const QString &additional = QString());
 	void showSendingError(const Ton::Error &error);
 	void showToast(const QString &text);
-	void loadWebConfig();
+	void startWallet();
 
 	void showCreate();
 	void createImportKey(const std::vector<QString> &words);

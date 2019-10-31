@@ -88,10 +88,16 @@ void Window::init() {
 		updatePalette();
 	}, _window->lifetime());
 
-	loadWebConfig();
+	startWallet();
 }
 
-void Window::loadWebConfig() {
+void Window::startWallet() {
+	_wallet->start([=](Ton::Result<> result) {
+		if (!result) {
+			showGenericError(result.error());
+		}
+	});
+
 	const auto &settings = _wallet->settings();
 	if (settings.useCustomConfig) {
 		return;
