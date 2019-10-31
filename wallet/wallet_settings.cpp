@@ -301,17 +301,32 @@ void SettingsBox(
 
 	const auto collectSettings = [=] {
 		auto result = settings;
-		result.blockchainName = name->getLastText();
+		result.blockchainName = name->getLastText().trimmed();
 		result.useCustomConfig = custom->toggled();
 		if (result.useCustomConfig) {
 			result.config = *modified;
 		} else {
-			result.configUrl = url->entity()->getLastText();
+			result.configUrl = url->entity()->getLastText().trimmed();
 		}
 		return result;
 	};
 
-	box->addButton(ph::lng_wallet_save(), [=] { save(collectSettings()); });
+	const auto validate = [=] {
+		if (name->getLastText().trimmed().isEmpty()) {
+			name->showError();
+			return false;
+		} else if (!custom->toggled()
+			&& url->entity()->getLastText().trimmed().isEmpty()) {
+			url->entity()->showError();
+			return false;
+		}
+		return true;
+	};
+	box->addButton(ph::lng_wallet_save(), [=] {
+		if (validate()) {
+			save(collectSettings());
+		}
+	});
 	box->addButton(ph::lng_wallet_cancel(), [=] { box->closeBox(); });
 }
 
