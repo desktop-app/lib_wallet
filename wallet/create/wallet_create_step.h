@@ -130,7 +130,6 @@ private:
 	int _lottieSize = 0;
 	base::unique_qptr<Ui::FlatLabel> _title;
 	base::unique_qptr<Ui::FlatLabel> _description;
-	base::unique_qptr<Ui::RoundButton> _importButton;
 	base::unique_qptr<Ui::RoundButton> _nextButton;
 	base::unique_qptr<Ui::RpWidget> _belowNextButton;
 

@@ -71,7 +71,7 @@ walletStepScrollDescriptionTop: 34px;
 walletStepIntroLottiePosition: point(0px, 16px);
 walletStepIntroLottieSize: 120px;
 
-walletImportButtonPosition: point(12px, 12px);
+walletUpdateButtonPosition: point(12px, 12px);
 
 walletStepCreatedLottiePosition: point(10px, 16px);
 walletStepCreatedLottieSize: 112px;

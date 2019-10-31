@@ -128,10 +128,13 @@ void Window::showCreate() {
 	_layers->hideAll();
 	_info = nullptr;
 	_viewer = nullptr;
+	_updateButton.destroy();
 
 	_window->setTitleStyle(st::defaultWindowTitle);
 	_importing = false;
-	_createManager = std::make_unique<Create::Manager>(_window->body());
+	_createManager = std::make_unique<Create::Manager>(
+		_window->body(),
+		_updateInfo);
 	_layers->raise();
 
 	_window->body()->sizeValue(
@@ -399,6 +402,8 @@ void Window::showAccount(const QByteArray &publicKey, bool justCreated) {
 }
 
 void Window::setupUpdateWithInfo() {
+	Expects(_info != nullptr);
+
 	rpl::combine(
 		_window->body()->sizeValue(),
 		_updateButtonHeight.events() | rpl::flatten_latest()
@@ -411,7 +416,7 @@ void Window::setupUpdateWithInfo() {
 				size.width(),
 				height);
 		}
-	}, _window->lifetime());
+	}, _info->lifetime());
 
 	rpl::merge(
 		rpl::single(rpl::empty_value()),
@@ -439,7 +444,7 @@ void Window::setupUpdateWithInfo() {
 			}
 			_updateButton.destroy();
 		}
-	}, _window->lifetime());
+	}, _info->lifetime());
 }
 
 void Window::setupRefreshEach() {
@@ -829,16 +834,15 @@ QByteArray Window::checkConfigFromFile(const QString &path) {
 	}());
 }
 
-QByteArray Window::checkConfigFromContent(const QByteArray &data) {
-	const auto result = Ton::Wallet::CheckConfig(data);
-	if (!result) {
+QByteArray Window::checkConfigFromContent(const QByteArray &bytes) {
+	if (!Ton::Wallet::CheckConfig(bytes)) {
 		showSimpleError(
 			ph::lng_wallet_error(),
 			ph::lng_wallet_bad_config(),
 			ph::lng_wallet_ok());
 		return QByteArray();
 	}
-	return data;
+	return bytes;
 }
 
 void Window::saveSettings(const Ton::Settings &settings) {

@@ -14,6 +14,7 @@
 #include "wallet/create/wallet_create_passcode.h"
 #include "wallet/create/wallet_create_ready.h"
 #include "wallet/wallet_phrases.h"
+#include "wallet/wallet_update_info.h"
 #include "ton/ton_wallet.h"
 #include "ui/wrap/fade_wrap.h"
 #include "ui/widgets/buttons.h"
@@ -23,6 +24,7 @@
 #include "ui/rp_widget.h"
 #include "base/call_delayed.h"
 #include "styles/style_wallet.h"
+#include "styles/style_layers.h"
 
 #include <QtGui/QtEvents>
 
@@ -87,7 +89,7 @@ constexpr auto kWaitForWordsDelay = 30 * crl::time(1000);
 
 } // namespace
 
-Manager::Manager(not_null<QWidget*> parent)
+Manager::Manager(not_null<QWidget*> parent, UpdateInfo *updateInfo)
 : _content(std::make_unique<Ui::RpWidget>(parent))
 , _backButton(
 	std::in_place,
@@ -96,15 +98,19 @@ Manager::Manager(not_null<QWidget*> parent)
 , _validWords(Ton::Wallet::GetValidWords())
 , _waitForWords([=] { _wordsShouldBeReady = true; }) {
 	_content->show();
-	initButtons();
+	initButtons(updateInfo);
 	showIntro();
 }
 
-void Manager::initButtons() {
+void Manager::initButtons(UpdateInfo *updateInfo) {
 	_backButton->entity()->setClickedCallback([=] { back(); });
 	_backButton->toggle(false, anim::type::instant);
 	_backButton->setDuration(st::slideDuration);
 	_backButton->move(0, 0);
+
+	if (updateInfo) {
+		setupUpdateButton(updateInfo);
+	}
 }
 
 Manager::~Manager() = default;
@@ -231,6 +237,9 @@ void Manager::showStep(
 
 	_backButton->toggle(_back != nullptr, anim::type::normal);
 	_backButton->raise();
+	if (_updateButton) {
+		_updateButton->raise();
+	}
 
 	_step->nextClicks(
 	) | rpl::start_with_next([=](Qt::KeyboardModifiers modifiers) {
@@ -299,6 +308,43 @@ void Manager::acceptWordsDelayByModifiers(Qt::KeyboardModifiers modifiers) {
 		return;
 	}
 	_wordsShouldBeReady = true;
+}
+
+void Manager::setupUpdateButton(not_null<UpdateInfo*> info) {
+	rpl::merge(
+		rpl::single(rpl::empty_value()),
+		info->isLatest(),
+		info->failed(),
+		info->ready()
+	) | rpl::start_with_next([=] {
+		if (info->state() == UpdateState::Ready) {
+			if (_updateButton) {
+				return;
+			}
+			_updateButton.emplace(
+				_content.get(),
+				ph::lng_wallet_update_short(),
+				st::defaultBoxButton);
+			_updateButton->setClickedCallback([=] {
+				info->install();
+			});
+			_updateButton->show();
+			rpl::combine(
+				_content->widthValue(),
+				_updateButton->widthValue()
+			) | rpl::start_with_next([=](int width, int importWidth) {
+				_updateButton->moveToRight(
+					st::walletUpdateButtonPosition.x(),
+					st::walletUpdateButtonPosition.y(),
+					width);
+			}, _updateButton->lifetime());
+		} else {
+			if (!_updateButton) {
+				return;
+			}
+			_updateButton = nullptr;
+		}
+	}, _content->lifetime());
 }
 
 void Manager::setGeometry(QRect geometry) {
