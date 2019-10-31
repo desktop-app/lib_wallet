@@ -49,14 +49,14 @@ phrase lng_wallet_words_sure_text = "You didn't have enough time to write these 
 phrase lng_wallet_words_sure_ok = "OK, Sorry";
 
 phrase lng_wallet_check_title = "Test Time!";
-phrase lng_wallet_check_description = "Now let's check that you wrote your secret\nwords correctly.\n\nPlease enter words {index1}, {index2} and {index3} below:";
+phrase lng_wallet_check_description = "Now let's check that you wrote your secret\nwords correctly.\n\nPlease enter the words {index1}, {index2} and {index3} below:";
 phrase lng_wallet_check_incorrect_title = "Incorrect words";
 phrase lng_wallet_check_incorrect_text = "The secret words you have entered do not match the ones in the list.";
 phrase lng_wallet_check_incorrect_view = "See words";
 phrase lng_wallet_check_incorrect_retry = "Try again";
 
 phrase lng_wallet_set_passcode_title = "Secure Password";
-phrase lng_wallet_set_passcode_description = "Please choose a secure password\nfor your payments confirmation.";
+phrase lng_wallet_set_passcode_description = "Please choose a secure password\nfor confirming your payments.";
 phrase lng_wallet_set_passcode_enter = "Enter your password";
 phrase lng_wallet_set_passcode_repeat = "Repeat your password";
 
@@ -108,7 +108,7 @@ phrase lng_wallet_receive_copied_qr = "QR Code copied to clipboard.";
 
 phrase lng_wallet_invoice_title = "Create Invoice";
 phrase lng_wallet_invoice_amount = "Amount";
-phrase lng_wallet_invoice_number = "Number of grams you expect to receive";
+phrase lng_wallet_invoice_number = "Amount in grams you expect to receive";
 phrase lng_wallet_invoice_comment = "Comment (optional)";
 phrase lng_wallet_invoice_comment_about = "You can specify the amount and purpose of the payment to save the sender some time.";
 phrase lng_wallet_invoice_url = "Invoice URL";
@@ -124,7 +124,7 @@ phrase lng_wallet_invoice_copied = "Invoice link copied to clipboard.";
 
 phrase lng_wallet_menu_settings = "Settings";
 phrase lng_wallet_menu_change_passcode = "Change password";
-phrase lng_wallet_menu_export = "Backup wallet";
+phrase lng_wallet_menu_export = "Back up wallet";
 phrase lng_wallet_menu_delete = "Delete wallet";
 
 phrase lng_wallet_delete_title = "Delete Wallet";
@@ -141,8 +141,8 @@ phrase lng_wallet_send_comment = "Comment (optional)";
 phrase lng_wallet_send_button = "Send Grams";
 phrase lng_wallet_send_button_amount = "Send {grams}";
 
-phrase lng_wallet_send_failed_title = "Send failed";
-phrase lng_wallet_send_failed_text = "Could not perform the transaction. Please check the balance and try again.";
+phrase lng_wallet_send_failed_title = "Sending failed";
+phrase lng_wallet_send_failed_text = "Could not perform the transaction. Please check your wallet's balance and try again.";
 
 phrase lng_wallet_confirm_title = "Confirmation";
 phrase lng_wallet_confirm_text = "Do you want to send **{grams}** to:";
@@ -156,7 +156,7 @@ phrase lng_wallet_same_address_proceed = "Proceed";
 phrase lng_wallet_passcode_title = "Password";
 phrase lng_wallet_passcode_enter = "Enter your password";
 phrase lng_wallet_passcode_next = "Next";
-phrase lng_wallet_passcode_incorrect = "This is a wrong password.";
+phrase lng_wallet_passcode_incorrect = "Incorrect password.";
 
 phrase lng_wallet_sending_title = "Sending Grams";
 phrase lng_wallet_sending_text = "Please wait a few seconds for your\ntransaction to be processed...";
@@ -179,9 +179,9 @@ phrase lng_wallet_settings_configuration = "Configuration";
 phrase lng_wallet_settings_update_config = "Update config automatically";
 phrase lng_wallet_settings_config_url = "Config update URL";
 phrase lng_wallet_settings_config_from_file = "Load from file";
-phrase lng_wallet_settings_blockchain_name = "Blockchain name";
+phrase lng_wallet_settings_blockchain_name = "Blockchain ID";
 
-phrase lng_wallet_warning_blockchain_name = "Are you sure you want to change the blockchain name? You don't need to change it unless you test your own TON network.\n\nIf you proceed you will be logged out.";
+phrase lng_wallet_warning_blockchain_name = "Are you sure you want to change the blockchain ID? You don't need this unless you're testing your own TON network.\n\nIf you proceed, you will need to reconnect your wallet using 24 secret words.";
 phrase lng_wallet_bad_config = "Sorry, this config is invalid.";
 phrase lng_wallet_bad_config_url = "Could not load config from URL.";
 phrase lng_wallet_wait_pending = "Please wait until the current transaction is completed.";
