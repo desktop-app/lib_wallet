@@ -93,12 +93,6 @@ void Window::init() {
 }
 
 void Window::startWallet() {
-	_wallet->start([=](Ton::Result<> result) {
-		if (!result) {
-			showGenericError(result.error());
-		}
-	});
-
 	const auto &settings = _wallet->settings();
 	if (settings.useCustomConfig) {
 		return;
@@ -337,7 +331,7 @@ void Window::showAccount(const QByteArray &publicKey, bool justCreated) {
 	_importing = false;
 	_createManager = nullptr;
 
-	_address = Ton::Wallet::GetAddress(publicKey);
+	_address = _wallet->getAddress(publicKey);
 	_viewer = _wallet->createAccountViewer(_address);
 	_state = _viewer->state() | rpl::map([](Ton::WalletViewerState &&state) {
 		return std::move(state.wallet);
