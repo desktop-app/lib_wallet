@@ -412,6 +412,11 @@ void Window::setupUpdateWithInfo() {
 		}
 	}, _info->lifetime());
 
+	if (!_updateInfo) {
+		_updateButtonHeight.fire(rpl::single(0));
+		return;
+	}
+
 	rpl::merge(
 		rpl::single(rpl::empty_value()),
 		_updateInfo->isLatest(),
