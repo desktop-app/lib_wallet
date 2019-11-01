@@ -19,6 +19,7 @@
 #include "styles/style_wallet.h"
 
 #include <QtCore/QDateTime>
+#include <QtGui/QtEvents>
 
 namespace Wallet {
 namespace {
@@ -81,6 +82,54 @@ object_ptr<Ui::RpWidget> CreateSummary(
 	return result;
 }
 
+void SetupScrollByDrag(
+		not_null<Ui::BoxContent*> box,
+		not_null<Ui::RpWidget*> child) {
+	auto moves = child->events(
+	) | rpl::filter([=](not_null<QEvent*> event) {
+		return (event->type() == QEvent::MouseMove);
+	});
+	auto pressed = child->events(
+	) | rpl::filter([=](not_null<QEvent*> event) {
+		const auto type = event->type();
+		static constexpr auto kLeft = Qt::LeftButton;
+		return ((type == QEvent::MouseButtonPress)
+			|| (type == QEvent::MouseButtonRelease))
+			&& (static_cast<QMouseEvent*>(event.get())->button() == kLeft);
+	}) | rpl::map([=](not_null<QEvent*> event) {
+		return (event->type() == QEvent::MouseButtonPress);
+	});
+	auto pressedY = rpl::combine(
+		std::move(pressed),
+		std::move(moves)
+	) | rpl::filter([](bool pressed, not_null<QEvent*> move) {
+		return pressed;
+	}) | rpl::map([](bool pressed, not_null<QEvent*> move) {
+		const auto pos = static_cast<QMouseEvent*>(move.get())->globalPos();
+		return pressed ? std::make_optional(pos.y()) : std::nullopt;
+	}) | rpl::distinct_until_changed();
+
+	rpl::combine(
+		std::move(pressedY),
+		box->geometryValue()
+	) | rpl::start_with_next([=](std::optional<int> y, QRect geometry) {
+		if (!y) {
+			box->onDraggingScrollDelta(0);
+			return;
+		}
+		const auto parent = box->parentWidget();
+		const auto global = parent->mapToGlobal(geometry.topLeft());
+		const auto top = global.y();
+		const auto bottom = top + geometry.height();
+		const auto delta = (*y < global.y())
+			? (*y - top)
+			: (*y > bottom)
+			? (*y - bottom)
+			: 0;
+		box->onDraggingScrollDelta(delta);
+	}, child->lifetime());
+}
+
 } // namespace
 
 void ViewTransactionBox(
@@ -132,10 +181,12 @@ void ViewTransactionBox(
 
 	if (!message.isEmpty()) {
 		AddBoxSubtitle(box, ph::lng_wallet_view_comment());
-		box->addRow(object_ptr<Ui::FlatLabel>(
+		const auto comment = box->addRow(object_ptr<Ui::FlatLabel>(
 			box,
 			message,
-			st::walletLabel))->setSelectable(true);
+			st::walletLabel));
+		comment->setSelectable(true);
+		SetupScrollByDrag(box, comment);
 	}
 
 	box->addRow(object_ptr<Ui::FixedHeightWidget>(
