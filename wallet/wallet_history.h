@@ -61,6 +61,11 @@ private:
 	void pressRow();
 	void releaseRow();
 
+	void refreshShowDates();
+	void setRowShowDate(
+		const std::unique_ptr<HistoryRow> &row,
+		bool show = true);
+
 	Ui::RpWidget _widget;
 
 	std::vector<Ton::PendingTransaction> _pendingData;

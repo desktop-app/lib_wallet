@@ -26,6 +26,7 @@ constexpr auto kPreloadScreens = 3;
 constexpr auto kCommentLinesMax = 3;
 
 struct TransactionLayout {
+	TimeId serverTime = 0;
 	QDateTime dateTime;
 	Ui::Text::String date;
 	Ui::Text::String time;
@@ -45,12 +46,30 @@ struct TransactionLayout {
 	return result;
 }
 
+void RefreshTimeTexts(
+		TransactionLayout &layout,
+		bool forceDateText = false) {
+	layout.dateTime = base::unixtime::parse(layout.serverTime);
+	layout.time.setText(
+		st::defaultTextStyle,
+		ph::lng_wallet_short_time(layout.dateTime.time())(ph::now));
+	if (layout.date.isEmpty() && !forceDateText) {
+		return;
+	}
+	if (layout.pending) {
+		layout.date.setText(
+			st::semiboldTextStyle,
+			ph::lng_wallet_row_pending_date(ph::now));
+	} else {
+		layout.date.setText(
+			st::semiboldTextStyle,
+			ph::lng_wallet_short_date(layout.dateTime.date())(ph::now));
+	}
+}
+
 [[nodiscard]] TransactionLayout PrepareLayout(const Ton::Transaction &data) {
 	auto result = TransactionLayout();
-	result.dateTime = base::unixtime::parse(data.time);
-	result.time.setText(
-		st::defaultTextStyle,
-		ph::lng_wallet_short_time(result.dateTime.time())(ph::now));
+	result.serverTime = data.time;
 	const auto amount = ParseAmount(CalculateValue(data), true);
 	result.amountGrams.setText(st::walletRowGramsStyle, amount.gramsString);
 	result.amountNano.setText(
@@ -82,6 +101,8 @@ struct TransactionLayout {
 	}
 	result.incoming = data.outgoing.empty();
 	result.pending = (data.id.lt == 0);
+
+	RefreshTimeTexts(result);
 	return result;
 }
 
@@ -93,6 +114,7 @@ public:
 
 	[[nodiscard]] Ton::TransactionId id() const;
 
+	void refreshDate();
 	[[nodiscard]] QDateTime date() const;
 	void setShowDate(bool show, Fn<void()> repaintDate);
 	bool showDate() const;
@@ -131,6 +153,10 @@ Ton::TransactionId HistoryRow::id() const {
 	return _id;
 }
 
+void HistoryRow::refreshDate() {
+	RefreshTimeTexts(_layout);
+}
+
 QDateTime HistoryRow::date() const {
 	return _layout.dateTime;
 }
@@ -139,16 +165,9 @@ void HistoryRow::setShowDate(bool show, Fn<void()> repaintDate) {
 	_width = 0;
 	if (!show) {
 		_layout.date.clear();
-	} else if (_layout.pending) {
-		_repaintDate = std::move(repaintDate);
-		_layout.date.setText(
-			st::semiboldTextStyle,
-			ph::lng_wallet_row_pending_date(ph::now));
 	} else {
 		_repaintDate = std::move(repaintDate);
-		_layout.date.setText(
-			st::semiboldTextStyle,
-			ph::lng_wallet_short_date(_layout.dateTime.date())(ph::now));
+		RefreshTimeTexts(_layout, true);
 	}
 }
 
@@ -327,6 +346,15 @@ History::History(
 	rpl::producer<Ton::LoadedSlice> loaded)
 : _widget(parent) {
 	setupContent(std::move(state), std::move(loaded));
+
+	base::unixtime::updates(
+	) | rpl::start_with_next([=] {
+		for (const auto &row : ranges::view::concat(_pendingRows, _rows)) {
+			row->refreshDate();
+		}
+		refreshShowDates();
+		_widget.update();
+	}, _widget.lifetime());
 }
 
 History::~History() = default;
@@ -571,6 +599,23 @@ bool History::mergeListChanged(Ton::TransactionsSlice &&data) {
 	return false;
 }
 
+void History::setRowShowDate(
+		const std::unique_ptr<HistoryRow> &row,
+		bool show) {
+	const auto raw = row.get();
+	row->setShowDate(show, [=] { repaintShadow(raw); });
+}
+
+void History::refreshShowDates() {
+	auto previous = QDate();
+	for (const auto &row : _rows) {
+		const auto current = row->date().date();
+		setRowShowDate(row, current != previous);
+		previous = current;
+	}
+	resizeToWidth(_widget.width());
+}
+
 void History::refreshPending() {
 	_pendingRows = ranges::view::all(
 		_pendingData
@@ -579,8 +624,7 @@ void History::refreshPending() {
 	}) | ranges::to_vector;
 
 	if (!_pendingRows.empty()) {
-		const auto raw = _pendingRows.front().get();
-		_pendingRows.front()->setShowDate(true, [=] { repaintShadow(raw); });
+		setRowShowDate(_pendingRows.front());
 	}
 	resizeToWidth(_widget.width());
 }
@@ -624,14 +668,7 @@ void History::refreshRows() {
 		std::make_move_iterator(begin(addedBack)),
 		std::make_move_iterator(end(addedBack)));
 
-	auto previous = QDate();
-	for (const auto &row : _rows) {
-		const auto current = row->date().date();
-		const auto raw = row.get();
-		row->setShowDate(current != previous, [=] { repaintShadow(raw); });
-		previous = current;
-	}
-	resizeToWidth(_widget.width());
+	refreshShowDates();
 }
 
 void History::repaintShadow(not_null<HistoryRow*> row) {
