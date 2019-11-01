@@ -23,6 +23,7 @@ namespace Wallet {
 namespace {
 
 constexpr auto kPreloadScreens = 3;
+constexpr auto kCommentLinesMax = 3;
 
 struct TransactionLayout {
 	QDateTime dateTime;
@@ -113,6 +114,7 @@ private:
 	int _top = 0;
 	int _width = 0;
 	int _height = 0;
+	int _commentHeight = 0;
 
 	Ui::Animations::Simple _dateShadowShown;
 	Fn<void()> _repaintDate;
@@ -176,8 +178,10 @@ void HistoryRow::resizeToWidth(int width) {
 	_height += padding.top() + _layout.amountGrams.minHeight();
 	_height += st::walletRowAddressTop + _layout.addressHeight;
 	if (!_layout.comment.isEmpty()) {
-		_height += st::walletRowCommentTop
-			+ _layout.comment.countHeight(avail);
+		_commentHeight = std::min(
+			_layout.comment.countHeight(avail),
+			st::defaultTextStyle.font->height * kCommentLinesMax);
+		_height += st::walletRowCommentTop + _commentHeight;
 	}
 	if (!_layout.fees.isEmpty()) {
 		_height += st::walletRowFeesTop + _layout.fees.minHeight();
@@ -268,8 +272,8 @@ void HistoryRow::paint(Painter &p, int x, int y) {
 
 	if (!_layout.comment.isEmpty()) {
 		y += st::walletRowCommentTop;
-		_layout.comment.draw(p, x, y, avail);
-		y += _layout.comment.countHeight(avail);
+		_layout.comment.drawElided(p, x, y, avail, kCommentLinesMax);
+		y += _commentHeight;
 	}
 	if (!_layout.fees.isEmpty()) {
 		p.setPen(st::windowSubTextFg);
