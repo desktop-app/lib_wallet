@@ -262,7 +262,8 @@ walletEmptyHistoryAddress: FlatLabel(walletAddressLabel) {
 }
 
 walletRowsSkip: 8px;
-walletRowDateHeight: 32px;
+walletRowDateSkip: 32px;
+walletRowDateHeight: 44px;
 walletRowDateTop: 13px;
 walletRowPadding: margins(20px, 8px, 20px, 11px);
 walletRowGramsStyle: TextStyle(defaultTextStyle) {

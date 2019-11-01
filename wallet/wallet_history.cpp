@@ -13,6 +13,7 @@
 #include "ui/inline_diamond.h"
 #include "ui/painter.h"
 #include "ui/text/text.h"
+#include "ui/effects/animations.h"
 #include "styles/style_wallet.h"
 #include "styles/palette.h"
 
@@ -87,12 +88,13 @@ struct TransactionLayout {
 
 class HistoryRow final {
 public:
-	explicit HistoryRow(const Ton::Transaction &transaction);
+	HistoryRow(const Ton::Transaction &transaction);
 
 	[[nodiscard]] Ton::TransactionId id() const;
 
 	[[nodiscard]] QDateTime date() const;
-	void setShowDate(bool show);
+	void setShowDate(bool show, Fn<void()> repaintDate);
+	bool showDate() const;
 
 	[[nodiscard]] int top() const;
 	void setTop(int top);
@@ -102,6 +104,7 @@ public:
 	[[nodiscard]] int bottom() const;
 
 	void paint(Painter &p, int x, int y);
+	void paintDate(Painter &p, int x, int y);
 	[[nodiscard]] bool isUnderCursor(QPoint point) const;
 
 private:
@@ -110,6 +113,10 @@ private:
 	int _top = 0;
 	int _width = 0;
 	int _height = 0;
+
+	Ui::Animations::Simple _dateShadowShown;
+	Fn<void()> _repaintDate;
+	bool _dateHasShadow = false;
 
 };
 
@@ -126,19 +133,25 @@ QDateTime HistoryRow::date() const {
 	return _layout.dateTime;
 }
 
-void HistoryRow::setShowDate(bool show) {
+void HistoryRow::setShowDate(bool show, Fn<void()> repaintDate) {
 	_width = 0;
 	if (!show) {
 		_layout.date.clear();
 	} else if (_layout.pending) {
+		_repaintDate = std::move(repaintDate);
 		_layout.date.setText(
 			st::semiboldTextStyle,
 			ph::lng_wallet_row_pending_date(ph::now));
 	} else {
+		_repaintDate = std::move(repaintDate);
 		_layout.date.setText(
 			st::semiboldTextStyle,
 			ph::lng_wallet_short_date(_layout.dateTime.date())(ph::now));
 	}
+}
+
+bool HistoryRow::showDate() const {
+	return !_layout.date.isEmpty();
 }
 
 int HistoryRow::top() const {
@@ -158,7 +171,7 @@ void HistoryRow::resizeToWidth(int width) {
 	const auto avail = width - padding.left() - padding.right();
 	_height = 0;
 	if (!_layout.date.isEmpty()) {
-		_height += st::walletRowDateHeight;
+		_height += st::walletRowDateSkip;
 	}
 	_height += padding.top() + _layout.amountGrams.minHeight();
 	_height += st::walletRowAddressTop + _layout.addressHeight;
@@ -186,9 +199,7 @@ void HistoryRow::paint(Painter &p, int x, int y) {
 	x += padding.left();
 
 	if (!_layout.date.isEmpty()) {
-		p.setPen(st::windowFg);
-		_layout.date.draw(p, x, y + st::walletRowDateTop, avail);
-		y += st::walletRowDateHeight;
+		y += st::walletRowDateSkip;
 	} else {
 		const auto shadowWidth = _width - padding.left();
 		p.fillRect(x, y, shadowWidth, st::lineWidth, st::shadowFg);
@@ -267,10 +278,41 @@ void HistoryRow::paint(Painter &p, int x, int y) {
 	}
 }
 
+void HistoryRow::paintDate(Painter &p, int x, int y) {
+	Expects(!_layout.date.isEmpty());
+	Expects(_repaintDate != nullptr);
+
+	const auto hasShadow = (y != top());
+	if (_dateHasShadow != hasShadow) {
+		_dateHasShadow = hasShadow;
+		_dateShadowShown.start(
+			_repaintDate,
+			hasShadow ? 0. : 1.,
+			hasShadow ? 1. : 0.,
+			st::widgetFadeDuration);
+	}
+	const auto line = st::lineWidth;
+	const auto noShadowHeight = st::walletRowDateHeight - line;
+
+	p.setOpacity(0.9);
+	p.fillRect(x, y, _width, noShadowHeight, st::windowBg);
+	if (_dateHasShadow || _dateShadowShown.animating()) {
+		p.setOpacity(_dateShadowShown.value(_dateHasShadow ? 1. : 0.));
+		p.fillRect(x, y + noShadowHeight, _width, line, st::shadowFg);
+	}
+
+	const auto padding = st::walletRowPadding;
+	const auto avail = _width - padding.left() - padding.right();
+	x += padding.left();
+	p.setOpacity(1.);
+	p.setPen(st::windowFg);
+	_layout.date.draw(p, x, y + st::walletRowDateTop, avail);
+}
+
 bool HistoryRow::isUnderCursor(QPoint point) const {
 	auto y = top();
 	if (!_layout.date.isEmpty()) {
-		y += st::walletRowDateHeight;
+		y += st::walletRowDateSkip;
 	}
 	return (point.y() >= y) && (point.y() < bottom());
 }
@@ -438,7 +480,7 @@ void History::paint(Painter &p, QRect clip) {
 		return;
 	}
 	const auto paintRows = [&](
-		const std::vector<std::unique_ptr<HistoryRow>> &rows) {
+			const std::vector<std::unique_ptr<HistoryRow>> &rows) {
 		const auto from = ranges::upper_bound(
 			rows,
 			clip.top(),
@@ -449,8 +491,26 @@ void History::paint(Painter &p, QRect clip) {
 			clip.top() + clip.height(),
 			ranges::less(),
 			&HistoryRow::top);
+		if (from == till) {
+			return;
+		}
 		for (const auto &row : ranges::make_subrange(from, till)) {
 			row->paint(p, 0, row->top());
+		}
+		auto lastDateTop = rows.back()->bottom();
+		const auto dates = ranges::make_subrange(begin(rows), till);
+		for (const auto &row : dates | ranges::view::reverse) {
+			if (!row->showDate()) {
+				continue;
+			}
+			const auto top = std::max(
+				std::min(_visibleTop, lastDateTop - st::walletRowDateHeight),
+				row->top());
+			row->paintDate(p, 0, top);
+			if (row->top() <= _visibleTop) {
+				break;
+			}
+			lastDateTop = top;
 		}
 	};
 	paintRows(_pendingRows);
@@ -515,7 +575,8 @@ void History::refreshPending() {
 	}) | ranges::to_vector;
 
 	if (!_pendingRows.empty()) {
-		_pendingRows.front()->setShowDate(true);
+		const auto raw = _pendingRows.front().get();
+		_pendingRows.front()->setShowDate(true, [=] { repaintShadow(raw); });
 	}
 	resizeToWidth(_widget.width());
 }
@@ -562,10 +623,17 @@ void History::refreshRows() {
 	auto previous = QDate();
 	for (const auto &row : _rows) {
 		const auto current = row->date().date();
-		row->setShowDate(current != previous);
+		const auto raw = row.get();
+		row->setShowDate(current != previous, [=] { repaintShadow(raw); });
 		previous = current;
 	}
 	resizeToWidth(_widget.width());
+}
+
+void History::repaintShadow(not_null<HistoryRow*> row) {
+	const auto min = std::min(row->top(), _visibleTop);
+	const auto delta = std::max(row->top(), _visibleTop) - min;
+	_widget.update(0, min, _widget.width(), delta + st::walletRowDateHeight);
 }
 
 rpl::producer<HistoryState> MakeHistoryState(

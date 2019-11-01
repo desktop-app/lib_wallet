@@ -53,6 +53,7 @@ private:
 	void refreshRows();
 	void refreshPending();
 	void paint(Painter &p, QRect clip);
+	void repaintShadow(not_null<HistoryRow*> row);
 	[[nodiscard]] ScrollState computeScrollState() const;
 
 	void selectRow(int selected);
