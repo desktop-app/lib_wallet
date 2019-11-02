@@ -436,6 +436,8 @@ void Window::setupUpdateWithInfo() {
 				_updateInfo->install();
 			});
 			_updateButtonHeight.fire(_updateButton->heightValue());
+
+			_layers->raise();
 		} else {
 			_updateButtonHeight.fire(rpl::single(0));
 			if (!_updateButton) {
