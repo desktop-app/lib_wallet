@@ -94,15 +94,13 @@ void Info::setupControls(Data &&data) {
 
 	_scroll->sizeValue(
 	) | rpl::start_with_next([=](QSize size) {
-		const auto coverHeight = (size.height() + st::walletTopBarHeight) / 2
-			- st::walletTopBarHeight;
-		cover->setGeometry(QRect(0, 0, size.width(), coverHeight));
+		cover->setGeometry(QRect(0, 0, size.width(), st::walletCoverHeight));
 		const auto contentGeometry = QRect(
 			0,
-			coverHeight,
+			st::walletCoverHeight,
 			size.width(),
-			size.height() - coverHeight);
-		history->updateGeometry({ 0, coverHeight }, size.width());
+			size.height() - st::walletCoverHeight);
+		history->updateGeometry({ 0, st::walletCoverHeight }, size.width());
 		emptyHistory->setGeometry(contentGeometry);
 	}, cover->lifetime());
 

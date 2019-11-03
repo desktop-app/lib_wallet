@@ -177,7 +177,8 @@ walletTopLabel: FlatLabel(defaultFlatLabel) {
 	textFg: walletTopLabelFg;
 }
 
-walletCoverHeight: 100px;
+walletCoverHeight: 198px;
+walletCoverInner: 100px;
 walletCoverBalanceTop: 3px;
 walletCoverBalanceLarge: FlatLabel(defaultFlatLabel) {
 	textFg: walletBalanceFg;
@@ -266,6 +267,8 @@ walletRowDateSkip: 32px;
 walletRowDateHeight: 44px;
 walletRowDateTop: 13px;
 walletRowPadding: margins(20px, 8px, 20px, 11px);
+walletRowShadowAdd: 12px;
+walletRowWidthMax: 476px;
 walletRowGramsStyle: TextStyle(defaultTextStyle) {
 	font: font(16px semibold);
 }

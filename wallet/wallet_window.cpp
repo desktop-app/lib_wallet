@@ -79,7 +79,7 @@ void Window::init() {
 	_window->setGeometry(style::centerrect(
 		QApplication::desktop()->geometry(),
 		QRect(QPoint(), st::walletWindowSize)));
-	_window->setFixedSize(st::walletWindowSize);
+	_window->setMinimumSize(st::walletWindowSize);
 
 	_layers->setHideByBackgroundClick(true);
 

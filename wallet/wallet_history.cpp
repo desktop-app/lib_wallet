@@ -189,7 +189,8 @@ void HistoryRow::resizeToWidth(int width) {
 	}
 	_width = width;
 	const auto padding = st::walletRowPadding;
-	const auto avail = width - padding.left() - padding.right();
+	const auto use = std::min(_width, st::walletRowWidthMax);
+	const auto avail = use - padding.left() - padding.right();
 	_height = 0;
 	if (!_layout.date.isEmpty()) {
 		_height += st::walletRowDateSkip;
@@ -218,14 +219,20 @@ int HistoryRow::bottom() const {
 
 void HistoryRow::paint(Painter &p, int x, int y) {
 	const auto padding = st::walletRowPadding;
-	const auto avail = _width - padding.left() - padding.right();
-	x += padding.left();
+	const auto use = std::min(_width, st::walletRowWidthMax);
+	const auto avail = use - padding.left() - padding.right();
+	x += (_width - use) / 2 + padding.left();
 
 	if (!_layout.date.isEmpty()) {
 		y += st::walletRowDateSkip;
 	} else {
-		const auto shadowWidth = _width - padding.left();
-		p.fillRect(x, y, shadowWidth, st::lineWidth, st::shadowFg);
+		const auto shadowLeft = (use < _width)
+			? (x - st::walletRowShadowAdd)
+			: x;
+		const auto shadowWidth = (use < _width)
+			? (avail + 2 * st::walletRowShadowAdd)
+			: _width - padding.left();
+		p.fillRect(shadowLeft, y, shadowWidth, st::lineWidth, st::shadowFg);
 	}
 	y += padding.top();
 
@@ -317,15 +324,19 @@ void HistoryRow::paintDate(Painter &p, int x, int y) {
 	const auto line = st::lineWidth;
 	const auto noShadowHeight = st::walletRowDateHeight - line;
 
-	p.setOpacity(0.9);
-	p.fillRect(x, y, _width, noShadowHeight, st::windowBg);
 	if (_dateHasShadow || _dateShadowShown.animating()) {
 		p.setOpacity(_dateShadowShown.value(_dateHasShadow ? 1. : 0.));
 		p.fillRect(x, y + noShadowHeight, _width, line, st::shadowFg);
 	}
 
 	const auto padding = st::walletRowPadding;
-	const auto avail = _width - padding.left() - padding.right();
+	const auto use = std::min(_width, st::walletRowWidthMax);
+	x += (_width - use) / 2;
+
+	p.setOpacity(0.9);
+	p.fillRect(x, y, use, noShadowHeight, st::windowBg);
+
+	const auto avail = use - padding.left() - padding.right();
 	x += padding.left();
 	p.setOpacity(1.);
 	p.setPen(st::windowFg);
@@ -333,11 +344,20 @@ void HistoryRow::paintDate(Painter &p, int x, int y) {
 }
 
 bool HistoryRow::isUnderCursor(QPoint point) const {
+	const auto padding = st::walletRowPadding;
+	const auto use = std::min(_width, st::walletRowWidthMax);
+	const auto avail = use - padding.left() - padding.right();
+	const auto left = (use < _width)
+		? ((_width - avail) / 2 - st::walletRowShadowAdd)
+		: 0;
+	const auto width = (use < _width)
+		? (avail + 2 * st::walletRowShadowAdd)
+		: _width;
 	auto y = top();
 	if (!_layout.date.isEmpty()) {
 		y += st::walletRowDateSkip;
 	}
-	return (point.y() >= y) && (point.y() < bottom());
+	return QRect(left, y, width, bottom() - y).contains(point);
 }
 
 History::History(

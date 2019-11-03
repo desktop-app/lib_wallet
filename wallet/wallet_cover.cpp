@@ -90,7 +90,7 @@ void Cover::setupBalance() {
 	) | rpl::start_with_next([=](QSize size, int width) {
 		const auto blockTop = (size.height()
 			+ st::walletTopBarHeight
-			- st::walletCoverHeight) / 2 - st::walletTopBarHeight;
+			- st::walletCoverInner) / 2 - st::walletTopBarHeight;
 		const auto balanceTop = blockTop + st::walletCoverBalanceTop;
 		balance->move((size.width() - width) / 2, balanceTop);
 	}, balance->lifetime());
@@ -105,12 +105,13 @@ void Cover::setupBalance() {
 	) | rpl::start_with_next([=](QSize size, int width) {
 		const auto blockTop = (size.height()
 			+ st::walletTopBarHeight
-			- st::walletCoverHeight) / 2 - st::walletTopBarHeight;
+			- st::walletCoverInner) / 2 - st::walletTopBarHeight;
 		label->moveToLeft(
 			(size.width() - width) / 2,
 			blockTop + st::walletCoverLabelTop,
 			size.width());
 	}, label->lifetime());
+	label->show();
 }
 
 void Cover::setupControls() {
@@ -125,7 +126,7 @@ void Cover::setupControls() {
 		const auto diamond = st::walletCoverBalance.diamond;
 		const auto blockTop = (size.height()
 			+ st::walletTopBarHeight
-			- st::walletCoverHeight) / 2 - st::walletTopBarHeight;
+			- st::walletCoverInner) / 2 - st::walletTopBarHeight;
 		const auto balanceTop = blockTop + st::walletCoverBalanceTop;
 		sync->setGeometry(
 			{ (size.width() - diamond) / 2, balanceTop, diamond, diamond });
