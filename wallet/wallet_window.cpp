@@ -541,7 +541,8 @@ void Window::sendGrams(const QString &invoice) {
 			Fn<void(InvoiceField)> showError) {
 		if (!Ton::Wallet::CheckAddress(invoice.address)) {
 			showError(InvoiceField::Address);
-		} else if (invoice.amount > _state.current().account.balance) {
+		} else if (invoice.amount > _state.current().account.balance
+			|| invoice.amount <= 0) {
 			showError(InvoiceField::Amount);
 		} else {
 			confirmTransaction(invoice, showError, checking);

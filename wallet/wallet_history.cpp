@@ -99,7 +99,7 @@ void RefreshTimeTexts(
 			st::defaultTextStyle,
 			ph::lng_wallet_row_fees(ph::now).replace("{amount}", fee));
 	}
-	result.incoming = data.outgoing.empty();
+	result.incoming = !data.incoming.source.isEmpty();
 	result.pending = (data.id.lt == 0);
 
 	RefreshTimeTexts(result);
