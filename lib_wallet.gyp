@@ -105,6 +105,8 @@
       '<(src_loc)/wallet/wallet_info.h',
       '<(src_loc)/wallet/wallet_invoice_qr.cpp',
       '<(src_loc)/wallet/wallet_invoice_qr.h',
+      '<(src_loc)/wallet/wallet_log.cpp',
+      '<(src_loc)/wallet/wallet_log.h',
       '<(src_loc)/wallet/wallet_phrases.cpp',
       '<(src_loc)/wallet/wallet_phrases.h',
       '<(src_loc)/wallet/wallet_receive_grams.cpp',
