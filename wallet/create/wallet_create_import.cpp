@@ -153,7 +153,7 @@ void Import::initControls(Fn<std::vector<QString>(QString)> wordsByPrefix) {
 	) | rpl::start_with_next([=](QSize size) {
 		noWords->move(
 			(size.width() - noWords->width()) / 2,
-			st::walletImportNoWordsTop);
+			contentTop() + st::walletImportNoWordsTop);
 		const auto half = size.width() / 2;
 		const auto left = half - st::walletImportSkipLeft;
 		const auto right = half + st::walletImportSkipRight;
