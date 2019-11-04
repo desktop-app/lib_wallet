@@ -44,6 +44,8 @@
 #include <QtCore/QDir>
 #include <QtGui/QtEvents>
 #include <QtGui/QClipboard>
+#include <QtGui/QGuiApplication>
+#include <QtGui/QScreen>
 #include <QtWidgets/QFileDialog>
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QDesktopWidget>
@@ -77,7 +79,7 @@ Window::~Window() = default;
 void Window::init() {
 	_window->setTitle(QString());
 	_window->setGeometry(style::centerrect(
-		QApplication::desktop()->geometry(),
+		qApp->primaryScreen()->geometry(),
 		QRect(QPoint(), st::walletWindowSize)));
 	_window->setMinimumSize(st::walletWindowSize);
 
