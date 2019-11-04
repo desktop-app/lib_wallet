@@ -33,6 +33,7 @@ public:
 
 	virtual void toggle(bool enabled) = 0;
 	virtual void test() = 0;
+	virtual void check() = 0;
 	virtual void install() = 0;
 
 	[[nodiscard]] virtual bool toggled() = 0;

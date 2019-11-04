@@ -184,7 +184,7 @@ void SetupUpdate(not_null<Ui::GenericBox*> box, not_null<UpdateInfo*> info) {
 	setDefaultStatus();
 
 	check->addClickHandler([=] {
-		info->toggle(true);
+		info->check();
 	});
 	update->addClickHandler([=] {
 		info->install();
