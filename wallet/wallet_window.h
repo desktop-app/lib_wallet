@@ -21,6 +21,7 @@ struct Transaction;
 struct WalletState;
 struct Error;
 struct Settings;
+enum class ConfigUpgrade;
 } // namespace Ton
 
 namespace Ui {
@@ -49,6 +50,7 @@ public:
 	void showAndActivate();
 	[[nodiscard]] not_null<Ui::RpWidget*> widget() const;
 	bool handleLinkOpen(const QString &link);
+	void showConfigUpgrade(Ton::ConfigUpgrade upgrade);
 
 private:
 	void init();

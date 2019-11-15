@@ -344,6 +344,8 @@ void Window::showAccount(const QByteArray &publicKey, bool justCreated) {
 			return data.valid() && (data.current != data.to);
 		}, [&](const Ton::LiteServerQuery &) {
 			return false;
+		}, [&](Ton::ConfigUpgrade) {
+			return false;
 		});
 	});
 
@@ -513,6 +515,17 @@ bool Window::handleLinkOpen(const QString &link) {
 		sendGrams(link);
 	}
 	return true;
+}
+
+void Window::showConfigUpgrade(Ton::ConfigUpgrade upgrade) {
+	if (upgrade == Ton::ConfigUpgrade::TestnetToTestnet2) {
+		const auto message = "The TON test network has been reset.\n"
+			"TON testnet2 is now operational.";
+		showSimpleError(
+			ph::lng_wallet_warning(),
+			rpl::single(QString(message)),
+			ph::lng_wallet_ok());
+	}
 }
 
 void Window::sendGrams(const QString &invoice) {
