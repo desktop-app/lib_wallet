@@ -103,7 +103,7 @@ phrase lng_wallet_view_send_to_address = "Send Grams to this address";
 phrase lng_wallet_view_send_to_recipient = "Send Grams to this Recipient";
 
 phrase lng_wallet_receive_title = "Receive Grams";
-phrase lng_wallet_receive_description = "Share this address with other Gram wallet owners to receive Grams from them:";
+phrase lng_wallet_receive_description = "Share this address to receive Test Grams. Note: this link won't work for real Grams.";
 phrase lng_wallet_receive_create_invoice = "Create Invoice";
 phrase lng_wallet_receive_share = "Share Wallet Address";
 phrase lng_wallet_receive_copied = "Transfer link copied to clipboard.";
@@ -116,7 +116,7 @@ phrase lng_wallet_invoice_comment = "Comment (optional)";
 phrase lng_wallet_invoice_comment_about = "You can specify the amount and purpose of the payment to save the sender some time.";
 phrase lng_wallet_invoice_url = "Invoice URL";
 phrase lng_wallet_invoice_copy_url = "Copy Invoice URL";
-phrase lng_wallet_invoice_url_about = "Share this address with other Gram wallet owners to receive Grams from them.";
+phrase lng_wallet_invoice_url_about = "Share this address to receive Test Grams. Note: this link won't work for real Grams.";
 phrase lng_wallet_invoice_generate_qr = "Generate QR Code";
 phrase lng_wallet_invoice_share = "Share Invoice URL";
 phrase lng_wallet_invoice_qr_title = "Invoice QR";
