@@ -22,6 +22,7 @@
 #include "wallet/wallet_export.h"
 #include "wallet/wallet_update_info.h"
 #include "wallet/wallet_settings.h"
+#include "wallet/wallet_update_info.h"
 #include "wallet/create/wallet_create_manager.h"
 #include "ton/ton_wallet.h"
 #include "ton/ton_account_viewer.h"
