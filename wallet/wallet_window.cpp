@@ -834,33 +834,36 @@ void Window::changePassword() {
 }
 
 void Window::showSettings() {
+	const auto checkConfig = [=](QString path, Fn<void(QByteArray)> good) {
+		checkConfigFromContent([&] {
+			auto file = QFile(path);
+			file.open(QIODevice::ReadOnly);
+			return file.readAll();
+		}(), std::move(good));
+	};
 	auto box = Box(
 		SettingsBox,
 		_wallet->settings(),
 		_updateInfo,
-		[=](const QString &path) { return checkConfigFromFile(path); },
+		checkConfig,
 		[=](const Ton::Settings &settings) { saveSettings(settings); });
 	_settingsBox = box.data();
 	_layers->showBox(std::move(box));
 }
 
-QByteArray Window::checkConfigFromFile(const QString &path) {
-	return checkConfigFromContent([&] {
-		auto file = QFile(path);
-		file.open(QIODevice::ReadOnly);
-		return file.readAll();
-	}());
-}
-
-QByteArray Window::checkConfigFromContent(const QByteArray &bytes) {
-	if (!Ton::Wallet::CheckConfig(bytes)) {
-		showSimpleError(
-			ph::lng_wallet_error(),
-			ph::lng_wallet_bad_config(),
-			ph::lng_wallet_ok());
-		return QByteArray();
-	}
-	return bytes;
+void Window::checkConfigFromContent(
+		QByteArray bytes,
+		Fn<void(QByteArray)> good) {
+	_wallet->checkConfig(bytes, [=](Ton::Result<> result) {
+		if (result) {
+			good(bytes);
+		} else {
+			showSimpleError(
+				ph::lng_wallet_error(),
+				ph::lng_wallet_bad_config(),
+				ph::lng_wallet_ok());
+		}
+	});
 }
 
 void Window::saveSettings(const Ton::Settings &settings) {
@@ -882,12 +885,11 @@ void Window::saveSettings(const Ton::Settings &settings) {
 			}
 			return;
 		}
-		const auto config = checkConfigFromContent(*result);
-		if (!config.isEmpty()) {
+		checkConfigFromContent(*result, [=](QByteArray config) {
 			auto copy = settings;
 			copy.config = config;
 			saveSettingsWithLoaded(copy);
-		}
+		});
 	};
 	_wallet->loadWebResource(settings.configUrl, loaded);
 }

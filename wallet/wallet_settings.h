@@ -21,7 +21,7 @@ void SettingsBox(
 	not_null<Ui::GenericBox*> box,
 	const Ton::Settings &settings,
 	UpdateInfo *updateInfo,
-	Fn<QByteArray(QString)> checkConfig,
+	Fn<void(QString, Fn<void(QByteArray)>)> checkConfig,
 	Fn<void(Ton::Settings)> save);
 
 } // namespace Wallet

@@ -104,8 +104,7 @@ private:
 	void askExportPassword();
 	void showExported(const std::vector<QString> &words);
 	void showSettings();
-	[[nodiscard]] QByteArray checkConfigFromFile(const QString &path);
-	[[nodiscard]] QByteArray checkConfigFromContent(const QByteArray &bytes);
+	void checkConfigFromContent(QByteArray bytes, Fn<void(QByteArray)> good);
 	void saveSettings(const Ton::Settings &settings);
 	void saveSettingsWithLoaded(const Ton::Settings &settings);
 	void saveSettingsSure(const Ton::Settings &settings, Fn<void()> done);

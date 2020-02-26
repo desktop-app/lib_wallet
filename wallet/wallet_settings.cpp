@@ -197,7 +197,7 @@ void SettingsBox(
 		not_null<Ui::GenericBox*> box,
 		const Ton::Settings &settings,
 		UpdateInfo *updateInfo,
-		Fn<QByteArray(QString)> checkConfig,
+		Fn<void(QString, Fn<void(QByteArray)>)> checkConfig,
 		Fn<void(Ton::Settings)> save) {
 	using namespace rpl::mappers;
 
@@ -239,6 +239,7 @@ void SettingsBox(
 
 	const auto modified = std::make_shared<QByteArray>(settings.config);
 	const auto chooseFromFile = [=] {
+		const auto weak = Ui::MakeWeak(box.get());
 		const auto all = Platform::IsWindows() ? "(*.*)" : "(*)";
 		const auto filter = QString("JSON Files (*.json);;All Files ") + all;
 		const auto path = QFileDialog::getOpenFileName(
@@ -246,12 +247,11 @@ void SettingsBox(
 			QString(),
 			QString(),
 			filter);
-		if (!path.isEmpty()) {
-			if (const auto config = checkConfig(path); !config.isEmpty()) {
-				*modified = config;
-				filenames->fire(QFileInfo(path).fileName());
-			}
-		}
+		const auto apply = crl::guard(weak, [=](const QByteArray &config) {
+			*modified = config;
+			filenames->fire(QFileInfo(path).fileName());
+		});
+		checkConfig(path, apply);
 	};
 	const auto choosing = std::make_shared<bool>();
 	custom->entity()->setClickedCallback([=] {
