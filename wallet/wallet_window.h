@@ -53,6 +53,13 @@ public:
 	void showConfigUpgrade(Ton::ConfigUpgrade upgrade);
 
 private:
+	struct DecryptPasswordState {
+		int generation = 0;
+		bool success = false;
+		QPointer<Ui::GenericBox> box;
+		Fn<void(QString)> showError;
+	};
+
 	void init();
 	void updatePalette();
 	void showSimpleError(
@@ -136,6 +143,7 @@ private:
 	QPointer<Ui::GenericBox> _simpleErrorBox;
 	QPointer<Ui::GenericBox> _settingsBox;
 	QPointer<Ui::GenericBox> _saveConfirmBox;
+	std::unique_ptr<DecryptPasswordState> _decryptPasswordState;
 
 };
 
