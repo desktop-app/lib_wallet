@@ -36,9 +36,10 @@ struct ParsedAmount {
 };
 
 struct PreparedInvoice {
-	QString address;
 	int64 amount;
+	QString address;
 	QString comment;
+	bool sendUnencryptedText = false;
 };
 
 enum class Action {

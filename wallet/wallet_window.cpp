@@ -636,6 +636,11 @@ void Window::confirmTransaction(
 		if (!result) {
 			if (const auto field = ErrorInvoiceField(result.error())) {
 				showInvoiceError(*field);
+			} else if (!invoice.sendUnencryptedText
+				&& result.error().details.startsWith("MESSAGE_ENCRYPTION")) {
+				auto copy = invoice;
+				copy.sendUnencryptedText = true;
+				confirmTransaction(copy, showInvoiceError, guard);
 			} else {
 				showGenericError(result.error());
 			}

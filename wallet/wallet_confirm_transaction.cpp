@@ -78,6 +78,10 @@ void ConfirmTransactionBox(
 			outerWidth);
 	}, feeLabel->lifetime());
 
+	if (invoice.sendUnencryptedText) {
+		box->addRow(object_ptr<Ui::FlatLabel>(box, "TEXT WILL BE UNENCRYPTED!!", st::walletConfirmationFee));
+	}
+
 	box->events(
 	) | rpl::start_with_next([=](not_null<QEvent*> e) {
 		if (e->type() == QEvent::KeyPress) {

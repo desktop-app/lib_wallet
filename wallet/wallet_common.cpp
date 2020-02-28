@@ -220,9 +220,15 @@ QString ExtractAddress(const Ton::Transaction &data) {
 }
 
 QString ExtractMessage(const Ton::Transaction &data) {
-	return data.outgoing.empty()
+	const auto &message = data.outgoing.empty()
 		? data.incoming.message
 		: data.outgoing.front().message;
+	if (!message.encrypted.isEmpty()) {
+		return "<encrypted text>";
+	} else if (message.decrypted) {
+		return "<decrypted text>\n\n" + message.text;
+	}
+	return "<plain text>\n\n" + message.text;
 }
 
 QString TransferLink(
@@ -358,6 +364,7 @@ Ton::TransactionToSend TransactionFromInvoice(
 	result.amount = invoice.amount;
 	result.comment = invoice.comment;
 	result.allowSendToUninited = true;
+	result.sendUnencryptedText = invoice.sendUnencryptedText;
 	return result;
 }
 
