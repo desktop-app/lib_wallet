@@ -227,8 +227,10 @@ QString ExtractMessage(const Ton::Transaction &data) {
 		return "<decrypted text>\n\n" + message.text;
 	} else if (!message.encrypted.isEmpty()) {
 		return "<encrypted text>";
+	} else if (!message.text.isEmpty()) {
+		return "<plain text>\n\n" + message.text;
 	}
-	return "<plain text>\n\n" + message.text;
+	return QString();
 }
 
 QString TransferLink(

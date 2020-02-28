@@ -660,6 +660,7 @@ void Window::confirmTransaction(
 void Window::askSendPassword(
 		const PreparedInvoice &invoice,
 		Fn<void(InvoiceField)> showInvoiceError) {
+	const auto publicKey = _wallet->publicKeys().front();
 	const auto sending = std::make_shared<bool>();
 	const auto ready = [=](
 			const QByteArray &passcode,
@@ -697,7 +698,7 @@ void Window::askSendPassword(
 			confirmations->fire({});
 		};
 		_wallet->sendGrams(
-			_wallet->publicKeys().front(),
+			publicKey,
 			passcode,
 			TransactionFromInvoice(invoice),
 			crl::guard(this, ready),
@@ -709,6 +710,7 @@ void Window::askSendPassword(
 	auto box = Box(EnterPasscodeBox, [=](
 			const QByteArray &passcode,
 			Fn<void(QString)> showError) {
+		_wallet->updateViewersPassword(publicKey, passcode);
 		ready(passcode, invoice, showError);
 	});
 	_sendConfirmBox = box.data();
