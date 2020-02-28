@@ -122,6 +122,9 @@ private:
 	void logoutWithConfirmation();
 	void logout();
 
+	// Before _layers, because box destructor can set this pointer.
+	std::unique_ptr<DecryptPasswordState> _decryptPasswordState;
+
 	const not_null<Ton::Wallet*> _wallet;
 	const std::unique_ptr<Ui::Window> _window;
 	const std::unique_ptr<Ui::LayerManager> _layers;
@@ -143,7 +146,6 @@ private:
 	QPointer<Ui::GenericBox> _simpleErrorBox;
 	QPointer<Ui::GenericBox> _settingsBox;
 	QPointer<Ui::GenericBox> _saveConfirmBox;
-	std::unique_ptr<DecryptPasswordState> _decryptPasswordState;
 
 };
 

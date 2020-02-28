@@ -223,10 +223,10 @@ QString ExtractMessage(const Ton::Transaction &data) {
 	const auto &message = data.outgoing.empty()
 		? data.incoming.message
 		: data.outgoing.front().message;
-	if (!message.encrypted.isEmpty()) {
-		return "<encrypted text>";
-	} else if (message.decrypted) {
+	if (message.decrypted) {
 		return "<decrypted text>\n\n" + message.text;
+	} else if (!message.encrypted.isEmpty()) {
+		return "<encrypted text>";
 	}
 	return "<plain text>\n\n" + message.text;
 }
