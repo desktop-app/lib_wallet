@@ -20,6 +20,54 @@
 #include <QtGui/QtEvents>
 
 namespace Wallet {
+namespace {
+
+constexpr auto kWarningPreviewLength = 30;
+
+[[nodiscard]] rpl::producer<TextWithEntities> PrepareEncryptionWarning(
+		const PreparedInvoice &invoice) {
+	const auto text = (invoice.comment.size() > kWarningPreviewLength)
+		? (invoice.comment.mid(0, kWarningPreviewLength - 3) + "...")
+		: invoice.comment;
+	return ph::lng_wallet_confirm_warning(
+		Ui::Text::RichLangValue
+	) | rpl::map([=](TextWithEntities &&value) {
+		const auto was = QString("{comment}");
+		const auto wasLength = was.size();
+		const auto nowLength = text.size();
+		const auto position = value.text.indexOf(was);
+		if (position >= 0) {
+			value.text = value.text.mid(0, position)
+				+ text
+				+ value.text.mid(position + wasLength);
+			auto entities = EntitiesInText();
+			for (auto &entity : value.entities) {
+				const auto from = entity.offset();
+				const auto till = from + entity.length();
+				if (till < position + wasLength) {
+					if (from < position) {
+						entity.shrinkFromRight(std::max(till - position, 0));
+						entities.push_back(std::move(entity));
+					}
+				} else if (from > position) {
+					if (till > position + wasLength) {
+						entity.extendToLeft(
+							std::min(from - (position + wasLength), 0));
+						entity.shiftRight(nowLength - wasLength);
+						entities.push_back(std::move(entity));
+					}
+				} else {
+					entity.shrinkFromRight(wasLength - nowLength);
+					entities.push_back(std::move(entity));
+				}
+			}
+			value.entities = std::move(entities);
+		}
+		return value;
+	});
+}
+
+} // namespace
 
 void ConfirmTransactionBox(
 		not_null<Ui::GenericBox*> box,
@@ -78,8 +126,11 @@ void ConfirmTransactionBox(
 			outerWidth);
 	}, feeLabel->lifetime());
 
-	if (invoice.sendUnencryptedText) {
-		box->addRow(object_ptr<Ui::FlatLabel>(box, "TEXT WILL BE UNENCRYPTED!!", st::walletConfirmationFee));
+	if (invoice.sendUnencryptedText && !invoice.comment.isEmpty()) {
+		box->addRow(object_ptr<Ui::FlatLabel>(
+			box,
+			PrepareEncryptionWarning(invoice),
+			st::walletLabel));
 	}
 
 	box->events(
