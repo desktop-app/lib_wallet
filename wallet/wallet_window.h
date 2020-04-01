@@ -84,6 +84,10 @@ private:
 		const QByteArray &passcode,
 		std::shared_ptr<bool> guard);
 
+	void decryptEverything();
+	void askDecryptPassword(const Ton::DecryptPasswordNeeded &data);
+	void doneDecryptPassword(const Ton::DecryptPasswordGood &data);
+
 	void showAccount(const QByteArray &publicKey, bool justCreated = false);
 	void setupUpdateWithInfo();
 	void setupRefreshEach();

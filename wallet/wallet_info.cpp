@@ -50,6 +50,10 @@ rpl::producer<Ton::Transaction> Info::viewRequests() const {
 	return _viewRequests.events();
 }
 
+rpl::producer<Ton::Transaction> Info::decryptRequests() const {
+	return _decryptRequests.events();
+}
+
 void Info::setupControls(Data &&data) {
 	const auto &state = data.state;
 	const auto topBar = _widget->lifetime().make_state<TopBar>(
@@ -127,6 +131,9 @@ void Info::setupControls(Data &&data) {
 
 	history->viewRequests(
 	) | rpl::start_to_stream(_viewRequests, history->lifetime());
+
+	history->decryptRequests(
+	) | rpl::start_to_stream(_decryptRequests, history->lifetime());
 }
 
 rpl::lifetime &Info::lifetime() {

@@ -219,14 +219,21 @@ QString ExtractAddress(const Ton::Transaction &data) {
 		: data.incoming.destination;
 }
 
+bool IsEncryptedMessage(const Ton::Transaction &data) {
+	const auto &message = data.outgoing.empty()
+		? data.incoming.message
+		: data.outgoing.front().message;
+	return !message.encrypted.isEmpty() && !message.decrypted;
+}
+
 QString ExtractMessage(const Ton::Transaction &data) {
 	const auto &message = data.outgoing.empty()
 		? data.incoming.message
 		: data.outgoing.front().message;
-	if (message.decrypted) {
-		return "<decrypted text>\n\n" + message.text;
-	} else if (!message.encrypted.isEmpty()) {
+	if (IsEncryptedMessage(data)) {
 		return "<encrypted text>";
+	} else if (message.decrypted) {
+		return "<decrypted text>\n\n" + message.text;
 	} else if (!message.text.isEmpty()) {
 		return "<plain text>\n\n" + message.text;
 	}

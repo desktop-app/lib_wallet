@@ -57,6 +57,7 @@ enum class Action {
 [[nodiscard]] PreparedInvoice ParseInvoice(QString invoice);
 [[nodiscard]] int64 CalculateValue(const Ton::Transaction &data);
 [[nodiscard]] QString ExtractAddress(const Ton::Transaction &data);
+[[nodiscard]] bool IsEncryptedMessage(const Ton::Transaction &data);
 [[nodiscard]] QString ExtractMessage(const Ton::Transaction &data);
 
 [[nodiscard]] QString TransferLink(

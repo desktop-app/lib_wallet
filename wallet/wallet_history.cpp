@@ -13,6 +13,7 @@
 #include "ui/inline_diamond.h"
 #include "ui/painter.h"
 #include "ui/text/text.h"
+#include "ui/text/text_utilities.h"
 #include "ui/effects/animations.h"
 #include "styles/style_wallet.h"
 #include "styles/palette.h"
@@ -35,6 +36,7 @@ struct TransactionLayout {
 	Ui::Text::String address;
 	Ui::Text::String comment;
 	Ui::Text::String fees;
+	ClickHandlerPtr decryptLink;
 	int addressWidth = 0;
 	int addressHeight = 0;
 	bool incoming = false;
@@ -67,7 +69,9 @@ void RefreshTimeTexts(
 	}
 }
 
-[[nodiscard]] TransactionLayout PrepareLayout(const Ton::Transaction &data) {
+[[nodiscard]] TransactionLayout PrepareLayout(
+		const Ton::Transaction &data,
+		Fn<void()> decrypt) {
 	auto result = TransactionLayout();
 	result.serverTime = data.time;
 	const auto amount = ParseAmount(CalculateValue(data), true);
@@ -88,11 +92,18 @@ void RefreshTimeTexts(
 		addressPartWidth(0, address.size() / 2),
 		addressPartWidth(address.size() / 2));
 	result.addressHeight = AddressStyle().font->height * 2;
-	result.comment = Ui::Text::String(
+	result.comment = Ui::Text::String(st::walletAddressWidthMin);
+	const auto encrypted = IsEncryptedMessage(data) && decrypt;
+	result.comment.setMarkedText(
 		st::defaultTextStyle,
-		ExtractMessage(data),
-		_textPlainOptions,
-		st::walletAddressWidthMin);
+		(encrypted
+			? Ui::Text::Link(ph::lng_wallet_click_to_decrypt(ph::now))
+			: Ui::Text::WithEntities(ExtractMessage(data))),
+		_textPlainOptions);
+	if (encrypted) {
+		result.decryptLink = std::make_shared<LambdaClickHandler>(decrypt);
+		result.comment.setLink(1, result.decryptLink);
+	}
 	if (data.fee) {
 		const auto fee = ParseAmount(data.fee).full;
 		result.fees.setText(
@@ -110,7 +121,9 @@ void RefreshTimeTexts(
 
 class HistoryRow final {
 public:
-	HistoryRow(const Ton::Transaction &transaction);
+	HistoryRow(const Ton::Transaction &transaction, Fn<void()> decrypt);
+	HistoryRow(const HistoryRow &) = delete;
+	HistoryRow &operator=(const HistoryRow &) = delete;
 
 	[[nodiscard]] Ton::TransactionId id() const;
 
@@ -129,8 +142,11 @@ public:
 	void paint(Painter &p, int x, int y);
 	void paintDate(Painter &p, int x, int y);
 	[[nodiscard]] bool isUnderCursor(QPoint point) const;
+	[[nodiscard]] ClickHandlerPtr handlerUnderCursor(QPoint point) const;
 
 private:
+	[[nodiscard]] QRect computeInnerRect() const;
+
 	Ton::TransactionId _id;
 	TransactionLayout _layout;
 	int _top = 0;
@@ -144,9 +160,11 @@ private:
 
 };
 
-HistoryRow::HistoryRow(const Ton::Transaction &transaction)
+HistoryRow::HistoryRow(
+	const Ton::Transaction &transaction,
+	Fn<void()> decrypt)
 : _id(transaction.id)
-, _layout(PrepareLayout(transaction)) {
+, _layout(PrepareLayout(transaction, decrypt)) {
 }
 
 Ton::TransactionId HistoryRow::id() const {
@@ -343,12 +361,12 @@ void HistoryRow::paintDate(Painter &p, int x, int y) {
 	_layout.date.draw(p, x, y + st::walletRowDateTop, avail);
 }
 
-bool HistoryRow::isUnderCursor(QPoint point) const {
+QRect HistoryRow::computeInnerRect() const {
 	const auto padding = st::walletRowPadding;
 	const auto use = std::min(_width, st::walletRowWidthMax);
 	const auto avail = use - padding.left() - padding.right();
 	const auto left = (use < _width)
-		? ((_width - avail) / 2 - st::walletRowShadowAdd)
+		? ((_width - use) / 2 + padding.left() - st::walletRowShadowAdd)
 		: 0;
 	const auto width = (use < _width)
 		? (avail + 2 * st::walletRowShadowAdd)
@@ -357,7 +375,33 @@ bool HistoryRow::isUnderCursor(QPoint point) const {
 	if (!_layout.date.isEmpty()) {
 		y += st::walletRowDateSkip;
 	}
-	return QRect(left, y, width, bottom() - y).contains(point);
+	return QRect(left, y, width, bottom() - y);
+}
+
+bool HistoryRow::isUnderCursor(QPoint point) const {
+	return computeInnerRect().contains(point);
+}
+
+ClickHandlerPtr HistoryRow::handlerUnderCursor(QPoint point) const {
+	if (!_layout.decryptLink || _layout.comment.isEmpty()) {
+		return nullptr;
+	}
+	const auto inner = computeInnerRect();
+	const auto commentLeft = (inner.width() < _width)
+		? (inner.left() + st::walletRowShadowAdd)
+		: st::walletRowPadding.left();
+	const auto commentTop = inner.top()
+		+ st::walletRowPadding.top()
+		+ _layout.amountGrams.minHeight()
+		+ st::walletRowAddressTop
+		+ _layout.addressHeight
+		+ st::walletRowCommentTop;
+	const auto comment = QRect(
+		commentLeft,
+		commentTop,
+		_layout.comment.maxWidth(),
+		_commentHeight);
+	return comment.contains(point) ? _layout.decryptLink : nullptr;
 }
 
 History::History(
@@ -427,6 +471,10 @@ rpl::producer<Ton::Transaction> History::viewRequests() const {
 	return _viewRequests.events();
 }
 
+rpl::producer<Ton::Transaction> History::decryptRequests() const {
+	return _decryptRequests.events();
+}
+
 rpl::lifetime &History::lifetime() {
 	return _widget.lifetime();
 }
@@ -463,7 +511,7 @@ void History::setupContent(
 	_widget.events(
 	) | rpl::start_with_next([=](not_null<QEvent*> e) {
 		switch (e->type()) {
-		case QEvent::Leave: selectRow(-1); return;
+		case QEvent::Leave: selectRow(-1, nullptr); return;
 		case QEvent::Enter:
 		case QEvent::MouseMove: selectRowByMouse(); return;
 		case QEvent::MouseButtonPress: pressRow(); return;
@@ -472,14 +520,26 @@ void History::setupContent(
 	}, lifetime());
 }
 
-void History::selectRow(int selected) {
-	if (_selected == selected) {
-		return;
+void History::selectRow(int selected, ClickHandlerPtr handler) {
+	Expects(selected >= 0 || !handler);
+
+	if (_selected != selected) {
+		const auto was = (_selected >= 0 && _selected < int(_rows.size()))
+			? _rows[_selected].get()
+			: nullptr;
+		if (was) repaintRow(was);
+		_selected = selected;
+		_widget.setCursor((_selected >= 0)
+			? style::cur_pointer
+			: style::cur_default);
 	}
-	_selected = selected;
-	_widget.setCursor((_selected >= 0)
-		? style::cur_pointer
-		: style::cur_default);
+	if (ClickHandler::getActive() != handler) {
+		const auto now = (_selected >= 0 && _selected < int(_rows.size()))
+			? _rows[_selected].get()
+			: nullptr;
+		if (now) repaintRow(now);
+		ClickHandler::setActive(handler);
+	}
 }
 
 void History::selectRowByMouse() {
@@ -494,37 +554,43 @@ void History::selectRowByMouse() {
 		point.y(),
 		ranges::less(),
 		&HistoryRow::top);
-	if (from != till && from == end(_rows)) {
-		const auto b = ranges::upper_bound(
-			_rows,
-			point.y(),
-			ranges::less(),
-			&HistoryRow::bottom);
-		int a = 0;
-	}
+
 	if (from != till && (*from)->isUnderCursor(point)) {
-		selectRow(from - begin(_rows));
+		selectRow(from - begin(_rows), (*from)->handlerUnderCursor(point));
 	} else {
-		selectRow(-1);
+		selectRow(-1, nullptr);
 	}
 }
 
 void History::pressRow() {
 	_pressed = _selected;
+	ClickHandler::pressed();
 }
 
 void History::releaseRow() {
 	Expects(_selected < int(_rows.size()));
 
+	const auto handler = ClickHandler::unpressed();
 	if (std::exchange(_pressed, -1) != _selected || _selected < 0) {
+		if (handler) handler->onClick(ClickContext());
 		return;
 	}
-	const auto i = ranges::find(
-		_listData,
-		_rows[_selected]->id(),
-		&Ton::Transaction::id);
+	if (handler) {
+		handler->onClick(ClickContext());
+	} else {
+		const auto i = ranges::find(
+			_listData,
+			_rows[_selected]->id(),
+			&Ton::Transaction::id);
+		Assert(i != end(_listData));
+		_viewRequests.fire_copy(*i);
+	}
+}
+
+void History::decryptById(const Ton::TransactionId &id) {
+	const auto i = ranges::find(_listData, id, &Ton::Transaction::id);
 	Assert(i != end(_listData));
-	_viewRequests.fire_copy(*i);
+	_decryptRequests.fire_copy(*i);
 }
 
 void History::paint(Painter &p, QRect clip) {
@@ -640,7 +706,7 @@ void History::refreshPending() {
 	_pendingRows = ranges::view::all(
 		_pendingData
 	) | ranges::view::transform([](const Ton::PendingTransaction &data) {
-		return std::make_unique<HistoryRow>(data.fake);
+		return std::make_unique<HistoryRow>(data.fake, nullptr);
 	}) | ranges::to_vector;
 
 	if (!_pendingRows.empty()) {
@@ -653,10 +719,13 @@ void History::refreshRows() {
 	auto addedFront = std::vector<std::unique_ptr<HistoryRow>>();
 	auto addedBack = std::vector<std::unique_ptr<HistoryRow>>();
 	for (const auto &element : _listData) {
-		if (!_rows.empty() && element.id == _rows.front()->id()) {
+		const auto id = element.id;
+		if (!_rows.empty() && id == _rows.front()->id()) {
 			break;
 		}
-		addedFront.push_back(std::make_unique<HistoryRow>(element));
+		addedFront.push_back(std::make_unique<HistoryRow>(element, [=] {
+			decryptById(id);
+		}));
 	}
 	if (!_rows.empty()) {
 		const auto from = ranges::find(
@@ -667,8 +736,11 @@ void History::refreshRows() {
 			addedBack = ranges::make_subrange(
 				from + 1,
 				end(_listData)
-			) | ranges::view::transform([](const Ton::Transaction &data) {
-				return std::make_unique<HistoryRow>(data);
+			) | ranges::view::transform([=](const Ton::Transaction &data) {
+				const auto id = data.id;
+				return std::make_unique<HistoryRow>(data, [=] {
+					decryptById(id);
+				});
 			}) | ranges::to_vector;
 		}
 	}
@@ -689,6 +761,10 @@ void History::refreshRows() {
 		std::make_move_iterator(end(addedBack)));
 
 	refreshShowDates();
+}
+
+void History::repaintRow(not_null<HistoryRow*> row) {
+	_widget.update(0, row->top(), _widget.width(), row->height());
 }
 
 void History::repaintShadow(not_null<HistoryRow*> row) {

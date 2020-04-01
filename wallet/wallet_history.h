@@ -8,6 +8,7 @@
 
 #include "ui/rp_widget.h"
 #include "ton/ton_state.h"
+#include "ui/click_handler.h"
 
 class Painter;
 
@@ -34,6 +35,7 @@ public:
 
 	[[nodiscard]] rpl::producer<Ton::TransactionId> preloadRequests() const;
 	[[nodiscard]] rpl::producer<Ton::Transaction> viewRequests() const;
+	[[nodiscard]] rpl::producer<Ton::Transaction> decryptRequests() const;
 
 	[[nodiscard]] rpl::lifetime &lifetime();
 
@@ -53,13 +55,15 @@ private:
 	void refreshRows();
 	void refreshPending();
 	void paint(Painter &p, QRect clip);
+	void repaintRow(not_null<HistoryRow*> row);
 	void repaintShadow(not_null<HistoryRow*> row);
 	[[nodiscard]] ScrollState computeScrollState() const;
 
-	void selectRow(int selected);
+	void selectRow(int selected, ClickHandlerPtr handler);
 	void selectRowByMouse();
 	void pressRow();
 	void releaseRow();
+	void decryptById(const Ton::TransactionId &id);
 
 	void refreshShowDates();
 	void setRowShowDate(
@@ -81,6 +85,7 @@ private:
 
 	rpl::event_stream<Ton::TransactionId> _preloadRequests;
 	rpl::event_stream<Ton::Transaction> _viewRequests;
+	rpl::event_stream<Ton::Transaction> _decryptRequests;
 
 };
 

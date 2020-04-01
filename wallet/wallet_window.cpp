@@ -397,55 +397,70 @@ void Window::showAccount(const QByteArray &publicKey, bool justCreated) {
 		_layers->showBox(Box(ViewTransactionBox, std::move(data), send));
 	}, _info->lifetime());
 
+	_info->decryptRequests(
+	) | rpl::start_with_next([=] {
+		decryptEverything();
+	}, _info->lifetime());
+
 	_wallet->updates(
 	) | rpl::filter([](const Ton::Update &update) {
 		return update.data.is<Ton::DecryptPasswordNeeded>();
 	}) | rpl::start_with_next([=](const Ton::Update &update) {
-		const auto &data = update.data.get<Ton::DecryptPasswordNeeded>();
-		const auto key = data.publicKey;
-		const auto generation = data.generation;
-		const auto already = (_decryptPasswordState
-			&& _decryptPasswordState->box)
-			? _decryptPasswordState->generation
-			: 0;
-		if (already == generation) {
-			return;
-		} else if (!_decryptPasswordState) {
-			_decryptPasswordState = std::make_unique<DecryptPasswordState>();
-		}
-		_decryptPasswordState->generation = generation;
-		if (!_decryptPasswordState->box) {
-			auto box = Box(EnterPasscodeBox, [=](
-					const QByteArray &passcode,
-					Fn<void(QString)> showError) {
-				_decryptPasswordState->showError = showError;
-				_wallet->updateViewersPassword(publicKey, passcode);
-			});
-			QObject::connect(box, &QObject::destroyed, [=] {
-				if (!_decryptPasswordState->success) {
-					_wallet->updateViewersPassword(publicKey, QByteArray());
-				}
-				_decryptPasswordState = nullptr;
-			});
-			_decryptPasswordState->box = box.data();
-			_layers->showBox(std::move(box));
-		} else if (_decryptPasswordState->showError) {
-			_decryptPasswordState->showError(
-				ph::lng_wallet_passcode_incorrect(ph::now));
-		}
+		askDecryptPassword(update.data.get<Ton::DecryptPasswordNeeded>());
 	}, _info->lifetime());
 
 	_wallet->updates(
 	) | rpl::filter([](const Ton::Update &update) {
 		return update.data.is<Ton::DecryptPasswordGood>();
 	}) | rpl::start_with_next([=](const Ton::Update &update) {
-		const auto &data = update.data.get<Ton::DecryptPasswordGood>();
-		if (_decryptPasswordState
-			&& _decryptPasswordState->generation < data.generation) {
-			_decryptPasswordState->success = true;
-			_decryptPasswordState->box->closeBox();
-		}
+		doneDecryptPassword(update.data.get<Ton::DecryptPasswordGood>());
 	}, _info->lifetime());
+}
+
+void Window::decryptEverything() {
+
+}
+
+void Window::askDecryptPassword(const Ton::DecryptPasswordNeeded &data) {
+	const auto key = data.publicKey;
+	const auto generation = data.generation;
+	const auto already = (_decryptPasswordState
+		&& _decryptPasswordState->box)
+		? _decryptPasswordState->generation
+		: 0;
+	if (already == generation) {
+		return;
+	} else if (!_decryptPasswordState) {
+		_decryptPasswordState = std::make_unique<DecryptPasswordState>();
+	}
+	_decryptPasswordState->generation = generation;
+	if (!_decryptPasswordState->box) {
+		auto box = Box(EnterPasscodeBox, [=](
+			const QByteArray &passcode,
+			Fn<void(QString)> showError) {
+			_decryptPasswordState->showError = showError;
+			_wallet->updateViewersPassword(publicKey, passcode);
+		});
+		QObject::connect(box, &QObject::destroyed, [=] {
+			if (!_decryptPasswordState->success) {
+				_wallet->updateViewersPassword(publicKey, QByteArray());
+			}
+			_decryptPasswordState = nullptr;
+		});
+		_decryptPasswordState->box = box.data();
+		_layers->showBox(std::move(box));
+	} else if (_decryptPasswordState->showError) {
+		_decryptPasswordState->showError(
+			ph::lng_wallet_passcode_incorrect(ph::now));
+	}
+}
+
+void Window::doneDecryptPassword(const Ton::DecryptPasswordGood &data) {
+	if (_decryptPasswordState
+		&& _decryptPasswordState->generation < data.generation) {
+		_decryptPasswordState->success = true;
+		_decryptPasswordState->box->closeBox();
+	}
 }
 
 void Window::setupUpdateWithInfo() {

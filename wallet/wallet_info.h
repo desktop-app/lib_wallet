@@ -34,6 +34,7 @@ public:
 	[[nodiscard]] rpl::producer<Action> actionRequests() const;
 	[[nodiscard]] rpl::producer<Ton::TransactionId> preloadRequests() const;
 	[[nodiscard]] rpl::producer<Ton::Transaction> viewRequests() const;
+	[[nodiscard]] rpl::producer<Ton::Transaction> decryptRequests() const;
 
 	[[nodiscard]] rpl::lifetime &lifetime();
 
@@ -47,6 +48,7 @@ private:
 	rpl::event_stream<Action> _actionRequests;
 	rpl::event_stream<Ton::TransactionId> _preloadRequests;
 	rpl::event_stream<Ton::Transaction> _viewRequests;
+	rpl::event_stream<Ton::Transaction> _decryptRequests;
 
 };
 
