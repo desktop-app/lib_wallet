@@ -83,7 +83,9 @@ void Info::setupControls(Data &&data) {
 	const auto history = _widget->lifetime().make_state<History>(
 		_inner.get(),
 		MakeHistoryState(rpl::duplicate(state)),
-		std::move(loaded));
+		std::move(loaded),
+		std::move(data.collectEncrypted),
+		std::move(data.updateDecrypted));
 	const auto emptyHistory = _widget->lifetime().make_state<EmptyHistory>(
 		_inner.get(),
 		MakeEmptyHistoryState(rpl::duplicate(state), data.justCreated));

@@ -26,7 +26,11 @@ public:
 	History(
 		not_null<Ui::RpWidget*> parent,
 		rpl::producer<HistoryState> state,
-		rpl::producer<Ton::LoadedSlice> loaded);
+		rpl::producer<Ton::LoadedSlice> loaded,
+		rpl::producer<
+			not_null<std::vector<Ton::Transaction>*>> collectEncrypted,
+		rpl::producer<
+			not_null<const std::vector<Ton::Transaction>*>> updateDecrypted);
 	~History();
 
 	void updateGeometry(QPoint position, int width);
@@ -69,6 +73,11 @@ private:
 	void setRowShowDate(
 		const std::unique_ptr<HistoryRow> &row,
 		bool show = true);
+	bool takeDecrypted(
+		int index,
+		const std::vector<Ton::Transaction> &decrypted);
+	[[nodiscard]] std::unique_ptr<HistoryRow> makeRow(
+		const Ton::Transaction &data);
 
 	Ui::RpWidget _widget;
 

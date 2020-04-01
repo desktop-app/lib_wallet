@@ -25,6 +25,10 @@ public:
 		rpl::producer<Ton::WalletViewerState> state;
 		rpl::producer<Ton::Result<Ton::LoadedSlice>> loaded;
 		rpl::producer<Ton::Update> updates;
+		rpl::producer<
+			not_null<std::vector<Ton::Transaction>*>> collectEncrypted;
+		rpl::producer<
+			not_null<const std::vector<Ton::Transaction>*>> updateDecrypted;
 	};
 	Info(not_null<QWidget*> parent, Data data);
 	~Info();

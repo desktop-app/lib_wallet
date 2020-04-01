@@ -130,6 +130,7 @@ public:
 	void refreshDate();
 	[[nodiscard]] QDateTime date() const;
 	void setShowDate(bool show, Fn<void()> repaintDate);
+	void setDecryptionFailed();
 	bool showDate() const;
 
 	[[nodiscard]] int top() const;
@@ -157,6 +158,7 @@ private:
 	Ui::Animations::Simple _dateShadowShown;
 	Fn<void()> _repaintDate;
 	bool _dateHasShadow = false;
+	bool _decryptionFailed = false;
 
 };
 
@@ -187,6 +189,15 @@ void HistoryRow::setShowDate(bool show, Fn<void()> repaintDate) {
 		_repaintDate = std::move(repaintDate);
 		RefreshTimeTexts(_layout, true);
 	}
+}
+
+void HistoryRow::setDecryptionFailed() {
+	_width = 0;
+	_decryptionFailed = true;
+	_layout.comment.setText(
+		st::defaultTextStyle,
+		"Decryption failed :(",
+		_textPlainOptions);
 }
 
 bool HistoryRow::showDate() const {
@@ -316,6 +327,9 @@ void HistoryRow::paint(Painter &p, int x, int y) {
 
 	if (!_layout.comment.isEmpty()) {
 		y += st::walletRowCommentTop;
+		if (_decryptionFailed) {
+			p.setPen(st::boxTextFgError);
+		}
 		_layout.comment.drawElided(p, x, y, avail, kCommentLinesMax);
 		y += _commentHeight;
 	}
@@ -407,7 +421,10 @@ ClickHandlerPtr HistoryRow::handlerUnderCursor(QPoint point) const {
 History::History(
 	not_null<Ui::RpWidget*> parent,
 	rpl::producer<HistoryState> state,
-	rpl::producer<Ton::LoadedSlice> loaded)
+	rpl::producer<Ton::LoadedSlice> loaded,
+	rpl::producer<not_null<std::vector<Ton::Transaction>*>> collectEncrypted,
+	rpl::producer<
+		not_null<const std::vector<Ton::Transaction>*>> updateDecrypted)
 : _widget(parent) {
 	setupContent(std::move(state), std::move(loaded));
 
@@ -418,6 +435,34 @@ History::History(
 		}
 		refreshShowDates();
 		_widget.update();
+	}, _widget.lifetime());
+
+	std::move(
+		collectEncrypted
+	) | rpl::start_with_next([=](
+			not_null<std::vector<Ton::Transaction>*> list) {
+		auto &&encrypted = ranges::view::all(
+			_listData
+		) | ranges::view::filter(IsEncryptedMessage);
+		list->insert(list->end(), encrypted.begin(), encrypted.end());
+	}, _widget.lifetime());
+
+	std::move(
+		updateDecrypted
+	) | rpl::start_with_next([=](
+			not_null<const std::vector<Ton::Transaction>*> list) {
+		auto changed = false;
+		for (auto i = 0, count = int(_listData.size()); i != count; ++i) {
+			if (IsEncryptedMessage(_listData[i])) {
+				if (takeDecrypted(i, *list)) {
+					changed = true;
+				}
+			}
+		}
+		if (changed) {
+			refreshShowDates();
+			_widget.update();
+		}
 	}, _widget.lifetime());
 }
 
@@ -692,6 +737,37 @@ void History::setRowShowDate(
 	row->setShowDate(show, [=] { repaintShadow(raw); });
 }
 
+bool History::takeDecrypted(
+		int index,
+		const std::vector<Ton::Transaction> &decrypted) {
+	Expects(index >= 0 && index < _listData.size());
+	Expects(index >= 0 && index < _rows.size());
+	Expects(_rows[index]->id() == _listData[index].id);
+
+	const auto i = ranges::find(
+		decrypted,
+		_listData[index].id,
+		&Ton::Transaction::id);
+	if (i == end(decrypted)) {
+		return false;
+	}
+	if (IsEncryptedMessage(*i)) {
+		_rows[index]->setDecryptionFailed();
+	} else {
+		_listData[index] = *i;
+		_rows[index] = makeRow(*i);
+	}
+	return true;
+}
+
+std::unique_ptr<HistoryRow> History::makeRow(const Ton::Transaction &data) {
+	const auto id = data.id;
+	if (const auto pending = (id.lt == 0)) {
+		return std::make_unique<HistoryRow>(data, nullptr);
+	}
+	return std::make_unique<HistoryRow>(data, [=] { decryptById(id); });
+}
+
 void History::refreshShowDates() {
 	auto previous = QDate();
 	for (const auto &row : _rows) {
@@ -705,8 +781,8 @@ void History::refreshShowDates() {
 void History::refreshPending() {
 	_pendingRows = ranges::view::all(
 		_pendingData
-	) | ranges::view::transform([](const Ton::PendingTransaction &data) {
-		return std::make_unique<HistoryRow>(data.fake, nullptr);
+	) | ranges::view::transform([&](const Ton::PendingTransaction &data) {
+		return makeRow(data.fake);
 	}) | ranges::to_vector;
 
 	if (!_pendingRows.empty()) {
@@ -719,13 +795,10 @@ void History::refreshRows() {
 	auto addedFront = std::vector<std::unique_ptr<HistoryRow>>();
 	auto addedBack = std::vector<std::unique_ptr<HistoryRow>>();
 	for (const auto &element : _listData) {
-		const auto id = element.id;
-		if (!_rows.empty() && id == _rows.front()->id()) {
+		if (!_rows.empty() && element.id == _rows.front()->id()) {
 			break;
 		}
-		addedFront.push_back(std::make_unique<HistoryRow>(element, [=] {
-			decryptById(id);
-		}));
+		addedFront.push_back(makeRow(element));
 	}
 	if (!_rows.empty()) {
 		const auto from = ranges::find(
@@ -737,10 +810,7 @@ void History::refreshRows() {
 				from + 1,
 				end(_listData)
 			) | ranges::view::transform([=](const Ton::Transaction &data) {
-				const auto id = data.id;
-				return std::make_unique<HistoryRow>(data, [=] {
-					decryptById(id);
-				});
+				return makeRow(data);
 			}) | ranges::to_vector;
 		}
 	}

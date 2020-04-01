@@ -152,6 +152,7 @@ extern phrase lng_wallet_confirm_title;
 extern phrase lng_wallet_confirm_text;
 extern phrase lng_wallet_confirm_fee;
 extern phrase lng_wallet_confirm_send;
+extern phrase lng_wallet_confirm_warning;
 
 extern phrase lng_wallet_same_address_title;
 extern phrase lng_wallet_same_address_text;
@@ -203,7 +204,7 @@ extern Fn<phrase(QString)> lng_wallet_grams_count_sent;
 
 namespace Wallet {
 
-inline constexpr auto kPhrasesCount = 149;
+inline constexpr auto kPhrasesCount = 150;
 
 void SetPhrases(
 	ph::details::phrase_value_array<kPhrasesCount> data,

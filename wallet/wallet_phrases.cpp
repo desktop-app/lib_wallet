@@ -152,6 +152,7 @@ phrase lng_wallet_confirm_title = "Confirmation";
 phrase lng_wallet_confirm_text = "Do you want to send **{grams}** to:";
 phrase lng_wallet_confirm_fee = "Fee: ~{grams}";
 phrase lng_wallet_confirm_send = "Send Grams";
+phrase lng_wallet_confirm_warning = "**Note:** your comment \xC2\xAB{comment}\xC2\xBB **will not be encrypted**.";
 
 phrase lng_wallet_same_address_title = "Warning";
 phrase lng_wallet_same_address_text = "Sending Grams from a wallet to the same wallet doesn't make sense, you will simply waste a portion of the value on blockchain fees.";

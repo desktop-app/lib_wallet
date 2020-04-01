@@ -354,6 +354,8 @@ void Window::showAccount(const QByteArray &publicKey, bool justCreated) {
 	data.state = _viewer->state();
 	data.loaded = _viewer->loaded();
 	data.updates = _wallet->updates();
+	data.collectEncrypted = _collectEncryptedRequests.events();
+	data.updateDecrypted = _decrypted.events();
 	_info = std::make_unique<Info>(_window->body(), std::move(data));
 	_layers->raise();
 
@@ -399,7 +401,7 @@ void Window::showAccount(const QByteArray &publicKey, bool justCreated) {
 
 	_info->decryptRequests(
 	) | rpl::start_with_next([=] {
-		decryptEverything();
+		decryptEverything(publicKey);
 	}, _info->lifetime());
 
 	_wallet->updates(
@@ -417,8 +419,24 @@ void Window::showAccount(const QByteArray &publicKey, bool justCreated) {
 	}, _info->lifetime());
 }
 
-void Window::decryptEverything() {
-
+void Window::decryptEverything(const QByteArray &publicKey) {
+	auto transactions = std::vector<Ton::Transaction>();
+	_collectEncryptedRequests.fire(&transactions);
+	if (transactions.empty()) {
+		return;
+	}
+	const auto done = [=](
+			const Ton::Result<std::vector<Ton::Transaction>> &result) {
+		if (!result) {
+			showGenericError(result.error());
+			return;
+		}
+		_decrypted.fire(&result.value());
+	};
+	_wallet->decrypt(
+		publicKey,
+		std::move(transactions),
+		crl::guard(this, done));
 }
 
 void Window::askDecryptPassword(const Ton::DecryptPasswordNeeded &data) {
@@ -436,14 +454,14 @@ void Window::askDecryptPassword(const Ton::DecryptPasswordNeeded &data) {
 	_decryptPasswordState->generation = generation;
 	if (!_decryptPasswordState->box) {
 		auto box = Box(EnterPasscodeBox, [=](
-			const QByteArray &passcode,
-			Fn<void(QString)> showError) {
+				const QByteArray &passcode,
+				Fn<void(QString)> showError) {
 			_decryptPasswordState->showError = showError;
-			_wallet->updateViewersPassword(publicKey, passcode);
+			_wallet->updateViewersPassword(key, passcode);
 		});
 		QObject::connect(box, &QObject::destroyed, [=] {
 			if (!_decryptPasswordState->success) {
-				_wallet->updateViewersPassword(publicKey, QByteArray());
+				_wallet->updateViewersPassword(key, QByteArray());
 			}
 			_decryptPasswordState = nullptr;
 		});

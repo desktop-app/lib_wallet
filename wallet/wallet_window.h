@@ -84,7 +84,7 @@ private:
 		const QByteArray &passcode,
 		std::shared_ptr<bool> guard);
 
-	void decryptEverything();
+	void decryptEverything(const QByteArray &publicKey);
 	void askDecryptPassword(const Ton::DecryptPasswordNeeded &data);
 	void doneDecryptPassword(const Ton::DecryptPasswordGood &data);
 
@@ -144,6 +144,11 @@ private:
 	std::unique_ptr<Info> _info;
 	object_ptr<Ui::FlatButton> _updateButton = { nullptr };
 	rpl::event_stream<rpl::producer<int>> _updateButtonHeight;
+
+	rpl::event_stream<
+		not_null<std::vector<Ton::Transaction>*>> _collectEncryptedRequests;
+	rpl::event_stream<
+		not_null<const std::vector<Ton::Transaction>*>> _decrypted;
 
 	QPointer<Ui::GenericBox> _sendBox;
 	QPointer<Ui::GenericBox> _sendConfirmBox;
