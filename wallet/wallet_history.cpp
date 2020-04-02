@@ -196,7 +196,7 @@ void HistoryRow::setDecryptionFailed() {
 	_decryptionFailed = true;
 	_layout.comment.setText(
 		st::defaultTextStyle,
-		"Decryption failed :(",
+		ph::lng_wallet_decrypt_failed(ph::now),
 		_textPlainOptions);
 }
 

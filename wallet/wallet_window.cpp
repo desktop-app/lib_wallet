@@ -396,7 +396,13 @@ void Window::showAccount(const QByteArray &publicKey, bool justCreated) {
 		const auto send = [=](const QString &address) {
 			sendGrams(address);
 		};
-		_layers->showBox(Box(ViewTransactionBox, std::move(data), send));
+		_layers->showBox(Box(
+			ViewTransactionBox,
+			std::move(data),
+			_collectEncryptedRequests.events(),
+			_decrypted.events(),
+			[=] { decryptEverything(publicKey); },
+			send));
 	}, _info->lifetime());
 
 	_info->decryptRequests(

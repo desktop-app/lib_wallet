@@ -13,10 +13,12 @@
 #include "ui/lottie_widget.h"
 #include "ui/wrap/padding_wrap.h"
 #include "ui/widgets/buttons.h"
+#include "ui/text/text_utilities.h"
 #include "ton/ton_state.h"
 #include "base/unixtime.h"
 #include "styles/style_layers.h"
 #include "styles/style_wallet.h"
+#include "styles/palette.h"
 
 #include <QtCore/QDateTime>
 #include <QtGui/QtEvents>
@@ -135,13 +137,58 @@ void SetupScrollByDrag(
 void ViewTransactionBox(
 		not_null<Ui::GenericBox*> box,
 		Ton::Transaction &&data,
+		rpl::producer<
+			not_null<std::vector<Ton::Transaction>*>> collectEncrypted,
+		rpl::producer<
+			not_null<const std::vector<Ton::Transaction>*>> decrypted,
+		Fn<void()> decryptComment,
 		Fn<void(QString)> send) {
+	struct DecryptedText {
+		QString text;
+		bool success = false;
+	};
+
 	box->setTitle(ph::lng_wallet_view_title());
 	box->setStyle(st::walletBox);
 
+	const auto id = data.id;
 	const auto address = ExtractAddress(data);
 	const auto incoming = data.outgoing.empty();
-	const auto message = ExtractMessage(data);
+	const auto encryptedComment = IsEncryptedMessage(data);
+	const auto decryptedComment = encryptedComment
+		? QString()
+		: ExtractMessage(data);
+	const auto hasComment = encryptedComment || !decryptedComment.isEmpty();
+	auto decryptedText = rpl::producer<DecryptedText>();
+	auto complexComment = [&] {
+		decryptedText = std::move(
+			decrypted
+		) | rpl::map([=](
+				not_null<const std::vector<Ton::Transaction>*> list) {
+			const auto i = ranges::find(*list, id, &Ton::Transaction::id);
+			return (i != end(*list)) ? std::make_optional(*i) : std::nullopt;
+		}) | rpl::filter([=](const std::optional<Ton::Transaction> &value) {
+			return value.has_value();
+		}) | rpl::map([=](const std::optional<Ton::Transaction> &value) {
+			return IsEncryptedMessage(*value)
+				? DecryptedText{
+					ph::lng_wallet_decrypt_failed(ph::now),
+					false
+				}
+				: DecryptedText{ ExtractMessage(*value), true };
+		}) | rpl::take(1) | rpl::start_spawning(box->lifetime());
+
+		return rpl::single(
+			Ui::Text::Link(ph::lng_wallet_click_to_decrypt(ph::now))
+		) | rpl::then(rpl::duplicate(
+			decryptedText
+		) | rpl::map([=](const DecryptedText &decrypted) {
+			return decrypted.text;
+		}) | Ui::Text::ToWithEntities());
+	};
+	auto message = IsEncryptedMessage(data)
+		? (complexComment() | rpl::type_erased())
+		: rpl::single(Ui::Text::WithEntities(ExtractMessage(data)));
 
 	box->addTopButton(st::boxTitleClose, [=] { box->closeBox(); });
 
@@ -174,18 +221,45 @@ void ViewTransactionBox(
 			st::boxRowPadding.left(),
 			st::boxRowPadding.top(),
 			st::boxRowPadding.right(),
-			(message.isEmpty()
-				? st::boxRowPadding.bottom()
-				: st::walletTransactionCommentTop),
+			(hasComment
+				? st::walletTransactionCommentTop
+				: st::boxRowPadding.bottom()),
 		});
 
-	if (!message.isEmpty()) {
+	if (hasComment) {
 		AddBoxSubtitle(box, ph::lng_wallet_view_comment());
 		const auto comment = box->addRow(object_ptr<Ui::FlatLabel>(
 			box,
-			message,
+			std::move(message),
 			st::walletLabel));
-		comment->setSelectable(true);
+		if (IsEncryptedMessage(data)) {
+			std::move(
+				decryptedText
+			) | rpl::map([=](const DecryptedText &decrypted) {
+				return decrypted.success;
+			}) | rpl::start_with_next([=](bool success) {
+				comment->setSelectable(success);
+				if (!success) {
+					comment->setTextColorOverride(st::boxTextFgError->c);
+				}
+			}, comment->lifetime());
+
+			std::move(
+				collectEncrypted
+			) | rpl::take(
+				1
+			) | rpl::start_with_next([=](
+				not_null<std::vector<Ton::Transaction>*> list) {
+				list->push_back(data);
+			}, comment->lifetime());
+
+			comment->setClickHandlerFilter([=](const auto &...) {
+				decryptComment();
+				return false;
+			});
+		} else {
+			comment->setSelectable(true);
+		}
 		SetupScrollByDrag(box, comment);
 	}
 

@@ -17,6 +17,9 @@ namespace Wallet {
 void ViewTransactionBox(
 	not_null<Ui::GenericBox*> box,
 	Ton::Transaction &&data,
+	rpl::producer<not_null<std::vector<Ton::Transaction>*>> collectEncrypted,
+	rpl::producer<not_null<const std::vector<Ton::Transaction>*>> decrypted,
+	Fn<void()> decryptComment,
 	Fn<void(QString)> send);
 
 } // namespace Wallet
