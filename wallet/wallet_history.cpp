@@ -36,11 +36,11 @@ struct TransactionLayout {
 	Ui::Text::String address;
 	Ui::Text::String comment;
 	Ui::Text::String fees;
-	ClickHandlerPtr decryptLink;
 	int addressWidth = 0;
 	int addressHeight = 0;
 	bool incoming = false;
 	bool pending = false;
+	bool encrypted = false;
 };
 
 [[nodiscard]] const style::TextStyle &AddressStyle() {
@@ -93,17 +93,11 @@ void RefreshTimeTexts(
 		addressPartWidth(address.size() / 2));
 	result.addressHeight = AddressStyle().font->height * 2;
 	result.comment = Ui::Text::String(st::walletAddressWidthMin);
-	const auto encrypted = IsEncryptedMessage(data) && decrypt;
-	result.comment.setMarkedText(
+	result.encrypted = IsEncryptedMessage(data) && decrypt;
+	result.comment.setText(
 		st::defaultTextStyle,
-		(encrypted
-			? Ui::Text::Link(ph::lng_wallet_click_to_decrypt(ph::now))
-			: Ui::Text::WithEntities(ExtractMessage(data))),
+		(result.encrypted ? QString() : ExtractMessage(data)),
 		_textPlainOptions);
-	if (encrypted) {
-		result.decryptLink = std::make_shared<LambdaClickHandler>(decrypt);
-		result.comment.setLink(1, result.decryptLink);
-	}
 	if (data.fee) {
 		const auto fee = ParseAmount(data.fee).full;
 		result.fees.setText(
@@ -299,6 +293,11 @@ void HistoryRow::paint(Painter &p, int x, int y) {
 	const auto timeLeft = x + avail - _layout.time.maxWidth();
 	p.setPen(st::windowSubTextFg);
 	_layout.time.draw(p, timeLeft, timeTop, avail);
+	if (_layout.encrypted) {
+		const auto iconLeft = x + avail - st::walletCommentIconLeft - st::walletCommentIcon.width();
+		const auto iconTop = labelTop + st::walletCommentIconTop;
+		st::walletCommentIcon.paint(p, iconLeft, iconTop, avail);
+	}
 	if (_layout.pending) {
 		st::walletRowPending.paint(
 			p,
@@ -397,25 +396,7 @@ bool HistoryRow::isUnderCursor(QPoint point) const {
 }
 
 ClickHandlerPtr HistoryRow::handlerUnderCursor(QPoint point) const {
-	if (!_layout.decryptLink || _layout.comment.isEmpty()) {
-		return nullptr;
-	}
-	const auto inner = computeInnerRect();
-	const auto commentLeft = (inner.width() < _width)
-		? (inner.left() + st::walletRowShadowAdd)
-		: st::walletRowPadding.left();
-	const auto commentTop = inner.top()
-		+ st::walletRowPadding.top()
-		+ _layout.amountGrams.minHeight()
-		+ st::walletRowAddressTop
-		+ _layout.addressHeight
-		+ st::walletRowCommentTop;
-	const auto comment = QRect(
-		commentLeft,
-		commentTop,
-		_layout.comment.maxWidth(),
-		_commentHeight);
-	return comment.contains(point) ? _layout.decryptLink : nullptr;
+	return nullptr;
 }
 
 History::History(

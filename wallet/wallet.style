@@ -540,3 +540,10 @@ walletWindowTitle: WindowTitle(defaultWindowTitle) {
 		{ "title_button_close", walletTitleButtonCloseFgActiveOver, point(5px, 4px) },
 	};
 }
+
+walletCommentIcon: icon {
+	{ "wallet_comment_outer", activeButtonBg },
+	{ "wallet_comment_inner", activeButtonFg },
+};
+walletCommentIconTop: 28px;
+walletCommentIconLeft: -2px;
