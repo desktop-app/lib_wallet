@@ -728,6 +728,8 @@ void Window::askSendPassword(
 				return;
 			}
 			showSendingTransaction(*result, confirmations->events());
+			_wallet->updateViewersPassword(publicKey, passcode);
+			decryptEverything(publicKey);
 		};
 		const auto sent = [=](Ton::Result<> result) {
 			if (!result) {
@@ -749,7 +751,6 @@ void Window::askSendPassword(
 	auto box = Box(EnterPasscodeBox, [=](
 			const QByteArray &passcode,
 			Fn<void(QString)> showError) {
-		_wallet->updateViewersPassword(publicKey, passcode);
 		ready(passcode, invoice, showError);
 	});
 	_sendConfirmBox = box.data();
