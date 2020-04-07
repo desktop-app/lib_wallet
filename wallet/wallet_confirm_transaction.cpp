@@ -31,7 +31,7 @@ constexpr auto kWarningPreviewLength = 30;
 		: invoice.comment;
 	return ph::lng_wallet_confirm_warning(
 		Ui::Text::RichLangValue
-	) | rpl::map([=](TextWithEntities &&value) {
+	) | rpl::map([=](TextWithEntities value) {
 		const auto was = QString("{comment}");
 		const auto wasLength = was.size();
 		const auto nowLength = text.size();
