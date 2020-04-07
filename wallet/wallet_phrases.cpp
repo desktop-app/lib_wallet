@@ -91,7 +91,7 @@ phrase lng_wallet_row_from = "from:";
 phrase lng_wallet_row_to = "to:";
 phrase lng_wallet_row_fees = "blockchain fees: {amount}";
 phrase lng_wallet_row_pending_date = "Pending";
-phrase lng_wallet_click_to_decrypt = "Click to show encrypted comment";
+phrase lng_wallet_click_to_decrypt = "Enter password to view comment";
 phrase lng_wallet_decrypt_failed = "Decryption failed :(";
 
 phrase lng_wallet_view_title = "Transaction";
