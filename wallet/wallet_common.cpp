@@ -231,11 +231,11 @@ QString ExtractMessage(const Ton::Transaction &data) {
 		? data.incoming.message
 		: data.outgoing.front().message;
 	if (IsEncryptedMessage(data)) {
-		return "<encrypted text>";
+		return QString();
 	} else if (message.decrypted) {
-		return "<decrypted text>\n\n" + message.text;
+		return message.text;
 	} else if (!message.text.isEmpty()) {
-		return "<plain text>\n\n" + message.text;
+		return message.text;
 	}
 	return QString();
 }
