@@ -29,6 +29,7 @@
 #include "base/platform/base_platform_process.h"
 #include "base/qt_signal_producer.h"
 #include "base/last_user_input.h"
+#include "base/algorithm.h"
 #include "ui/address_label.h"
 #include "ui/widgets/window.h"
 #include "ui/widgets/labels.h"
@@ -43,6 +44,7 @@
 
 #include <QtCore/QMimeData>
 #include <QtCore/QDir>
+#include <QtCore/QRegularExpression>
 #include <QtGui/QtEvents>
 #include <QtGui/QClipboard>
 #include <QtGui/QGuiApplication>
@@ -57,6 +59,14 @@ namespace {
 constexpr auto kRefreshEachDelay = 10 * crl::time(1000);
 constexpr auto kRefreshInactiveDelay = 60 * crl::time(1000);
 constexpr auto kRefreshWhileSendingDelay = 3 * crl::time(1000);
+
+[[nodiscard]] bool ValidateTransferLink(const QString &link) {
+	return QRegularExpression(
+		QString("^((ton://)?transfer/)?[a-z0-9_\\-]{%1}/?($|\\?)"
+		).arg(kAddressLength),
+		QRegularExpression::CaseInsensitiveOption
+	).match(link.trimmed()).hasMatch();
+}
 
 } // namespace
 
@@ -599,7 +609,7 @@ not_null<Ui::RpWidget*> Window::widget() const {
 }
 
 bool Window::handleLinkOpen(const QString &link) {
-	if (_viewer) {
+	if (_viewer && ValidateTransferLink(link)) {
 		sendGrams(link);
 	}
 	return true;
