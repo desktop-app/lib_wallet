@@ -126,6 +126,11 @@ walletImportInputField: InputField(walletCheckInputField) {
 
 walletStepPasscodeLottiePosition: point(10px, 26px);
 walletStepPasscodeLottieSize: 104px;
+walletStepPasscodeSyncing: FlatLabel(defaultFlatLabel) {
+	textFg: windowSubTextFg;
+	align: align(top);
+}
+walletStepPasscodeSyncingTop: 10px;
 walletSetPasscodeEnterTop: 282px;
 walletSetPasscodeRepeatTop: 342px;
 

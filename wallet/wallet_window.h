@@ -83,6 +83,10 @@ private:
 	void createSavePasscode(
 		const QByteArray &passcode,
 		std::shared_ptr<bool> guard);
+	void createSaveKey(
+		const QByteArray &passcode,
+		const QByteArray &restrictInitPublicKey,
+		std::shared_ptr<bool> guard);
 
 	void decryptEverything(const QByteArray &publicKey);
 	void askDecryptPassword(const Ton::DecryptPasswordNeeded &data);
@@ -135,6 +139,7 @@ private:
 	UpdateInfo * const _updateInfo = nullptr;
 
 	std::unique_ptr<Create::Manager> _createManager;
+	rpl::event_stream<QString> _createSyncing;
 	bool _importing = false;
 
 	QString _address;

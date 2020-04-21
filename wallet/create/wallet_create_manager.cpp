@@ -187,7 +187,8 @@ void Manager::showCheck() {
 	showStep(std::move(check), Direction::Forward, [=] {
 		if (raw->checkAll()) {
 			if (CheckWords(_words, indices, raw->words())) {
-				showPasscode();
+				//showPasscode(rpl::single(QString()));
+				showPasscode(ph::lng_wallet_sync());
 			} else {
 				_actionRequests.fire(Action::ShowCheckIncorrect);
 			}
@@ -197,8 +198,8 @@ void Manager::showCheck() {
 	});
 }
 
-void Manager::showPasscode() {
-	auto passcode = std::make_unique<Passcode>();
+void Manager::showPasscode(rpl::producer<QString> syncing) {
+	auto passcode = std::make_unique<Passcode>(std::move(syncing));
 
 	const auto raw = passcode.get();
 

@@ -61,7 +61,7 @@ public:
 	void showCreated(std::vector<QString> &&words);
 	void showWords(Direction direction);
 	void showCheck();
-	void showPasscode();
+	void showPasscode(rpl::producer<QString> syncing);
 	void showReady(const QByteArray &publicKey);
 
 	[[nodiscard]] rpl::lifetime &lifetime();

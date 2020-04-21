@@ -120,6 +120,9 @@ void Window::startWallet() {
 				}
 			});
 		}
+		if (!_viewer) {
+			_wallet->sync();
+		}
 	};
 	_wallet->loadWebResource(settings.configUrl, std::move(loaded));
 }
@@ -195,7 +198,8 @@ void Window::createImportKey(const std::vector<QString> &words) {
 	}
 	_wallet->importKey(words, crl::guard(this, [=](Ton::Result<> result) {
 		if (result) {
-			_createManager->showPasscode();
+			_createSyncing = rpl::event_stream<QString>();
+			_createManager->showPasscode(_createSyncing.events());
 		} else if (IsIncorrectMnemonicError(result.error())) {
 			_importing = false;
 			createShowIncorrectImport();
@@ -328,6 +332,49 @@ void Window::createSavePasscode(
 	if (std::exchange(*guard, true)) {
 		return;
 	}
+	if (!_importing) {
+		createSaveKey(passcode, QByteArray(), std::move(guard));
+	}
+	rpl::single(
+		Ton::Update{ Ton::SyncState() }
+	) | rpl::then(
+		_wallet->updates()
+	) | rpl::map([](const Ton::Update &update) {
+		return update.data.match([&](const Ton::SyncState &data) {
+			if (!data.valid()
+				|| data.current == data.to
+				|| data.current == data.from) {
+				return ph::lng_wallet_sync();
+			} else {
+				const auto percent = QString::number(
+					(100 * (data.current - data.from)
+						/ (data.to - data.from)));
+				return ph::lng_wallet_sync_percent(
+				) | rpl::map([=](QString &&text) {
+					return text.replace("{percent}", percent);
+				});
+			}
+		}, [&](auto&&) {
+			return ph::lng_wallet_sync();
+		});
+	}) | rpl::flatten_latest(
+	) | rpl::start_to_stream(_createSyncing, _createManager->lifetime());
+
+	const auto done = [=](Ton::Result<QByteArray> result) {
+		if (!result) {
+			*guard = false;
+			showGenericError(result.error());
+			return;
+		}
+		createSaveKey(passcode, *result, guard);
+	};
+	_wallet->queryRestrictedInitPublicKey(crl::guard(this, done));
+}
+
+void Window::createSaveKey(
+		const QByteArray &passcode,
+		const QByteArray &restrictInitPublicKey,
+		std::shared_ptr<bool> guard) {
 	const auto done = [=](Ton::Result<QByteArray> result) {
 		*guard = false;
 		if (!result) {
@@ -336,7 +383,10 @@ void Window::createSavePasscode(
 		}
 		_createManager->showReady(*result);
 	};
-	_wallet->saveKey(passcode, crl::guard(this, done));
+	_wallet->saveKey(
+		passcode,
+		restrictInitPublicKey,
+		crl::guard(this, done));
 }
 
 void Window::showAccount(const QByteArray &publicKey, bool justCreated) {

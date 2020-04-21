@@ -9,6 +9,8 @@
 #include "wallet/wallet_phrases.h"
 #include "ui/text/text_utilities.h"
 #include "ui/widgets/input_fields.h"
+#include "ui/widgets/labels.h"
+#include "ui/wrap/fade_wrap.h"
 #include "ui/rp_widget.h"
 #include "ui/lottie_widget.h"
 #include "base/platform/base_platform_layout_switch.h"
@@ -16,11 +18,11 @@
 
 namespace Wallet::Create {
 
-Passcode::Passcode() : Step(Type::Default) {
+Passcode::Passcode(rpl::producer<QString> syncing) : Step(Type::Default) {
 	setTitle(ph::lng_wallet_set_passcode_title(Ui::Text::RichLangValue));
 	setDescription(
 		ph::lng_wallet_set_passcode_description(Ui::Text::RichLangValue));
-	initControls();
+	initControls(std::move(syncing));
 }
 
 int Passcode::desiredHeight() const {
@@ -35,7 +37,7 @@ void Passcode::setFocus() {
 	_setFocus();
 }
 
-void Passcode::initControls() {
+void Passcode::initControls(rpl::producer<QString> syncing) {
 	showLottie(
 		"lock",
 		st::walletStepPasscodeLottiePosition,
@@ -62,6 +64,30 @@ void Passcode::initControls() {
 	}, inner()->lifetime());
 
 	showNextButton(ph::lng_wallet_continue());
+
+	const auto NonEmptyString = [](const QString &text) {
+		return !text.isEmpty();
+	};
+	auto syncingLabel = object_ptr<
+		Ui::PaddingWrap<Ui::FadeWrap<Ui::FlatLabel>>
+	>(
+		inner().get(),
+		object_ptr<Ui::FadeWrap<Ui::FlatLabel>>(
+			inner().get(),
+			object_ptr<Ui::FlatLabel>(
+				inner().get(),
+				rpl::duplicate(
+					syncing
+				) | rpl::filter(
+					NonEmptyString
+				),
+				st::walletStepPasscodeSyncing)),
+		QMargins{ 0, st::walletStepPasscodeSyncingTop, 0, 0 }
+	);
+	syncingLabel->resizeToWidth(st::walletStepNextButton.width);
+	syncingLabel->wrapped()->toggleOn(
+		std::move(syncing) | rpl::map(NonEmptyString));
+	showBelowNextButton(std::move(syncingLabel));
 
 	_passcode = [=] {
 		if (enter->getLastText().isEmpty()) {

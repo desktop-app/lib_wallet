@@ -12,7 +12,7 @@ namespace Wallet::Create {
 
 class Passcode final : public Step {
 public:
-	Passcode();
+	explicit Passcode(rpl::producer<QString> syncing);
 
 	[[nodiscard]] QByteArray passcode() const;
 	int desiredHeight() const override;
@@ -20,7 +20,7 @@ public:
 	void setFocus() override;
 
 private:
-	void initControls();
+	void initControls(rpl::producer<QString> syncing);
 	void showFinishedHook() override;
 
 	Fn<QByteArray()> _passcode;
