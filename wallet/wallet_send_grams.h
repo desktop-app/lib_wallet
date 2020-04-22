@@ -21,7 +21,7 @@ enum class InvoiceField {
 void SendGramsBox(
 	not_null<Ui::GenericBox*> box,
 	const QString &invoice,
-	rpl::producer<int64> balance,
+	rpl::producer<int64> unlockedBalance,
 	Fn<void(PreparedInvoice, Fn<void(InvoiceField)> error)> done);
 
 } // namespace Wallet

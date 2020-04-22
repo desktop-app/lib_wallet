@@ -15,7 +15,8 @@ struct WalletViewerState;
 namespace Wallet {
 
 struct CoverState {
-	int64 balance = 0;
+	int64 unlockedBalance = 0;
+	int64 lockedBalance = 0;
 	bool justCreated = false;
 };
 

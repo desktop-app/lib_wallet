@@ -701,23 +701,24 @@ void Window::sendGrams(const QString &invoice) {
 	const auto send = [=](
 			const PreparedInvoice &invoice,
 			Fn<void(InvoiceField)> showError) {
+		const auto account = _state.current().account;
+		const auto available = account.fullBalance - account.lockedBalance;
 		if (!Ton::Wallet::CheckAddress(invoice.address)) {
 			showError(InvoiceField::Address);
-		} else if (invoice.amount > _state.current().account.balance
-			|| invoice.amount <= 0) {
+		} else if (invoice.amount > available || invoice.amount <= 0) {
 			showError(InvoiceField::Amount);
 		} else {
 			confirmTransaction(invoice, showError, checking);
 		}
 	};
-	auto balance = _state.value(
+	auto unlockedBalance = _state.value(
 	) | rpl::map([](const Ton::WalletState &state) {
-		return state.account.balance;
+		return state.account.fullBalance - state.account.lockedBalance;
 	});
 	auto box = Box(
 		SendGramsBox,
 		invoice,
-		std::move(balance),
+		std::move(unlockedBalance),
 		send);
 	_sendBox = box.data();
 	_layers->showBox(std::move(box));
@@ -822,8 +823,9 @@ void Window::showSendConfirmation(
 		const PreparedInvoice &invoice,
 		const Ton::TransactionCheckResult &checkResult,
 		Fn<void(InvoiceField)> showInvoiceError) {
-	const auto balance = _state.current().account.balance;
-	if (invoice.amount + checkResult.sourceFees.sum() > balance) {
+	const auto account = _state.current().account;
+	const auto available = account.fullBalance - account.lockedBalance;
+	if (invoice.amount + checkResult.sourceFees.sum() > available) {
 		showInvoiceError(InvoiceField::Amount);
 		return;
 	}
