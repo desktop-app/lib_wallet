@@ -66,7 +66,7 @@ std::optional<int64> ParseAmountNano(QString trimmed) {
 		const QString &text,
 		int position) {
 	constexpr auto kMaxDigitsCount = 9;
-	const auto separator = ParseAmount(1).separator;
+	const auto separator = FormatAmount(1).separator;
 
 	auto result = FixedAmount{ text, position };
 	if (text.isEmpty()) {
@@ -115,10 +115,20 @@ std::optional<int64> ParseAmountNano(QString trimmed) {
 
 } // namespace
 
-ParsedAmount ParseAmount(int64 amount, bool isSigned) {
-	auto result = ParsedAmount();
-	result.grams = amount / kOneGram;
-	auto nanos = result.nano = std::abs(amount) % kOneGram;
+FormattedAmount FormatAmount(int64 amount, FormatFlags flags) {
+	auto result = FormattedAmount();
+	const auto grams = amount / kOneGram;
+	const auto preciseNanos = std::abs(amount) % kOneGram;
+	auto roundedNanos = preciseNanos;
+	if (flags & FormatFlag::Rounded) {
+		if (std::abs(grams) >= 1'000'000 && (roundedNanos % 1'000'000)) {
+			roundedNanos -= (roundedNanos % 1'000'000);
+		} else if (std::abs(grams) >= 1'000 && (roundedNanos % 1'000)) {
+			roundedNanos -= (roundedNanos % 1'000);
+		}
+	}
+	const auto precise = (roundedNanos == preciseNanos);
+	auto nanos = preciseNanos;
 	auto zeros = 0;
 	while (zeros < kNanoDigits && nanos % 10 == 0) {
 		nanos /= 10;
@@ -127,10 +137,10 @@ ParsedAmount ParseAmount(int64 amount, bool isSigned) {
 	const auto locale = QLocale::system();
 	const auto separator = locale.decimalPoint();
 
-	result.gramsString = QLocale::system().toString(result.grams);
-	if (isSigned && amount > 0) {
+	result.gramsString = QLocale::system().toString(grams);
+	if ((flags & FormatFlag::Signed) && amount > 0) {
 		result.gramsString = locale.positiveSign() + result.gramsString;
-	} else if (amount < 0 && result.grams == 0) {
+	} else if (amount < 0 && grams == 0) {
 		result.gramsString = locale.negativeSign() + result.gramsString;
 	}
 	result.full = result.gramsString;
@@ -138,6 +148,14 @@ ParsedAmount ParseAmount(int64 amount, bool isSigned) {
 		result.separator = separator;
 		result.nanoString = QString("%1"
 		).arg(nanos, kNanoDigits - zeros, 10, QChar('0'));
+		if (!precise) {
+			const auto nanoLength = (std::abs(grams) >= 1'000'000)
+				? 3
+				: (std::abs(grams) >= 1'000)
+				? 6
+				: 9;
+			result.nanoString = result.nanoString.mid(0, nanoLength) + "...";
+		}
 		result.full += separator + result.nanoString;
 	}
 	return result;
@@ -280,7 +298,7 @@ not_null<Ui::InputField*> CreateAmountInput(
 		st::walletInput,
 		Ui::InputField::Mode::SingleLine,
 		std::move(placeholder),
-		(amount > 0 ? ParseAmount(amount).full : QString()));
+		(amount > 0 ? FormatAmount(amount).full : QString()));
 	const auto lastAmountValue = std::make_shared<QString>();
 	Ui::Connect(result, &Ui::InputField::changed, [=] {
 		Ui::PostponeCall(result, [=] {

@@ -13,7 +13,7 @@ struct WalletAmountLabel;
 } // namespace style
 
 namespace Wallet {
-struct ParsedAmount;
+struct FormattedAmount;
 } // namespace Wallet
 
 namespace Ui {
@@ -24,7 +24,7 @@ class AmountLabel final {
 public:
 	AmountLabel(
 		not_null<QWidget*> parent,
-		rpl::producer<Wallet::ParsedAmount> amount,
+		rpl::producer<Wallet::FormattedAmount> amount,
 		const style::WalletAmountLabel &st);
 	~AmountLabel();
 

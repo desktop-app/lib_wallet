@@ -74,7 +74,9 @@ void RefreshTimeTexts(
 		Fn<void()> decrypt) {
 	auto result = TransactionLayout();
 	result.serverTime = data.time;
-	const auto amount = ParseAmount(CalculateValue(data), true);
+	const auto amount = FormatAmount(
+		CalculateValue(data),
+		FormatFlag::Signed | FormatFlag::Rounded);
 	result.amountGrams.setText(st::walletRowGramsStyle, amount.gramsString);
 	result.amountNano.setText(
 		st::walletRowNanoStyle,
@@ -99,7 +101,7 @@ void RefreshTimeTexts(
 		(result.encrypted ? QString() : ExtractMessage(data)),
 		_textPlainOptions);
 	if (data.fee) {
-		const auto fee = ParseAmount(data.fee).full;
+		const auto fee = FormatAmount(data.fee).full;
 		result.fees.setText(
 			st::defaultTextStyle,
 			ph::lng_wallet_row_fees(ph::now).replace("{amount}", fee));

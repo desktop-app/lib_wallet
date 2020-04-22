@@ -6,6 +6,8 @@
 //
 #pragma once
 
+#include "base/flags.h"
+
 namespace Ton {
 struct Error;
 struct Transaction;
@@ -26,9 +28,7 @@ enum class InvoiceField;
 inline constexpr auto kMaxCommentLength = 500;
 inline constexpr auto kAddressLength = 48;
 
-struct ParsedAmount {
-	int64 grams = 0;
-	int64 nano = 0;
+struct FormattedAmount {
 	QString gramsString;
 	QString separator;
 	QString nanoString;
@@ -52,7 +52,16 @@ enum class Action {
 	LogOut,
 };
 
-[[nodiscard]] ParsedAmount ParseAmount(int64 amount, bool isSigned = false);
+enum class FormatFlag {
+	Signed = 0x01,
+	Rounded = 0x02,
+};
+constexpr bool is_flag_type(FormatFlag) { return true; };
+using FormatFlags = base::flags<FormatFlag>;
+
+[[nodiscard]] FormattedAmount FormatAmount(
+	int64 amount,
+	FormatFlags flags = FormatFlags());
 [[nodiscard]] std::optional<int64> ParseAmountString(const QString &amount);
 [[nodiscard]] PreparedInvoice ParseInvoice(QString invoice);
 [[nodiscard]] int64 CalculateValue(const Ton::Transaction &data);

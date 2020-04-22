@@ -43,14 +43,14 @@ object_ptr<Ui::RpWidget> CreateSummary(
 
 	const auto balance = result->lifetime().make_state<Ui::AmountLabel>(
 		result.data(),
-		rpl::single(ParseAmount(CalculateValue(data), true)),
+		rpl::single(FormatAmount(CalculateValue(data), FormatFlag::Signed)),
 		st::walletTransactionValue);
 	const auto otherFee = data.otherFee
 		? Ui::CreateChild<Ui::FlatLabel>(
 			result.data(),
 			ph::lng_wallet_view_transaction_fee(ph::now).replace(
 				"{amount}",
-				ParseAmount(data.otherFee).full),
+				FormatAmount(data.otherFee).full),
 			st::walletTransactionFee)
 		: nullptr;
 	const auto storageFee = data.storageFee
@@ -58,7 +58,7 @@ object_ptr<Ui::RpWidget> CreateSummary(
 			result.data(),
 			ph::lng_wallet_view_storage_fee(ph::now).replace(
 				"{amount}",
-				ParseAmount(data.storageFee).full),
+				FormatAmount(data.storageFee).full),
 			st::walletTransactionFee)
 		: nullptr;
 	rpl::combine(

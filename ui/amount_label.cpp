@@ -13,20 +13,20 @@
 namespace Ui {
 namespace {
 
-using Wallet::ParsedAmount;
+using Wallet::FormattedAmount;
 
-rpl::producer<QString> LargeText(rpl::producer<ParsedAmount> amount) {
+rpl::producer<QString> LargeText(rpl::producer<FormattedAmount> amount) {
 	return std::move(
 		amount
-	) | rpl::map([](const ParsedAmount &amount) {
+	) | rpl::map([](const FormattedAmount &amount) {
 		return amount.gramsString;
 	});
 }
 
-rpl::producer<QString> SmallText(rpl::producer<ParsedAmount> amount) {
+rpl::producer<QString> SmallText(rpl::producer<FormattedAmount> amount) {
 	return std::move(
 		amount
-	) | rpl::map([](const ParsedAmount &amount) {
+	) | rpl::map([](const FormattedAmount &amount) {
 		return amount.separator + amount.nanoString;
 	});
 }
@@ -35,7 +35,7 @@ rpl::producer<QString> SmallText(rpl::producer<ParsedAmount> amount) {
 
 AmountLabel::AmountLabel(
 	not_null<QWidget*> parent,
-	rpl::producer<ParsedAmount> amount,
+	rpl::producer<FormattedAmount> amount,
 	const style::WalletAmountLabel &st)
 : _st(st)
 , _large(parent, LargeText(rpl::duplicate(amount)), st.large)

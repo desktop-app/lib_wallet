@@ -90,7 +90,7 @@ void SendingDoneBox(
 	lottie->start();
 	lottie->stopOnLoop(1);
 
-	const auto amount = ParseAmount(-CalculateValue(result)).full;
+	const auto amount = FormatAmount(-CalculateValue(result)).full;
 	const auto title = Ui::CreateChild<Ui::FlatLabel>(
 		inner,
 		ph::lng_wallet_sent_title(),

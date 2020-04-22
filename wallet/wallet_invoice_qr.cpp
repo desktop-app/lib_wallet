@@ -54,7 +54,7 @@ void InvoiceQrBox(
 	box->addRow(
 		object_ptr<Ui::FlatLabel>(
 			box,
-			ParseAmount(prepared.amount).full,
+			FormatAmount(prepared.amount).full,
 			st::walletLabel),
 		st::walletInvoiceQrValuePadding);
 

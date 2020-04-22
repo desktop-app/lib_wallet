@@ -79,7 +79,7 @@ void ConfirmTransactionBox(
 	box->addTopButton(st::boxTitleClose, [=] { box->closeBox(); });
 	box->setCloseByOutsideClick(false);
 
-	const auto amount = ParseAmount(invoice.amount).full;
+	const auto amount = FormatAmount(invoice.amount).full;
 	auto text = rpl::combine(
 		ph::lng_wallet_confirm_text(),
 		ph::lng_wallet_grams_count(amount)()
@@ -101,7 +101,7 @@ void ConfirmTransactionBox(
 			st::windowBgOver->c)),
 		st::walletConfirmationAddressPadding);
 
-	const auto feeParsed = ParseAmount(fee).full;
+	const auto feeParsed = FormatAmount(fee).full;
 	auto feeText = rpl::combine(
 		ph::lng_wallet_confirm_fee(),
 		ph::lng_wallet_grams_count(feeParsed)()

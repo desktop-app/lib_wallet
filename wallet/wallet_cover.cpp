@@ -78,7 +78,9 @@ rpl::lifetime &Cover::lifetime() {
 void Cover::setupBalance() {
 	auto amount = _state.value(
 	) | rpl::map([](const CoverState &state) {
-		return ParseAmount(std::max(state.unlockedBalance, 0LL));
+		return FormatAmount(
+			std::max(state.unlockedBalance, 0LL),
+			FormatFlag::Rounded);
 	});
 
 	const auto balance = _widget.lifetime().make_state<Ui::AmountLabel>(
@@ -99,7 +101,7 @@ void Cover::setupBalance() {
 	auto lockedAmount = _state.value(
 	) | rpl::map([](const CoverState &state) {
 		return (state.lockedBalance > 0)
-			? ParseAmount(state.lockedBalance).full
+			? FormatAmount(state.lockedBalance, FormatFlag::Rounded).full
 			: QString();
 	});
 

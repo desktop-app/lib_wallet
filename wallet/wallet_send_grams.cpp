@@ -27,7 +27,7 @@ struct FixedAddress {
 };
 
 [[nodiscard]] QString AmountSeparator() {
-	return ParseAmount(1).separator;
+	return FormatAmount(1).separator;
 }
 
 [[nodiscard]] FixedAddress FixAddressInput(
@@ -88,7 +88,7 @@ void SendGramsBox(
 	) | rpl::map([](QString &&phrase, int64 value) {
 		return phrase.replace(
 			"{amount}",
-			ParseAmount(std::max(value, 0LL)).full);
+			FormatAmount(std::max(value, 0LL), FormatFlag::Rounded).full);
 	});
 
 	const auto diamondLabel = Ui::CreateInlineDiamond(
@@ -156,7 +156,7 @@ void SendGramsBox(
 				address->setCursorPosition(fixed.position);
 			}
 			if (fixed.invoice.amount > 0) {
-				amount->setText(ParseAmount(fixed.invoice.amount).full);
+				amount->setText(FormatAmount(fixed.invoice.amount).full);
 			}
 			if (!fixed.invoice.comment.isEmpty()) {
 				comment->setText(fixed.invoice.comment);
@@ -235,7 +235,7 @@ void SendGramsBox(
 		return (value > 0)
 			? rpl::combine(
 				ph::lng_wallet_send_button_amount(),
-				ph::lng_wallet_grams_count(ParseAmount(value).full)()
+				ph::lng_wallet_grams_count(FormatAmount(value).full)()
 			) | replaceGramsTag()
 			: ph::lng_wallet_send_button();
 	}) | rpl::flatten_latest();
