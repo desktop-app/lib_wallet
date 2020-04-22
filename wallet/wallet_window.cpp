@@ -78,10 +78,11 @@ Window::Window(
 , _layers(std::make_unique<Ui::LayerManager>(_window->body()))
 , _updateInfo(updateInfo) {
 	init();
-	if (_wallet->publicKeys().empty()) {
+	const auto keys = _wallet->publicKeys();
+	if (keys.empty()) {
 		showCreate();
 	} else {
-		showAccount(_wallet->publicKeys()[0]);
+		showAccount(keys[0]);
 	}
 }
 
@@ -394,7 +395,7 @@ void Window::showAccount(const QByteArray &publicKey, bool justCreated) {
 	_importing = false;
 	_createManager = nullptr;
 
-	_address = _wallet->getAddress(publicKey);
+	_address = _wallet->getUsedAddress(publicKey);
 	_viewer = _wallet->createAccountViewer(publicKey, _address);
 	_state = _viewer->state() | rpl::map([](Ton::WalletViewerState &&state) {
 		return std::move(state.wallet);
