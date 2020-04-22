@@ -130,7 +130,7 @@ void Cover::setupBalance() {
 	const auto lockedLabel = Ui::CreateChild<Ui::FlatLabel>(
 		locked,
 		ph::lng_wallet_cover_locked(),
-		st::walletCoverLocked);
+		st::walletCoverLockedLabel);
 	rpl::combine(
 		lockedBalance->sizeValue(),
 		lockedLabel->sizeValue()
@@ -140,8 +140,8 @@ void Cover::setupBalance() {
 			+ st::walletCoverLocked.style.font->spacew
 			+ label.width(),
 			std::max(balance.height(), label.height()));
-		lockedBalance->moveToLeft(0, 0);
-		lockedLabel->moveToRight(0, 0);
+		lockedBalance->moveToRight(st::walletDiamondSize, 0);
+		lockedLabel->moveToLeft(0, 0);
 	}, locked->lifetime());
 	rpl::combine(
 		_widget.sizeValue(),
@@ -161,7 +161,7 @@ void Cover::setupBalance() {
 	) | rpl::start_with_next([=] {
 		auto p = QPainter(locked);
 		const auto diamondTop = 0;
-		const auto diamondLeft = lockedBalance->width();
+		const auto diamondLeft = locked->width() - st::walletDiamondSize;
 		Ui::PaintInlineDiamond(
 			p,
 			diamondLeft,

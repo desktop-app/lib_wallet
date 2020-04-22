@@ -124,13 +124,16 @@ ParsedAmount ParseAmount(int64 amount, bool isSigned) {
 		nanos /= 10;
 		++zeros;
 	}
-	const auto separator = QLocale::system().decimalPoint();
-	result.full = result.gramsString = QString::number(result.grams);
+	const auto locale = QLocale::system();
+	const auto separator = locale.decimalPoint();
+
+	result.gramsString = QLocale::system().toString(result.grams);
 	if (isSigned && amount > 0) {
-		result.full = result.gramsString = '+' + result.gramsString;
+		result.gramsString = locale.positiveSign() + result.gramsString;
 	} else if (amount < 0 && result.grams == 0) {
-		result.full = result.gramsString = '-' + result.gramsString;
+		result.gramsString = locale.negativeSign() + result.gramsString;
 	}
+	result.full = result.gramsString;
 	if (zeros < kNanoDigits) {
 		result.separator = separator;
 		result.nanoString = QString("%1"

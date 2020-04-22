@@ -211,6 +211,10 @@ walletCoverLocked: FlatLabel(defaultFlatLabel) {
 	style: semiboldTextStyle;
 	textFg: walletBalanceFg;
 }
+walletCoverLockedLabel: FlatLabel(defaultFlatLabel) {
+	style: semiboldTextStyle;
+	textFg: walletTopLabelFg;
+}
 walletCoverButtonWidthFull: 300px;
 walletCoverButtonWidth: 140px;
 walletCoverButtonBottom: 25px;
