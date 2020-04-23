@@ -156,7 +156,9 @@ void SendGramsBox(
 				address->setCursorPosition(fixed.position);
 			}
 			if (fixed.invoice.amount > 0) {
-				amount->setText(FormatAmount(fixed.invoice.amount).full);
+				amount->setText(FormatAmount(
+					fixed.invoice.amount,
+					FormatFlag::Simple).full);
 			}
 			if (!fixed.invoice.comment.isEmpty()) {
 				comment->setText(fixed.invoice.comment);

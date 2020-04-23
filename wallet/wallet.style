@@ -369,6 +369,22 @@ walletTransactionValue: WalletAmountLabel(walletCoverBalance) {
 	diamond: 33px;
 	diamondPosition: point(6px, 2px);
 }
+walletTransactionValueSmall: WalletAmountLabel(walletCoverBalance) {
+	large: FlatLabel(walletCoverBalanceLarge) {
+		textFg: windowBoldFg;
+		style: TextStyle(defaultTextStyle) {
+			font: font(24px semibold);
+		}
+	}
+	small: FlatLabel(walletCoverBalanceSmall) {
+		textFg: windowBoldFg;
+		style: TextStyle(defaultTextStyle) {
+			font: font(16px semibold);
+		}
+	}
+	diamond: 29px;
+	diamondPosition: point(5px, 1px);
+}
 walletTransactionValueTop: 5px;
 walletTransactionFee: FlatLabel(defaultFlatLabel) {
 	textFg: windowSubTextFg;

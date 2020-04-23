@@ -134,10 +134,11 @@ FormattedAmount FormatAmount(int64 amount, FormatFlags flags) {
 		nanos /= 10;
 		++zeros;
 	}
-	const auto locale = QLocale::system();
-	const auto separator = locale.decimalPoint();
+	const auto system = QLocale::system();
+	const auto locale = (flags & FormatFlag::Simple) ? QLocale::c() : system;
+	const auto separator = system.decimalPoint();
 
-	result.gramsString = QLocale::system().toString(grams);
+	result.gramsString = locale.toString(grams);
 	if ((flags & FormatFlag::Signed) && amount > 0) {
 		result.gramsString = locale.positiveSign() + result.gramsString;
 	} else if (amount < 0 && grams == 0) {
@@ -154,7 +155,7 @@ FormattedAmount FormatAmount(int64 amount, FormatFlags flags) {
 				: (std::abs(grams) >= 1'000)
 				? 6
 				: 9;
-			result.nanoString = result.nanoString.mid(0, nanoLength) + "...";
+			result.nanoString = result.nanoString.mid(0, nanoLength);
 		}
 		result.full += separator + result.nanoString;
 	}
@@ -163,10 +164,7 @@ FormattedAmount FormatAmount(int64 amount, FormatFlags flags) {
 
 std::optional<int64> ParseAmountString(const QString &amount) {
 	const auto trimmed = amount.trimmed();
-	const auto &locale = QLocale::system();
-	const auto separator = locale.toString(0.1f
-	).replace('0', QString()
-	).replace('1', QString());
+	const auto separator = QString(QLocale::system().decimalPoint());
 	const auto index1 = trimmed.indexOf('.');
 	const auto index2 = trimmed.indexOf(',');
 	const auto index3 = (separator == "." || separator == ",")
@@ -298,7 +296,9 @@ not_null<Ui::InputField*> CreateAmountInput(
 		st::walletInput,
 		Ui::InputField::Mode::SingleLine,
 		std::move(placeholder),
-		(amount > 0 ? FormatAmount(amount).full : QString()));
+		(amount > 0
+			? FormatAmount(amount, FormatFlag::Simple).full
+			: QString()));
 	const auto lastAmountValue = std::make_shared<QString>();
 	Ui::Connect(result, &Ui::InputField::changed, [=] {
 		Ui::PostponeCall(result, [=] {

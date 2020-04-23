@@ -55,6 +55,7 @@ enum class Action {
 enum class FormatFlag {
 	Signed = 0x01,
 	Rounded = 0x02,
+	Simple = 0x04,
 };
 constexpr bool is_flag_type(FormatFlag) { return true; };
 using FormatFlags = base::flags<FormatFlag>;

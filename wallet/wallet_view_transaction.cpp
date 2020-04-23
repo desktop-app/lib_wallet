@@ -41,10 +41,14 @@ object_ptr<Ui::RpWidget> CreateSummary(
 		parent,
 		height);
 
+	const auto value = CalculateValue(data);
+	const auto useSmallStyle = (std::abs(value) >= 1'000'000);
 	const auto balance = result->lifetime().make_state<Ui::AmountLabel>(
 		result.data(),
-		rpl::single(FormatAmount(CalculateValue(data), FormatFlag::Signed)),
-		st::walletTransactionValue);
+		rpl::single(FormatAmount(value, FormatFlag::Signed)),
+		(useSmallStyle
+			? st::walletTransactionValueSmall
+			: st::walletTransactionValue));
 	const auto otherFee = data.otherFee
 		? Ui::CreateChild<Ui::FlatLabel>(
 			result.data(),
