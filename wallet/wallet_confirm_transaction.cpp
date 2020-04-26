@@ -98,6 +98,7 @@ void ConfirmTransactionBox(
 			box,
 			invoice.address,
 			st::walletConfirmationAddressLabel,
+			nullptr,
 			st::windowBgOver->c)),
 		st::walletConfirmationAddressPadding);
 

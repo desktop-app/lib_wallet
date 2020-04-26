@@ -421,6 +421,7 @@ void Window::showAccount(const QByteArray &publicKey, bool justCreated) {
 	data.updates = _wallet->updates();
 	data.collectEncrypted = _collectEncryptedRequests.events();
 	data.updateDecrypted = _decrypted.events();
+	data.share = shareAddressCallback();
 	_info = std::make_unique<Info>(_window->body(), std::move(data));
 	_layers->raise();
 
@@ -466,6 +467,7 @@ void Window::showAccount(const QByteArray &publicKey, bool justCreated) {
 			std::move(data),
 			_collectEncryptedRequests.events(),
 			_decrypted.events(),
+			shareAddressCallback(),
 			[=] { decryptEverything(publicKey); },
 			send));
 	}, _info->lifetime());
@@ -926,9 +928,7 @@ void Window::receiveGrams() {
 		TransferLink(_address),
 		_testnet,
 		[=] { createInvoice(); },
-		shareCallback(
-			ph::lng_wallet_receive_copied(ph::now),
-			ph::lng_wallet_receive_copied_qr(ph::now))));
+		shareAddressCallback()));
 }
 
 void Window::createInvoice() {
@@ -939,6 +939,7 @@ void Window::createInvoice() {
 		[=](const QString &link) { showInvoiceQr(link); },
 		shareCallback(
 			ph::lng_wallet_invoice_copied(ph::now),
+			ph::lng_wallet_invoice_copied(ph::now),
 			ph::lng_wallet_receive_copied_qr(ph::now))));
 }
 
@@ -948,26 +949,35 @@ void Window::showInvoiceQr(const QString &link) {
 		link,
 		shareCallback(
 			ph::lng_wallet_invoice_copied(ph::now),
+			ph::lng_wallet_invoice_copied(ph::now),
 			ph::lng_wallet_receive_copied_qr(ph::now))));
 }
 
 Fn<void(QImage, QString)> Window::shareCallback(
-		const QString &copied,
+		const QString &linkCopied,
+		const QString &textCopied,
 		const QString &qr) {
-	return [=](const QImage &image, const QString &link) {
+	return [=](const QImage &image, const QString &text) {
 		if (!image.isNull()) {
 			auto mime = std::make_unique<QMimeData>();
-			if (!link.isEmpty()) {
-				mime->setText(link);
+			if (!text.isEmpty()) {
+				mime->setText(text);
 			}
 			mime->setImageData(image);
 			QGuiApplication::clipboard()->setMimeData(mime.release());
 			showToast(qr);
 		} else {
-			QGuiApplication::clipboard()->setText(link);
-			showToast(copied);
+			QGuiApplication::clipboard()->setText(text);
+			showToast((text.indexOf("://") >= 0) ? linkCopied : textCopied);
 		}
 	};
+}
+
+Fn<void(QImage, QString)> Window::shareAddressCallback() {
+	return shareCallback(
+		ph::lng_wallet_receive_copied(ph::now),
+		ph::lng_wallet_receive_address_copied(ph::now),
+		ph::lng_wallet_receive_copied_qr(ph::now));
 }
 
 void Window::showToast(const QString &text) {

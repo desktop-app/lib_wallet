@@ -88,7 +88,8 @@ void Info::setupControls(Data &&data) {
 		std::move(data.updateDecrypted));
 	const auto emptyHistory = _widget->lifetime().make_state<EmptyHistory>(
 		_inner.get(),
-		MakeEmptyHistoryState(rpl::duplicate(state), data.justCreated));
+		MakeEmptyHistoryState(rpl::duplicate(state), data.justCreated),
+		data.share);
 
 	_widget->sizeValue(
 	) | rpl::start_with_next([=](QSize size) {

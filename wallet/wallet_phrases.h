@@ -111,6 +111,7 @@ extern phrase lng_wallet_receive_description_test;
 extern phrase lng_wallet_receive_create_invoice;
 extern phrase lng_wallet_receive_share;
 extern phrase lng_wallet_receive_copied;
+extern phrase lng_wallet_receive_address_copied;
 extern phrase lng_wallet_receive_copied_qr;
 
 extern phrase lng_wallet_invoice_title;
@@ -213,7 +214,7 @@ extern Fn<phrase(QString)> lng_wallet_grams_count_sent;
 
 namespace Wallet {
 
-inline constexpr auto kPhrasesCount = 159;
+inline constexpr auto kPhrasesCount = 160;
 
 void SetPhrases(
 	ph::details::phrase_value_array<kPhrasesCount> data,

@@ -26,6 +26,7 @@ class FlatLabel;
 	not_null<RpWidget*> parent,
 	const QString &text,
 	const style::FlatLabel &st,
+	Fn<void()> onClickOverride = nullptr,
 	std::optional<QColor> bg = std::nullopt);
 
 } // namespace Ui

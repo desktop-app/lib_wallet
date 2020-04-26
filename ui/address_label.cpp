@@ -36,6 +36,7 @@ not_null<RpWidget*> CreateAddressLabel(
 		not_null<RpWidget*> parent,
 		const QString &text,
 		const style::FlatLabel &st,
+		Fn<void()> onClickOverride,
 		std::optional<QColor> bg) {
 	const auto mono = parent->lifetime().make_state<style::FlatLabel>(st);
 	mono->style = ComputeAddressStyle(mono->style);
@@ -47,8 +48,17 @@ not_null<RpWidget*> CreateAddressLabel(
 		rpl::single(text),
 		*mono);
 	label->setBreakEverywhere(true);
-	label->setDoubleClickSelectsParagraph(true);
-	label->setContextCopyText(ph::lng_wallet_copy_address(ph::now));
+	if (onClickOverride) {
+		label->setAttribute(Qt::WA_TransparentForMouseEvents);
+		result->setCursor(style::cur_pointer);
+		result->events(
+		) | rpl::filter([=](not_null<QEvent*> event) {
+			return (event->type() == QEvent::MouseButtonRelease);
+		}) | rpl::start_with_next(onClickOverride, result->lifetime());
+	} else {
+		label->setDoubleClickSelectsParagraph(true);
+		label->setContextCopyText(ph::lng_wallet_copy_address(ph::now));
+	}
 
 	const auto half = text.size() / 2;
 	const auto first = text.mid(0, half);
@@ -58,8 +68,9 @@ not_null<RpWidget*> CreateAddressLabel(
 		mono->style.font->width(second)
 	) + mono->style.font->spacew / 2;
 	label->resizeToWidth(width);
-	label->setSelectable(true);
-
+	if (!onClickOverride) {
+		label->setSelectable(true);
+	}
 	result->resize(label->size());
 	result->widthValue(
 	) | rpl::start_with_next([=](int width) {

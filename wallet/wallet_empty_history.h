@@ -23,7 +23,8 @@ class EmptyHistory final {
 public:
 	EmptyHistory(
 		not_null<Ui::RpWidget*> parent,
-		rpl::producer<EmptyHistoryState> state);
+		rpl::producer<EmptyHistoryState> state,
+		Fn<void(QImage, QString)> share);
 
 	void setGeometry(QRect geometry);
 	void setVisible(bool visible);
@@ -34,6 +35,7 @@ private:
 	void setupControls(rpl::producer<EmptyHistoryState> &&state);
 
 	Ui::RpWidget _widget;
+	Fn<void(QImage, QString)> _share;
 
 };
 

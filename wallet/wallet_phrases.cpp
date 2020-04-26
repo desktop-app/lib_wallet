@@ -111,6 +111,7 @@ phrase lng_wallet_receive_description_test = "Share this address to receive Test
 phrase lng_wallet_receive_create_invoice = "Create Invoice";
 phrase lng_wallet_receive_share = "Share Wallet Address";
 phrase lng_wallet_receive_copied = "Transfer link copied to clipboard.";
+phrase lng_wallet_receive_address_copied = "Wallet address copied to clipboard.";
 phrase lng_wallet_receive_copied_qr = "QR Code copied to clipboard.";
 
 phrase lng_wallet_invoice_title = "Create Invoice";

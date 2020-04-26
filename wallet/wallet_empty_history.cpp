@@ -17,8 +17,10 @@ namespace Wallet {
 
 EmptyHistory::EmptyHistory(
 	not_null<Ui::RpWidget*> parent,
-	rpl::producer<EmptyHistoryState> state)
-: _widget(parent) {
+	rpl::producer<EmptyHistoryState> state,
+	Fn<void(QImage, QString)> share)
+: _widget(parent)
+, _share(share) {
 	setupControls(std::move(state));
 }
 
@@ -96,7 +98,8 @@ void EmptyHistory::setupControls(rpl::producer<EmptyHistoryState> &&state) {
 		const auto address = Ui::CreateAddressLabel(
 			&_widget,
 			text,
-			st::walletEmptyHistoryAddress);
+			st::walletEmptyHistoryAddress,
+			[=] { _share(QImage(), text); });
 		rpl::combine(
 			_widget.sizeValue(),
 			address->widthValue()

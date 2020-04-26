@@ -128,9 +128,11 @@ private:
 	void showSettingsWithLogoutWarning(
 		const Ton::Settings &settings,
 		rpl::producer<QString> text);
-	Fn<void(QImage, QString)> shareCallback(
-		const QString &copied,
+	[[nodiscard]] Fn<void(QImage, QString)> shareCallback(
+		const QString &linkCopied,
+		const QString &textCopied,
 		const QString &qr);
+	[[nodiscard]] Fn<void(QImage, QString)> shareAddressCallback();
 	void logoutWithConfirmation();
 	void logout();
 

@@ -52,11 +52,12 @@ void ReceiveGramsBox(
 		share(Ui::DiamondQrForShare(link), QString());
 	});
 
-	box->addRow(
+	const auto addressLabel = box->addRow(
 		object_ptr<Ui::RpWidget>::fromRaw(Ui::CreateAddressLabel(
 			box,
 			address,
-			st::walletReceiveAddressLabel)),
+			st::walletReceiveAddressLabel,
+			[=] { share(QImage(), address); })),
 		st::walletReceiveAddressPadding);
 
 	const auto createLinkWrap = box->addRow(
