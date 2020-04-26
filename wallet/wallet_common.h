@@ -18,6 +18,7 @@ namespace Ui {
 class GenericBox;
 class FlatLabel;
 class InputField;
+class VerticalLayout;
 } // namespace Ui
 
 namespace Wallet {
@@ -75,6 +76,9 @@ using FormatFlags = base::flags<FormatFlag>;
 	int64 amount = 0,
 	const QString &comment = QString());
 
+not_null<Ui::FlatLabel*> AddBoxSubtitle(
+	not_null<Ui::VerticalLayout*> box,
+	rpl::producer<QString> text);
 not_null<Ui::FlatLabel*> AddBoxSubtitle(
 	not_null<Ui::GenericBox*> box,
 	rpl::producer<QString> text);

@@ -123,7 +123,11 @@ private:
 	void saveSettings(const Ton::Settings &settings);
 	void saveSettingsWithLoaded(const Ton::Settings &settings);
 	void saveSettingsSure(const Ton::Settings &settings, Fn<void()> done);
+	void showSwitchTestNetworkWarning(const Ton::Settings &settings);
 	void showBlockchainNameWarning(const Ton::Settings &settings);
+	void showSettingsWithLogoutWarning(
+		const Ton::Settings &settings,
+		rpl::producer<QString> text);
 	Fn<void(QImage, QString)> shareCallback(
 		const QString &copied,
 		const QString &qr);
@@ -141,6 +145,7 @@ private:
 	std::unique_ptr<Create::Manager> _createManager;
 	rpl::event_stream<QString> _createSyncing;
 	bool _importing = false;
+	bool _testnet = false;
 
 	QString _address;
 	std::unique_ptr<Ton::AccountViewer> _viewer;

@@ -107,14 +107,17 @@ void Window::init() {
 }
 
 void Window::startWallet() {
-	const auto &settings = _wallet->settings();
-	if (settings.useCustomConfig) {
+	const auto &was = _wallet->settings().net();
+	if (was.useCustomConfig) {
 		return;
 	}
 	const auto loaded = [=](Ton::Result<QByteArray> result) {
 		auto copy = _wallet->settings();
-		if (result && *result != copy.config) {
-			copy.config = *result;
+		if (result
+			&& !copy.net().useCustomConfig
+			&& copy.net().configUrl == was.configUrl
+			&& *result != copy.net().config) {
+			copy.net().config = *result;
 			saveSettingsSure(copy, [=] {
 				if (_viewer) {
 					refreshNow();
@@ -125,7 +128,7 @@ void Window::startWallet() {
 			_wallet->sync();
 		}
 	};
-	_wallet->loadWebResource(settings.configUrl, std::move(loaded));
+	_wallet->loadWebResource(was.configUrl, std::move(loaded));
 }
 
 void Window::updatePalette() {
@@ -335,6 +338,7 @@ void Window::createSavePasscode(
 	}
 	if (!_importing) {
 		createSaveKey(passcode, QByteArray(), std::move(guard));
+		return;
 	}
 	rpl::single(
 		Ton::Update{ Ton::SyncState() }
@@ -674,6 +678,16 @@ void Window::showConfigUpgrade(Ton::ConfigUpgrade upgrade) {
 			ph::lng_wallet_warning(),
 			rpl::single(QString(message)),
 			ph::lng_wallet_ok());
+	} else if (upgrade == Ton::ConfigUpgrade::TestnetToMainnet) {
+		const auto message = "The Gram Wallet has switched "
+			"from the testing to the main network.\n\nIn case you want "
+			"to perform more testing you can switch back "
+			"to the Test Gram network in Settings "
+			"and reconnect your wallet using 24 secret words.";
+		showSimpleError(
+			ph::lng_wallet_warning(),
+			rpl::single(QString(message)),
+			ph::lng_wallet_ok());
 	}
 }
 
@@ -910,6 +924,7 @@ void Window::receiveGrams() {
 		ReceiveGramsBox,
 		_address,
 		TransferLink(_address),
+		_testnet,
 		[=] { createInvoice(); },
 		shareCallback(
 			ph::lng_wallet_receive_copied(ph::now),
@@ -920,6 +935,7 @@ void Window::createInvoice() {
 	_layers->showBox(Box(
 		CreateInvoiceBox,
 		_address,
+		_testnet,
 		[=](const QString &link) { showInvoiceQr(link); },
 		shareCallback(
 			ph::lng_wallet_invoice_copied(ph::now),
@@ -1025,7 +1041,7 @@ void Window::checkConfigFromContent(
 }
 
 void Window::saveSettings(const Ton::Settings &settings) {
-	if (settings.useCustomConfig) {
+	if (settings.net().useCustomConfig) {
 		saveSettingsWithLoaded(settings);
 		return;
 	}
@@ -1045,16 +1061,22 @@ void Window::saveSettings(const Ton::Settings &settings) {
 		}
 		checkConfigFromContent(*result, [=](QByteArray config) {
 			auto copy = settings;
-			copy.config = config;
+			copy.net().config = config;
 			saveSettingsWithLoaded(copy);
 		});
 	};
-	_wallet->loadWebResource(settings.configUrl, loaded);
+	_wallet->loadWebResource(settings.net().configUrl, loaded);
 }
 
 void Window::saveSettingsWithLoaded(const Ton::Settings &settings) {
 	const auto &current = _wallet->settings();
-	const auto detach = (settings.blockchainName != current.blockchainName);
+	const auto change = (settings.useTestNetwork != current.useTestNetwork);
+	if (change) {
+		showSwitchTestNetworkWarning(settings);
+		return;
+	}
+	const auto detach = (settings.net().blockchainName
+		!= current.net().blockchainName);
 	if (detach) {
 		showBlockchainNameWarning(settings);
 		return;
@@ -1095,13 +1117,36 @@ void Window::refreshNow() {
 	});
 }
 
+void Window::showSwitchTestNetworkWarning(const Ton::Settings &settings) {
+	showSettingsWithLogoutWarning(
+		settings,
+		(settings.useTestNetwork
+			? ph::lng_wallet_warning_to_testnet()
+			: ph::lng_wallet_warning_to_mainnet()));
+}
+
 void Window::showBlockchainNameWarning(const Ton::Settings &settings) {
+	Expects(settings.useTestNetwork);
+
+	showSettingsWithLogoutWarning(
+		settings,
+		ph::lng_wallet_warning_blockchain_name());
+}
+
+void Window::showSettingsWithLogoutWarning(
+		const Ton::Settings &settings,
+		rpl::producer<QString> text) {
+	using namespace rpl::mappers;
+
 	const auto saving = std::make_shared<bool>();
-	auto box = Box([=](not_null<Ui::GenericBox*> box) {
+	auto box = Box([=](not_null<Ui::GenericBox*> box) mutable {
 		box->setTitle(ph::lng_wallet_warning());
 		box->addRow(object_ptr<Ui::FlatLabel>(
 			box,
-			ph::lng_wallet_warning_blockchain_name(),
+			rpl::combine(
+				std::move(text),
+				ph::lng_wallet_warning_reconnect()
+			) | rpl::map(_1 + "\n\n" + _2),
 			st::walletLabel));
 		box->addButton(ph::lng_wallet_continue(), [=] {
 			if (std::exchange(*saving, true)) {

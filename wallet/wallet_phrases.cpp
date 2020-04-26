@@ -106,7 +106,8 @@ phrase lng_wallet_view_send_to_address = "Send Grams to this address";
 phrase lng_wallet_view_send_to_recipient = "Send Grams to this Recipient";
 
 phrase lng_wallet_receive_title = "Receive Grams";
-phrase lng_wallet_receive_description = "Share this address to receive Test Grams. Note: this link won't work for real Grams.";
+phrase lng_wallet_receive_description = "Share this address with other Gram wallet owners to receive Grams from them.";
+phrase lng_wallet_receive_description_test = "Share this address to receive Test Grams. Note: this link won't work for real Grams.";
 phrase lng_wallet_receive_create_invoice = "Create Invoice";
 phrase lng_wallet_receive_share = "Share Wallet Address";
 phrase lng_wallet_receive_copied = "Transfer link copied to clipboard.";
@@ -119,7 +120,8 @@ phrase lng_wallet_invoice_comment = "Comment (optional)";
 phrase lng_wallet_invoice_comment_about = "You can specify the amount and purpose of the payment to save the sender some time.";
 phrase lng_wallet_invoice_url = "Invoice URL";
 phrase lng_wallet_invoice_copy_url = "Copy Invoice URL";
-phrase lng_wallet_invoice_url_about = "Share this address to receive Test Grams. Note: this link won't work for real Grams.";
+phrase lng_wallet_invoice_url_about = "Share this address with other Gram wallet owners to receive Grams from them.";
+phrase lng_wallet_invoice_url_about_test = "Share this address to receive Test Grams. Note: this link won't work for real Grams.";
 phrase lng_wallet_invoice_generate_qr = "Generate QR Code";
 phrase lng_wallet_invoice_share = "Share Invoice URL";
 phrase lng_wallet_invoice_qr_title = "Invoice QR";
@@ -186,13 +188,17 @@ phrase lng_wallet_settings_configuration = "Server Settings";
 phrase lng_wallet_settings_update_config = "Update config automatically";
 phrase lng_wallet_settings_config_url = "Config update URL";
 phrase lng_wallet_settings_config_from_file = "Load from file";
+phrase lng_wallet_settings_testnet = "Use the Test Gram network";
 phrase lng_wallet_settings_blockchain_name = "Blockchain ID";
 
-phrase lng_wallet_warning_blockchain_name = "Are you sure you want to change the blockchain ID? You don't need this unless you're testing your own TON network.\n\nIf you proceed, you will need to reconnect your wallet using 24 secret words.";
+phrase lng_wallet_warning_reconnect = "If you proceed, you will need to reconnect your wallet using 24 secret words.";
+phrase lng_wallet_warning_blockchain_name = "Are you sure you want to change the blockchain ID? You don't need this unless you're testing your own TON network.";
+phrase lng_wallet_warning_to_testnet = "Are you sure you want to switch to the Test Gram network? It exists only for testing purposes.";
+phrase lng_wallet_warning_to_mainnet = "Are you sure you want to switch to the Main Gram network? Grams will have real value there.";
 phrase lng_wallet_bad_config = "Sorry, this config is invalid.";
 phrase lng_wallet_bad_config_url = "Could not load config from URL.";
 phrase lng_wallet_wait_pending = "Please wait until the current transaction is completed.";
-phrase lng_wallet_wait_syncing = "Please wait until the synchronisation is completed.";
+phrase lng_wallet_wait_syncing = "Please wait until the synchronization is completed.";
 
 phrase lng_wallet_downloaded = "{ready} / {total} {mb}";
 

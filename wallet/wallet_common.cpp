@@ -277,14 +277,20 @@ QString TransferLink(
 }
 
 not_null<Ui::FlatLabel*> AddBoxSubtitle(
-		not_null<Ui::GenericBox*> box,
+		not_null<Ui::VerticalLayout*> container,
 		rpl::producer<QString> text) {
-	return box->addRow(
+	return container->add(
 		object_ptr<Ui::FlatLabel>(
-			box,
+			container,
 			std::move(text),
 			st::walletSubsectionTitle),
 		st::walletSubsectionTitlePadding);
+}
+
+not_null<Ui::FlatLabel*> AddBoxSubtitle(
+		not_null<Ui::GenericBox*> box,
+		rpl::producer<QString> text) {
+	return AddBoxSubtitle(box->verticalLayout(), std::move(text));
 }
 
 not_null<Ui::InputField*> CreateAmountInput(

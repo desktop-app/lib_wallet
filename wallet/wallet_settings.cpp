@@ -201,6 +201,11 @@ void SettingsBox(
 		Fn<void(Ton::Settings)> save) {
 	using namespace rpl::mappers;
 
+	const auto &was = settings.net();
+	const auto modified = box->lifetime().make_state<QByteArray>(was.config);
+	const auto downloadOn = box->lifetime().make_state<rpl::variable<bool>>(
+		!was.useCustomConfig);
+
 	box->setTitle(ph::lng_wallet_settings_title());
 
 	if (updateInfo) {
@@ -217,7 +222,7 @@ void SettingsBox(
 			ph::lng_wallet_settings_update_config(),
 			st::defaultSettingsButton),
 		QMargins()
-	)->toggleOn(rpl::single(!settings.useCustomConfig));
+	)->toggleOn(downloadOn->value());
 
 	const auto filenames = box->lifetime().make_state<
 		rpl::event_stream<QString>>();
@@ -237,7 +242,6 @@ void SettingsBox(
 		QMargins()
 	)->setDuration(0);
 
-	const auto modified = std::make_shared<QByteArray>(settings.config);
 	const auto chooseFromFile = [=] {
 		const auto weak = Ui::MakeWeak(box.get());
 		const auto all = Platform::IsWindows() ? "(*.*)" : "(*)";
@@ -276,7 +280,7 @@ void SettingsBox(
 				box,
 				st::walletInput,
 				ph::lng_wallet_settings_config_url(),
-				settings.configUrl),
+				was.configUrl),
 			QMargins(0, 0, 0, heightDelta)),
 			(st::boxRowPadding
 				+ QMargins(0, 0, 0, st::walletSettingsBlockchainNameSkip)));
@@ -292,27 +296,59 @@ void SettingsBox(
 		}
 	}, download->lifetime());
 
-	AddBoxSubtitle(box, ph::lng_wallet_settings_blockchain_name());
-	const auto name = box->addRow(object_ptr<Ui::InputField>(
-		box,
-		st::walletInput,
-		rpl::single(QString()),
-		settings.blockchainName));
+	const auto testnet = box->addRow(
+		object_ptr<Ui::SettingsButton>(
+			box,
+			ph::lng_wallet_settings_testnet(),
+			st::defaultSettingsButton),
+		QMargins()
+	)->toggleOn(rpl::single(settings.useTestNetwork));
+
+	testnet->toggledValue(
+	) | rpl::start_with_next([=](bool toggled) {
+		const auto &now = settings.net(toggled);
+		*modified = now.config;
+		*downloadOn = !now.useCustomConfig;
+		url->entity()->setText(now.configUrl);
+	}, testnet->lifetime());
+
+	const auto nameWrap = box->addRow(
+		object_ptr<Ui::SlideWrap<Ui::VerticalLayout>>(
+			box,
+			object_ptr<Ui::VerticalLayout>(box)),
+		QMargins()
+	)->setDuration(0)->toggleOn(testnet->toggledValue());
+	const auto nameContainer = nameWrap->entity();
+	AddBoxSubtitle(nameContainer, ph::lng_wallet_settings_blockchain_name());
+	const auto name = nameContainer->add(
+		object_ptr<Ui::InputField>(
+			nameContainer,
+			st::walletInput,
+			rpl::single(QString()),
+			settings.test.blockchainName),
+		st::boxRowPadding);
 
 	const auto collectSettings = [=] {
 		auto result = settings;
-		result.blockchainName = name->getLastText().trimmed();
-		result.useCustomConfig = custom->toggled();
-		if (result.useCustomConfig) {
-			result.config = *modified;
+		result.useTestNetwork = testnet->toggled();
+		auto &change = result.net();
+		if (result.useTestNetwork) {
+			change.blockchainName = name->getLastText().trimmed();
+		}
+		change.useCustomConfig = custom->toggled();
+		if (change.useCustomConfig) {
+			change.config = *modified;
 		} else {
-			result.configUrl = url->entity()->getLastText().trimmed();
+			change.configUrl = url->entity()->getLastText().trimmed();
 		}
 		return result;
 	};
 
 	const auto validate = [=] {
-		if (name->getLastText().trimmed().isEmpty()) {
+		const auto updated = name->getLastText().trimmed();
+		if (updated.isEmpty()
+			|| (testnet->toggled()
+				&& !updated.compare("mainnet", Qt::CaseInsensitive))) {
 			name->showError();
 			return false;
 		} else if (!custom->toggled()

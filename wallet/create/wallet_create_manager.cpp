@@ -187,8 +187,7 @@ void Manager::showCheck() {
 	showStep(std::move(check), Direction::Forward, [=] {
 		if (raw->checkAll()) {
 			if (CheckWords(_words, indices, raw->words())) {
-				//showPasscode(rpl::single(QString()));
-				showPasscode(ph::lng_wallet_sync());
+				showPasscode(rpl::single(QString()));
 			} else {
 				_actionRequests.fire(Action::ShowCheckIncorrect);
 			}

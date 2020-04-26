@@ -36,6 +36,7 @@ public:
 void CreateInvoiceBox(
 		not_null<Ui::GenericBox*> box,
 		const QString &address,
+		bool testnet,
 		Fn<void(QString)> generateQr,
 		Fn<void(QImage, QString)> share) {
 	box->setTitle(ph::lng_wallet_invoice_title());
@@ -128,7 +129,9 @@ void CreateInvoiceBox(
 	box->addRow(
 		object_ptr<Ui::FlatLabel>(
 			box,
-			ph::lng_wallet_invoice_url_about(),
+			(testnet
+				? ph::lng_wallet_invoice_url_about_test()
+				: ph::lng_wallet_invoice_url_about()),
 			st::walletSendAbout),
 		st::walletSendAboutPadding);
 

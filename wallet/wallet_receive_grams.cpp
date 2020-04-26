@@ -21,6 +21,7 @@ void ReceiveGramsBox(
 		not_null<Ui::GenericBox*> box,
 		const QString &address,
 		const QString &link,
+		bool testnet,
 		Fn<void()> createInvoice,
 		Fn<void(QImage, QString)> share) {
 	box->setTitle(ph::lng_wallet_receive_title());
@@ -31,7 +32,9 @@ void ReceiveGramsBox(
 	box->addRow(
 		object_ptr<Ui::FlatLabel>(
 			box,
-			ph::lng_wallet_receive_description(),
+			(testnet
+				? ph::lng_wallet_receive_description_test()
+				: ph::lng_wallet_receive_description()),
 			st::walletLabel),
 		st::walletReceiveLabelPadding);
 

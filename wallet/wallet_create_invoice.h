@@ -13,6 +13,7 @@ namespace Wallet {
 void CreateInvoiceBox(
 	not_null<Ui::GenericBox*> box,
 	const QString &address,
+	bool testnet,
 	Fn<void(QString)> generateQr,
 	Fn<void(QImage, QString)> share);
 

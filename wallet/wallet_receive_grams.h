@@ -14,6 +14,7 @@ void ReceiveGramsBox(
 	not_null<Ui::GenericBox*> box,
 	const QString &address,
 	const QString &link,
+	bool testnet,
 	Fn<void()> createInvoice,
 	Fn<void(QImage, QString)> share);
 
