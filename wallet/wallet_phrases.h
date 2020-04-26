@@ -188,6 +188,7 @@ extern phrase lng_wallet_settings_configuration;
 extern phrase lng_wallet_settings_update_config;
 extern phrase lng_wallet_settings_config_url;
 extern phrase lng_wallet_settings_config_from_file;
+extern phrase lng_wallet_settings_mainnet;
 extern phrase lng_wallet_settings_testnet;
 extern phrase lng_wallet_settings_blockchain_name;
 
@@ -212,7 +213,7 @@ extern Fn<phrase(QString)> lng_wallet_grams_count_sent;
 
 namespace Wallet {
 
-inline constexpr auto kPhrasesCount = 158;
+inline constexpr auto kPhrasesCount = 159;
 
 void SetPhrases(
 	ph::details::phrase_value_array<kPhrasesCount> data,

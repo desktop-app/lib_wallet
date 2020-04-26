@@ -188,7 +188,8 @@ phrase lng_wallet_settings_configuration = "Server Settings";
 phrase lng_wallet_settings_update_config = "Update config automatically";
 phrase lng_wallet_settings_config_url = "Config update URL";
 phrase lng_wallet_settings_config_from_file = "Load from file";
-phrase lng_wallet_settings_testnet = "Use the Test Gram network";
+phrase lng_wallet_settings_mainnet = "Main Network";
+phrase lng_wallet_settings_testnet = "Test Network";
 phrase lng_wallet_settings_blockchain_name = "Blockchain ID";
 
 phrase lng_wallet_warning_reconnect = "If you proceed, you will need to reconnect your wallet using 24 secret words.";
