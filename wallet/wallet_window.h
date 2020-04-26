@@ -22,6 +22,7 @@ struct WalletState;
 struct Error;
 struct Settings;
 enum class ConfigUpgrade;
+struct WalletDetails;
 } // namespace Ton
 
 namespace Ui {
@@ -85,7 +86,7 @@ private:
 		std::shared_ptr<bool> guard);
 	void createSaveKey(
 		const QByteArray &passcode,
-		const QByteArray &restrictInitPublicKey,
+		const Ton::WalletDetails &details,
 		std::shared_ptr<bool> guard);
 
 	void decryptEverything(const QByteArray &publicKey);
