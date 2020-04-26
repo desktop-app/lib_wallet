@@ -357,7 +357,7 @@ void Window::createSavePasscode(
 				return ph::lng_wallet_sync_percent(
 				) | rpl::map([=](QString &&text) {
 					return text.replace("{percent}", percent);
-				});
+				}) | rpl::type_erased();
 			}
 		}, [&](auto&&) {
 			return ph::lng_wallet_sync();
