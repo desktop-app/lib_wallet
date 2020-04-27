@@ -9,6 +9,7 @@
 #include "wallet/wallet_common.h"
 #include "wallet/wallet_phrases.h"
 #include "base/unixtime.h"
+#include "base/flags.h"
 #include "ui/address_label.h"
 #include "ui/inline_diamond.h"
 #include "ui/painter.h"
@@ -26,6 +27,16 @@ namespace {
 constexpr auto kPreloadScreens = 3;
 constexpr auto kCommentLinesMax = 3;
 
+enum class Flag : uchar {
+	Incoming = 0x01,
+	Pending = 0x02,
+	Encrypted = 0x04,
+	Service = 0x08,
+	Initialization = 0x10,
+};
+inline constexpr bool is_flag_type(Flag) { return true; };
+using Flags = base::flags<Flag>;
+
 struct TransactionLayout {
 	TimeId serverTime = 0;
 	QDateTime dateTime;
@@ -38,9 +49,7 @@ struct TransactionLayout {
 	Ui::Text::String fees;
 	int addressWidth = 0;
 	int addressHeight = 0;
-	bool incoming = false;
-	bool pending = false;
-	bool encrypted = false;
+	Flags flags = Flags();
 };
 
 [[nodiscard]] const style::TextStyle &AddressStyle() {
@@ -58,7 +67,7 @@ void RefreshTimeTexts(
 	if (layout.date.isEmpty() && !forceDateText) {
 		return;
 	}
-	if (layout.pending) {
+	if (layout.flags & Flag::Pending) {
 		layout.date.setText(
 			st::semiboldTextStyle,
 			ph::lng_wallet_row_pending_date(ph::now));
@@ -71,23 +80,29 @@ void RefreshTimeTexts(
 
 [[nodiscard]] TransactionLayout PrepareLayout(
 		const Ton::Transaction &data,
-		Fn<void()> decrypt) {
-	auto result = TransactionLayout();
-	result.serverTime = data.time;
+		Fn<void()> decrypt,
+		bool isInitTransaction) {
+	const auto service = IsServiceTransaction(data);
+	const auto encrypted = IsEncryptedMessage(data) && decrypt;
 	const auto amount = FormatAmount(
-		CalculateValue(data),
+		service ? (-data.fee) : CalculateValue(data),
 		FormatFlag::Signed | FormatFlag::Rounded);
-	result.amountGrams.setText(st::walletRowGramsStyle, amount.gramsString);
-	result.amountNano.setText(
-		st::walletRowNanoStyle,
-		amount.separator + amount.nanoString);
+	const auto incoming = !data.incoming.source.isEmpty();
+	const auto pending = (data.id.lt == 0);
 	const auto address = ExtractAddress(data);
 	const auto addressPartWidth = [&](int from, int length = -1) {
 		return AddressStyle().font->width(address.mid(from, length));
 	};
+
+	auto result = TransactionLayout();
+	result.serverTime = data.time;
+	result.amountGrams.setText(st::walletRowGramsStyle, amount.gramsString);
+	result.amountNano.setText(
+		st::walletRowNanoStyle,
+		amount.separator + amount.nanoString);
 	result.address = Ui::Text::String(
 		AddressStyle(),
-		address,
+		service ? QString() : address,
 		_defaultOptions,
 		st::walletAddressWidthMin);
 	result.addressWidth = (AddressStyle().font->spacew / 2) + std::max(
@@ -95,10 +110,9 @@ void RefreshTimeTexts(
 		addressPartWidth(address.size() / 2));
 	result.addressHeight = AddressStyle().font->height * 2;
 	result.comment = Ui::Text::String(st::walletAddressWidthMin);
-	result.encrypted = IsEncryptedMessage(data) && decrypt;
 	result.comment.setText(
 		st::defaultTextStyle,
-		(result.encrypted ? QString() : ExtractMessage(data)),
+		(encrypted ? QString() : ExtractMessage(data)),
 		_textPlainOptions);
 	if (data.fee) {
 		const auto fee = FormatAmount(data.fee).full;
@@ -106,8 +120,12 @@ void RefreshTimeTexts(
 			st::defaultTextStyle,
 			ph::lng_wallet_row_fees(ph::now).replace("{amount}", fee));
 	}
-	result.incoming = !data.incoming.source.isEmpty();
-	result.pending = (data.id.lt == 0);
+	result.flags = Flag(0)
+		| (service ? Flag::Service : Flag(0))
+		| (isInitTransaction ? Flag::Initialization : Flag(0))
+		| (encrypted ? Flag::Encrypted : Flag(0))
+		| (incoming ? Flag::Incoming : Flag(0))
+		| (pending ? Flag::Pending : Flag(0));
 
 	RefreshTimeTexts(result);
 	return result;
@@ -117,7 +135,10 @@ void RefreshTimeTexts(
 
 class HistoryRow final {
 public:
-	HistoryRow(const Ton::Transaction &transaction, Fn<void()> decrypt);
+	explicit HistoryRow(
+		const Ton::Transaction &transaction,
+		Fn<void()> decrypt = nullptr,
+		bool isInitTransaction = false);
 	HistoryRow(const HistoryRow &) = delete;
 	HistoryRow &operator=(const HistoryRow &) = delete;
 
@@ -160,9 +181,10 @@ private:
 
 HistoryRow::HistoryRow(
 	const Ton::Transaction &transaction,
-	Fn<void()> decrypt)
+	Fn<void()> decrypt,
+	bool isInitTransaction)
 : _id(transaction.id)
-, _layout(PrepareLayout(transaction, decrypt)) {
+, _layout(PrepareLayout(transaction, decrypt, isInitTransaction)) {
 }
 
 Ton::TransactionId HistoryRow::id() const {
@@ -221,7 +243,9 @@ void HistoryRow::resizeToWidth(int width) {
 		_height += st::walletRowDateSkip;
 	}
 	_height += padding.top() + _layout.amountGrams.minHeight();
-	_height += st::walletRowAddressTop + _layout.addressHeight;
+	if (!_layout.address.isEmpty()) {
+		_height += st::walletRowAddressTop + _layout.addressHeight;
+	}
 	if (!_layout.comment.isEmpty()) {
 		_commentHeight = std::min(
 			_layout.comment.countHeight(avail),
@@ -261,71 +285,91 @@ void HistoryRow::paint(Painter &p, int x, int y) {
 	}
 	y += padding.top();
 
-	p.setPen(_layout.incoming ? st::boxTextFgGood : st::boxTextFgError);
-	_layout.amountGrams.draw(p, x, y, avail);
+	if (_layout.flags & Flag::Service) {
+		const auto labelLeft = x;
+		const auto labelTop = y
+			+ st::walletRowGramsStyle.font->ascent
+			- st::normalFont->ascent;
+		p.setPen(st::windowFg);
+		p.setFont(st::normalFont);
+		p.drawText(
+			labelLeft,
+			labelTop + st::normalFont->ascent,
+			((_layout.flags & Flag::Initialization)
+				? /*ph::lng_wallet_row_init(ph::now)*/"Wallet initialization"
+				: /*ph::lng_wallet_row_empty(ph::now)*/"Empty transaction"));
+	} else {
+		const auto incoming = (_layout.flags & Flag::Incoming);
+		p.setPen(incoming ? st::boxTextFgGood : st::boxTextFgError);
+		_layout.amountGrams.draw(p, x, y, avail);
 
-	const auto nanoTop = y
-		+ st::walletRowGramsStyle.font->ascent
-		- st::walletRowNanoStyle.font->ascent;
-	const auto nanoLeft = x + _layout.amountGrams.maxWidth();
-	_layout.amountNano.draw(p, nanoLeft, nanoTop, avail);
+		const auto nanoTop = y
+			+ st::walletRowGramsStyle.font->ascent
+			- st::walletRowNanoStyle.font->ascent;
+		const auto nanoLeft = x + _layout.amountGrams.maxWidth();
+		_layout.amountNano.draw(p, nanoLeft, nanoTop, avail);
 
-	const auto diamondTop = y
-		+ st::walletRowGramsStyle.font->ascent
-		- st::normalFont->ascent;
-	const auto diamondLeft = nanoLeft
-		+ _layout.amountNano.maxWidth()
-		+ st::normalFont->spacew;
-	Ui::PaintInlineDiamond(p, diamondLeft, diamondTop, st::normalFont);
+		const auto diamondTop = y
+			+ st::walletRowGramsStyle.font->ascent
+			- st::normalFont->ascent;
+		const auto diamondLeft = nanoLeft
+			+ _layout.amountNano.maxWidth()
+			+ st::normalFont->spacew;
+		Ui::PaintInlineDiamond(p, diamondLeft, diamondTop, st::normalFont);
 
-	const auto labelTop = diamondTop;
-	const auto labelLeft = diamondLeft
-		+ st::walletDiamondSize
-		+ st::normalFont->spacew;
-	p.setPen(st::windowFg);
-	p.setFont(st::normalFont);
-	p.drawText(
-		labelLeft,
-		labelTop + st::normalFont->ascent,
-		(_layout.incoming
-			? ph::lng_wallet_row_from(ph::now)
-			: ph::lng_wallet_row_to(ph::now)));
+		const auto labelTop = diamondTop;
+		const auto labelLeft = diamondLeft
+			+ st::walletDiamondSize
+			+ st::normalFont->spacew;
+		p.setPen(st::windowFg);
+		p.setFont(st::normalFont);
+		p.drawText(
+			labelLeft,
+			labelTop + st::normalFont->ascent,
+			(incoming
+				? ph::lng_wallet_row_from(ph::now)
+				: ph::lng_wallet_row_to(ph::now)));
 
-	const auto timeTop = labelTop;
-	const auto timeLeft = x + avail - _layout.time.maxWidth();
-	p.setPen(st::windowSubTextFg);
-	_layout.time.draw(p, timeLeft, timeTop, avail);
-	if (_layout.encrypted) {
-		const auto iconLeft = x + avail - st::walletCommentIconLeft - st::walletCommentIcon.width();
-		const auto iconTop = labelTop + st::walletCommentIconTop;
-		st::walletCommentIcon.paint(p, iconLeft, iconTop, avail);
-	}
-	if (_layout.pending) {
-		st::walletRowPending.paint(
-			p,
-			(timeLeft
-				- st::walletRowPendingPosition.x()
-				- st::walletRowPending.width()),
-			timeTop + st::walletRowPendingPosition.y(),
-			avail);
+		const auto timeTop = labelTop;
+		const auto timeLeft = x + avail - _layout.time.maxWidth();
+		p.setPen(st::windowSubTextFg);
+		_layout.time.draw(p, timeLeft, timeTop, avail);
+		if (_layout.flags & Flag::Encrypted) {
+			const auto iconLeft = x
+				+ avail
+				- st::walletCommentIconLeft
+				- st::walletCommentIcon.width();
+			const auto iconTop = labelTop + st::walletCommentIconTop;
+			st::walletCommentIcon.paint(p, iconLeft, iconTop, avail);
+		}
+		if (_layout.flags & Flag::Pending) {
+			st::walletRowPending.paint(
+				p,
+				(timeLeft
+					- st::walletRowPendingPosition.x()
+					- st::walletRowPending.width()),
+				timeTop + st::walletRowPendingPosition.y(),
+				avail);
+		}
 	}
 	y += _layout.amountGrams.minHeight();
 
-	p.setPen(st::windowFg);
-	y += st::walletRowAddressTop;
-	_layout.address.drawElided(
-		p,
-		x,
-		y,
-		_layout.addressWidth,
-		2,
-		style::al_topleft,
-		0,
-		-1,
-		0,
-		true);
-	y += _layout.addressHeight;
-
+	if (!_layout.address.isEmpty()) {
+		p.setPen(st::windowFg);
+		y += st::walletRowAddressTop;
+		_layout.address.drawElided(
+			p,
+			x,
+			y,
+			_layout.addressWidth,
+			2,
+			style::al_topleft,
+			0,
+			-1,
+			0,
+			true);
+		y += _layout.addressHeight;
+	}
 	if (!_layout.comment.isEmpty()) {
 		y += st::walletRowCommentTop;
 		if (_decryptionFailed) {
@@ -521,11 +565,16 @@ void History::setupContent(
 	) | rpl::filter([=](const Ton::LoadedSlice &slice) {
 		return (slice.after == _previousId);
 	}) | rpl::start_with_next([=](Ton::LoadedSlice &&slice) {
+		const auto loadedLast = (_previousId.lt != 0)
+			&& (slice.data.previousId.lt == 0);
 		_previousId = slice.data.previousId;
 		_listData.insert(
 			end(_listData),
 			slice.data.list.begin(),
 			slice.data.list.end());
+		if (loadedLast) {
+			computeInitTransactionId();
+		}
 		refreshRows();
 	}, lifetime());
 
@@ -705,6 +754,9 @@ bool History::mergeListChanged(Ton::TransactionsSlice &&data) {
 	if (i == data.list.cend()) {
 		_listData = data.list | ranges::to_vector;
 		_previousId = std::move(data.previousId);
+		if (!_previousId.lt) {
+			computeInitTransactionId();
+		}
 		return true;
 	} else if (i != data.list.cbegin()) {
 		_listData.insert(begin(_listData), data.list.cbegin(), i);
@@ -746,9 +798,41 @@ bool History::takeDecrypted(
 std::unique_ptr<HistoryRow> History::makeRow(const Ton::Transaction &data) {
 	const auto id = data.id;
 	if (const auto pending = (id.lt == 0)) {
-		return std::make_unique<HistoryRow>(data, nullptr);
+		return std::make_unique<HistoryRow>(data);
 	}
-	return std::make_unique<HistoryRow>(data, [=] { decryptById(id); });
+	const auto isInitTransaction = (_initTransactionId == id);
+	return std::make_unique<HistoryRow>(
+		data,
+		[=] { decryptById(id); },
+		isInitTransaction);
+}
+
+void History::computeInitTransactionId() {
+	const auto was = _initTransactionId;
+	auto found = static_cast<const Ton::Transaction*>(nullptr);
+	for (const auto &row : ranges::view::reverse(_listData)) {
+		if (IsServiceTransaction(row)) {
+			found = &row;
+			break;
+		} else if (row.incoming.source.isEmpty()) {
+			break;
+		}
+	}
+	const auto now = found ? found->id : Ton::TransactionId();
+	if (was == now) {
+		return;
+	}
+
+	_initTransactionId = now;
+	const auto wasItem = ranges::find(_listData, was, &Ton::Transaction::id);
+	const auto wasRow = ranges::find(_rows, was, &HistoryRow::id);
+	if (wasItem != end(_listData) && wasRow != end(_rows)) {
+		*wasRow = makeRow(*wasItem);
+	}
+	const auto nowRow = ranges::find(_rows, now, &HistoryRow::id);
+	if (found && nowRow != end(_rows)) {
+		*nowRow = makeRow(*found);
+	}
 }
 
 void History::refreshShowDates() {

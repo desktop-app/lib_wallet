@@ -245,6 +245,14 @@ bool IsEncryptedMessage(const Ton::Transaction &data) {
 	return !message.encrypted.isEmpty() && !message.decrypted;
 }
 
+bool IsServiceTransaction(const Ton::Transaction &data) {
+	return data.outgoing.empty()
+		&& data.incoming.source.isEmpty()
+		&& data.incoming.message.text.isEmpty()
+		&& data.incoming.message.encrypted.isEmpty()
+		&& !data.incoming.value;
+}
+
 QString ExtractMessage(const Ton::Transaction &data) {
 	const auto &message = data.outgoing.empty()
 		? data.incoming.message

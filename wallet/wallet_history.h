@@ -69,6 +69,7 @@ private:
 	void releaseRow();
 	void decryptById(const Ton::TransactionId &id);
 
+	void computeInitTransactionId();
 	void refreshShowDates();
 	void setRowShowDate(
 		const std::unique_ptr<HistoryRow> &row,
@@ -84,6 +85,7 @@ private:
 	std::vector<Ton::PendingTransaction> _pendingData;
 	std::vector<Ton::Transaction> _listData;
 	Ton::TransactionId _previousId;
+	Ton::TransactionId _initTransactionId;
 
 	std::vector<std::unique_ptr<HistoryRow>> _pendingRows;
 	std::vector<std::unique_ptr<HistoryRow>> _rows;
