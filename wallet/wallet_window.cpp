@@ -337,7 +337,7 @@ void Window::createSavePasscode(
 		return;
 	}
 	if (!_importing) {
-		createSaveKey(passcode, Ton::WalletDetails{}, std::move(guard));
+		createSaveKey(passcode, QString(), std::move(guard));
 		return;
 	}
 	rpl::single(
@@ -365,7 +365,7 @@ void Window::createSavePasscode(
 	}) | rpl::flatten_latest(
 	) | rpl::start_to_stream(_createSyncing, _createManager->lifetime());
 
-	const auto done = [=](Ton::Result<Ton::WalletDetails> result) {
+	const auto done = [=](Ton::Result<QString> result) {
 		if (!result) {
 			*guard = false;
 			showGenericError(result.error());
@@ -373,12 +373,12 @@ void Window::createSavePasscode(
 		}
 		createSaveKey(passcode, *result, guard);
 	};
-	_wallet->queryWalletDetails(crl::guard(this, done));
+	_wallet->queryWalletAddress(crl::guard(this, done));
 }
 
 void Window::createSaveKey(
 		const QByteArray &passcode,
-		const Ton::WalletDetails &details,
+		const QString &address,
 		std::shared_ptr<bool> guard) {
 	const auto done = [=](Ton::Result<QByteArray> result) {
 		*guard = false;
@@ -388,7 +388,7 @@ void Window::createSaveKey(
 		}
 		_createManager->showReady(*result);
 	};
-	_wallet->saveKey(passcode, details, crl::guard(this, done));
+	_wallet->saveKey(passcode, address, crl::guard(this, done));
 }
 
 void Window::showAccount(const QByteArray &publicKey, bool justCreated) {
