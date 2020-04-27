@@ -741,7 +741,7 @@ void Window::confirmTransaction(
 		const PreparedInvoice &invoice,
 		Fn<void(InvoiceField)> showInvoiceError,
 		std::shared_ptr<bool> guard) {
-	if (*guard) {
+	if (*guard || !_sendBox) {
 		return;
 	}
 	*guard = true;
@@ -768,7 +768,7 @@ void Window::confirmTransaction(
 	_wallet->checkSendGrams(
 		_wallet->publicKeys().front(),
 		TransactionFromInvoice(invoice),
-		crl::guard(this, done));
+		crl::guard(_sendBox.data(), done));
 }
 
 void Window::askSendPassword(
@@ -1109,6 +1109,9 @@ void Window::saveSettingsSure(
 	};
 	_wallet->updateSettings(settings, [=](Ton::Result<> result) {
 		if (!result) {
+			if (_wallet->publicKeys().empty()) {
+				showCreate();
+			}
 			showError(result.error());
 		} else {
 			done();
