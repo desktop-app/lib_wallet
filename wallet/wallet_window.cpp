@@ -838,7 +838,9 @@ void Window::showSendConfirmation(
 		Fn<void(InvoiceField)> showInvoiceError) {
 	const auto account = _state.current().account;
 	const auto available = account.fullBalance - account.lockedBalance;
-	if (invoice.amount + checkResult.sourceFees.sum() > available) {
+	if (invoice.amount == available && account.lockedBalance == 0) {
+		// Special case transaction where we transfer all that is left.
+	} else if (invoice.amount + checkResult.sourceFees.sum() > available) {
 		showInvoiceError(InvoiceField::Amount);
 		return;
 	}
