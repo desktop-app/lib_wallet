@@ -309,6 +309,9 @@ walletBox: Box(defaultBox) {
 	buttonPadding: margins(16px, 16px, 16px, 16px);
 	buttonHeight: 39px;
 }
+walletNoButtonsBox: Box(walletBox) {
+	buttonHeight: 0px;
+}
 walletBottomButton: RoundButton(defaultActiveButton) {
 	width: 288px;
 	height: 39px;

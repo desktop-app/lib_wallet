@@ -296,8 +296,8 @@ void HistoryRow::paint(Painter &p, int x, int y) {
 			labelLeft,
 			labelTop + st::normalFont->ascent,
 			((_layout.flags & Flag::Initialization)
-				? /*ph::lng_wallet_row_init(ph::now)*/"Wallet initialization"
-				: /*ph::lng_wallet_row_empty(ph::now)*/"Empty transaction"));
+				? ph::lng_wallet_row_init(ph::now)
+				: ph::lng_wallet_row_service(ph::now)));
 	} else {
 		const auto incoming = (_layout.flags & Flag::Incoming);
 		p.setPen(incoming ? st::boxTextFgGood : st::boxTextFgError);
@@ -809,8 +809,8 @@ std::unique_ptr<HistoryRow> History::makeRow(const Ton::Transaction &data) {
 
 void History::computeInitTransactionId() {
 	const auto was = _initTransactionId;
-	auto found = static_cast<const Ton::Transaction*>(nullptr);
-	for (const auto &row : ranges::view::reverse(_listData)) {
+	auto found = static_cast<Ton::Transaction*>(nullptr);
+	for (auto &row : ranges::view::reverse(_listData)) {
 		if (IsServiceTransaction(row)) {
 			found = &row;
 			break;
@@ -825,13 +825,19 @@ void History::computeInitTransactionId() {
 
 	_initTransactionId = now;
 	const auto wasItem = ranges::find(_listData, was, &Ton::Transaction::id);
-	const auto wasRow = ranges::find(_rows, was, &HistoryRow::id);
-	if (wasItem != end(_listData) && wasRow != end(_rows)) {
-		*wasRow = makeRow(*wasItem);
+	if (wasItem != end(_listData)) {
+		wasItem->initializing = false;
+		const auto wasRow = ranges::find(_rows, was, &HistoryRow::id);
+		if (wasRow != end(_rows)) {
+			*wasRow = makeRow(*wasItem);
+		}
 	}
-	const auto nowRow = ranges::find(_rows, now, &HistoryRow::id);
-	if (found && nowRow != end(_rows)) {
-		*nowRow = makeRow(*found);
+	if (found) {
+		found->initializing = true;
+		const auto nowRow = ranges::find(_rows, now, &HistoryRow::id);
+		if (nowRow != end(_rows)) {
+			*nowRow = makeRow(*found);
+		}
 	}
 }
 

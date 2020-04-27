@@ -90,6 +90,8 @@ phrase lng_wallet_empty_history_address = "Your wallet address";
 
 phrase lng_wallet_row_from = "from:";
 phrase lng_wallet_row_to = "to:";
+phrase lng_wallet_row_init = "Wallet initialization";
+phrase lng_wallet_row_service = "Empty transaction";
 phrase lng_wallet_row_fees = "blockchain fees: {amount}";
 phrase lng_wallet_row_pending_date = "Pending";
 phrase lng_wallet_click_to_decrypt = "Enter password to view comment";
