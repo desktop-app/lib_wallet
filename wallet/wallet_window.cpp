@@ -839,9 +839,15 @@ void Window::showSendConfirmation(
 		Fn<void(InvoiceField)> showInvoiceError) {
 	const auto account = _state.current().account;
 	const auto available = account.fullBalance - account.lockedBalance;
-	if (invoice.amount == available && account.lockedBalance == 0) {
-		// Special case transaction where we transfer all that is left.
-	} else if (invoice.amount + checkResult.sourceFees.sum() > available) {
+	// This may be enabled in the future, but right now it is not safe.
+	// You could think that you transfer specific amount, but really
+	// you're transferring all the remaining funds, even if they change
+	// while the transfer request is already being sent.
+	//
+	//if (invoice.amount == available && account.lockedBalance == 0) {
+	//	// Special case transaction where we transfer all that is left.
+	//} else
+	if (invoice.amount + checkResult.sourceFees.sum() > available) {
 		showInvoiceError(InvoiceField::Amount);
 		return;
 	}
