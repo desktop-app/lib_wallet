@@ -21,7 +21,6 @@ enum class Action;
 class Info final {
 public:
 	struct Data {
-		bool justCreated = false;
 		rpl::producer<Ton::WalletViewerState> state;
 		rpl::producer<Ton::Result<Ton::LoadedSlice>> loaded;
 		rpl::producer<Ton::Update> updates;
@@ -30,6 +29,8 @@ public:
 		rpl::producer<
 			not_null<const std::vector<Ton::Transaction>*>> updateDecrypted;
 		Fn<void(QImage, QString)> share;
+		bool justCreated = false;
+		bool useTestNetwork = false;
 	};
 	Info(not_null<QWidget*> parent, Data data);
 	~Info();

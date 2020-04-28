@@ -107,7 +107,9 @@ void Cover::setupBalance() {
 
 	const auto label = Ui::CreateChild<Ui::FlatLabel>(
 		&_widget,
-		ph::lng_wallet_cover_balance(),
+		(_state.current().useTestNetwork
+			? ph::lng_wallet_cover_balance_test()
+			: ph::lng_wallet_cover_balance()),
 		st::walletCoverLabel);
 	rpl::combine(
 		_widget.sizeValue(),
@@ -269,7 +271,8 @@ void Cover::setupControls() {
 
 rpl::producer<CoverState> MakeCoverState(
 		rpl::producer<Ton::WalletViewerState> state,
-		bool justCreated) {
+		bool justCreated,
+		bool useTestNetwork) {
 	return std::move(
 		state
 	) | rpl::map([=](const Ton::WalletViewerState &data) {
@@ -277,7 +280,8 @@ rpl::producer<CoverState> MakeCoverState(
 		return CoverState{
 			.unlockedBalance = account.fullBalance - account.lockedBalance,
 			.lockedBalance = account.lockedBalance,
-			.justCreated = justCreated
+			.justCreated = justCreated,
+			.useTestNetwork = useTestNetwork
 		};
 	});
 }

@@ -67,7 +67,10 @@ void Info::setupControls(Data &&data) {
 
 	const auto cover = _widget->lifetime().make_state<Cover>(
 		_inner.get(),
-		MakeCoverState(rpl::duplicate(state), data.justCreated));
+		MakeCoverState(
+			rpl::duplicate(state),
+			data.justCreated,
+			data.useTestNetwork));
 	rpl::merge(
 		cover->sendRequests() | rpl::map([] { return Action::Send; }),
 		cover->receiveRequests() | rpl::map([] { return Action::Receive; })

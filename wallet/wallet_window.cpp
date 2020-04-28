@@ -419,6 +419,7 @@ void Window::showAccount(const QByteArray &publicKey, bool justCreated) {
 	data.collectEncrypted = _collectEncryptedRequests.events();
 	data.updateDecrypted = _decrypted.events();
 	data.share = shareAddressCallback();
+	data.useTestNetwork = _wallet->settings().useTestNetwork;
 	_info = std::make_unique<Info>(_window->body(), std::move(data));
 	_layers->raise();
 

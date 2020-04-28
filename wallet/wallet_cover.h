@@ -18,6 +18,7 @@ struct CoverState {
 	int64 unlockedBalance = 0;
 	int64 lockedBalance = 0;
 	bool justCreated = false;
+	bool useTestNetwork = false;
 };
 
 class Cover final {
@@ -46,6 +47,7 @@ private:
 
 [[nodiscard]] rpl::producer<CoverState> MakeCoverState(
 	rpl::producer<Ton::WalletViewerState> state,
-	bool justCreated);
+	bool justCreated,
+	bool useTestNetwork);
 
 } // namespace Wallet

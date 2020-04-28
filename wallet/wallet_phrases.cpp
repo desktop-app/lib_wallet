@@ -76,6 +76,7 @@ phrase lng_wallet_refreshing = "updating...";
 phrase lng_wallet_refreshed_just_now = "updated just now";
 
 phrase lng_wallet_cover_balance = "Your balance";
+phrase lng_wallet_cover_balance_test = "Your test balance";
 phrase lng_wallet_cover_locked = "locked";
 phrase lng_wallet_cover_receive_full = "Receive Grams";
 phrase lng_wallet_cover_receive = "Receive";

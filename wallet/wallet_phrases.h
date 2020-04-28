@@ -76,6 +76,7 @@ extern phrase lng_wallet_refreshing;
 extern phrase lng_wallet_refreshed_just_now;
 
 extern phrase lng_wallet_cover_balance;
+extern phrase lng_wallet_cover_balance_test;
 extern phrase lng_wallet_cover_locked;
 extern phrase lng_wallet_cover_receive_full;
 extern phrase lng_wallet_cover_receive;
@@ -216,7 +217,7 @@ extern Fn<phrase(QString)> lng_wallet_grams_count_sent;
 
 namespace Wallet {
 
-inline constexpr auto kPhrasesCount = 162;
+inline constexpr auto kPhrasesCount = 163;
 
 void SetPhrases(
 	ph::details::phrase_value_array<kPhrasesCount> data,
