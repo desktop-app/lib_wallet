@@ -15,20 +15,12 @@
 #include <QtGui/QPainter>
 
 namespace Ui {
-namespace {
-
-style::font MonospaceFont(const style::font &parent) {
-	const auto family = style::MonospaceFont()->family();
-	return style::font(parent->size(), parent->flags(), family);
-}
-
-} // namespace
 
 style::TextStyle ComputeAddressStyle(const style::TextStyle &parent) {
 	auto result = parent;
-	result.font = MonospaceFont(result.font);
-	result.linkFont = MonospaceFont(result.linkFont);
-	result.linkFontOver = MonospaceFont(result.linkFontOver);
+	result.font = result.font->monospace();
+	result.linkFont = result.linkFont->monospace();
+	result.linkFontOver = result.linkFontOver->monospace();
 	return result;
 }
 

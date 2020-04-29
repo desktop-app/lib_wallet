@@ -988,7 +988,7 @@ Fn<void(QImage, QString)> Window::shareAddressCallback() {
 
 void Window::showToast(const QString &text) {
 	auto toast = Ui::Toast::Config();
-	toast.text = text;
+	toast.text = { text };
 	Ui::Toast::Show(_window.get(), toast);
 }
 
