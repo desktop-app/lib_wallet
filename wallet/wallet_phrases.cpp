@@ -137,9 +137,9 @@ phrase lng_wallet_invoice_copied = "Invoice link copied to clipboard.";
 phrase lng_wallet_menu_settings = "Settings";
 phrase lng_wallet_menu_change_passcode = "Change password";
 phrase lng_wallet_menu_export = "Back up wallet";
-phrase lng_wallet_menu_delete = "Delete wallet";
+phrase lng_wallet_menu_delete = "Log Out";
 
-phrase lng_wallet_delete_title = "Delete Wallet";
+phrase lng_wallet_delete_title = "Log Out";
 phrase lng_wallet_delete_about = "This will disconnect the wallet from this app. You will be able to restore your wallet using **24 secret words** \xe2\x80\x93 or import another wallet.\n\nWallets are located in the decentralized TON Blockchain. If you want the wallet to be deleted simply transfer all the Grams from it and leave it empty.";
 phrase lng_wallet_delete_disconnect = "Disconnect";
 
