@@ -302,12 +302,12 @@ void SettingsBox(
 	const auto testnetWrap = box->addRow(
 		object_ptr<Ui::FixedHeightWidget>(
 			box,
-			(st::defaultCheckbox.margin.top()
+			0/*(st::defaultCheckbox.margin.top() // #TODO postponed
 				+ st::defaultRadio.diameter
-				+ st::defaultCheckbox.margin.bottom())),
+				+ st::defaultCheckbox.margin.bottom())*/),
 		QMargins());
-	const auto net = std::make_shared<Ui::RadiobuttonGroup>(
-		settings.useTestNetwork ? 1 : 0);
+	const auto net = std::make_shared<Ui::RadiobuttonGroup>(1);
+		//settings.useTestNetwork ? 1 : 0); // #TODO postponed
 	const auto mainnet = Ui::CreateChild<Ui::Radiobutton>(
 		testnetWrap,
 		net,
@@ -351,8 +351,8 @@ void SettingsBox(
 	});
 
 	const auto collectSettings = [=] {
-		auto result = settings;
-		result.useTestNetwork = (net->value() == 1);
+		auto result = settings; // #TODO postponed
+		result.useTestNetwork = true;// (net->value() == 1);
 		auto &change = result.net();
 		if (result.useTestNetwork) {
 			change.blockchainName = name->getLastText().trimmed();
@@ -369,7 +369,7 @@ void SettingsBox(
 	const auto validate = [=] {
 		const auto updated = name->getLastText().trimmed();
 		if (updated.isEmpty()
-			|| ((net->value() == 1)
+			|| (true// (net->value() == 1) // #TODO postponed
 				&& !updated.compare("mainnet", Qt::CaseInsensitive))) {
 			name->showError();
 			return false;
