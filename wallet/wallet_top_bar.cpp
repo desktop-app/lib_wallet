@@ -201,9 +201,9 @@ rpl::producer<TopBarState> MakeTopBarState(
 	) | rpl::then(std::move(
 		updates
 	) | rpl::filter([](const Ton::Update &update) {
-		return update.data.is<Ton::SyncState>();
+		return v::is<Ton::SyncState>(update.data);
 	}) | rpl::map([](const Ton::Update &update) {
-		return update.data.get<Ton::SyncState>();
+		return v::get<Ton::SyncState>(update.data);
 	}));
 	return rpl::combine(
 		std::move(state),

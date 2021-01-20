@@ -125,7 +125,7 @@ void SetupScrollByDrag(
 		box->geometryValue()
 	) | rpl::start_with_next([=](std::optional<int> y, QRect geometry) {
 		if (!y) {
-			box->onDraggingScrollDelta(0);
+			box->scrollByDraggingDelta(0);
 			return;
 		}
 		const auto parent = box->parentWidget();
@@ -137,7 +137,7 @@ void SetupScrollByDrag(
 			: (*y > bottom)
 			? (*y - bottom)
 			: 0;
-		box->onDraggingScrollDelta(delta);
+		box->scrollByDraggingDelta(delta);
 	}, child->lifetime());
 }
 
