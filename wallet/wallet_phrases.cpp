@@ -8,6 +8,7 @@
 
 #include <QtCore/QDate>
 #include <QtCore/QTime>
+#include <QtCore/QLocale>
 
 namespace ph {
 
@@ -266,7 +267,7 @@ Fn<phrase(QDate)> lng_wallet_short_date = [](QDate date) {
 };
 
 Fn<phrase(QTime)> lng_wallet_short_time = [](QTime time) {
-	return time.toString(Qt::SystemLocaleShortDate);
+	return QLocale::system().toString(time, QLocale::ShortFormat);
 };
 
 Fn<phrase(QString)> lng_wallet_grams_count = [](QString text) {

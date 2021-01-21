@@ -21,6 +21,7 @@
 #include "styles/palette.h"
 
 #include <QtCore/QDateTime>
+#include <QtCore/QLocale>
 #include <QtGui/QtEvents>
 
 namespace Wallet {
@@ -232,9 +233,8 @@ void ViewTransactionBox(
 	box->addRow(
 		object_ptr<Ui::FlatLabel>(
 			box,
-			base::unixtime::parse(
-				data.time
-			).toString(Qt::DefaultLocaleLongDate),
+			QLocale().toString(
+				base::unixtime::parse(data.time)),
 			st::walletLabel),
 		{
 			st::boxRowPadding.left(),
